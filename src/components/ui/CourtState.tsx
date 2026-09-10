@@ -12,7 +12,7 @@ export function CourtLoading({
   return (
     <div className="sf-court-state" role="status" aria-live="polite">
       <div className="sf-court-state-rail" aria-hidden />
-      <p className="sf-kicker">Strokeform</p>
+      <p className="sf-kicker">Racket Form</p>
       <p className="mt-3 font-[family-name:var(--font-display)] text-lg font-semibold tracking-tight">
         {label}
       </p>

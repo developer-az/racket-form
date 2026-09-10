@@ -7,7 +7,7 @@ const BENEFITS = [
   },
   {
     title: "Faster return visits",
-    body: "Skip re-entering your setup — Strokeform remembers what you play and what you changed.",
+    body: "Skip re-entering your setup — Racket Form remembers what you play and what you changed.",
   },
   {
     title: "Still works offline",
@@ -29,7 +29,7 @@ export function AccountShell({
   return (
     <div className="sf-page flex max-w-[1040px] flex-col gap-10 md:flex-row md:items-start md:gap-14">
       <aside className="md:w-[42%] md:pt-2">
-        <p className="sf-kicker">Strokeform account</p>
+        <p className="sf-kicker">Racket Form account</p>
         <h1 className="mt-3 font-[family-name:var(--font-display)] text-3xl font-semibold tracking-tight text-[var(--foreground)] md:text-[2rem]">
           {title}
         </h1>
@@ -46,7 +46,7 @@ export function AccountShell({
         </ul>
         <p className="mt-8 text-xs leading-relaxed text-[var(--muted)]">
           By creating an account you agree to store your coaching profile securely for sync across
-          devices. Strokeform runs the same mold and rule engines whether you&apos;re signed in or
+          devices. Racket Form runs the same mold and rule engines whether you&apos;re signed in or
           playing on this device.
         </p>
       </aside>

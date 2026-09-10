@@ -1,15 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit, Source_Sans_3, IBM_Plex_Mono } from "next/font/google";
+import { Syne, Source_Sans_3, IBM_Plex_Mono } from "next/font/google";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { MobileAppNav } from "@/components/layout/MobileAppNav";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import "./globals.css";
 
-const display = Outfit({
+const display = Syne({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["500", "600", "700", "800"],
 });
 
 const sans = Source_Sans_3({
@@ -25,12 +25,26 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  applicationName: "Racket Form",
   title: {
-    default: "Strokeform — Tennis Mold, Form Lab & Gear Intelligence",
-    template: "%s · Strokeform",
+    default: "Racket Form — Form Lab & Gear Intelligence",
+    template: "%s · Racket Form",
   },
   description:
     "Scrub elite stroke rails in 3D, mold your bag with skill spans and quirks, and keep every gear change accountable to how you play.",
+  openGraph: {
+    siteName: "Racket Form",
+    title: "Racket Form — Form Lab & Gear Intelligence",
+    description:
+      "Scrub elite stroke rails in 3D, mold your bag with skill spans and quirks, and keep every gear change accountable to how you play.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Racket Form — Form Lab & Gear Intelligence",
+    description:
+      "Scrub elite stroke rails in 3D, mold your bag with skill spans and quirks, and keep every gear change accountable to how you play.",
+  },
 };
 
 export const viewport: Viewport = {
@@ -38,13 +52,13 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f3f6f4" },
-    { media: "(prefers-color-scheme: dark)", color: "#121211" },
+    { media: "(prefers-color-scheme: light)", color: "#eef6f1" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1410" },
   ],
 };
 
-/** Inline script avoids flash before React hydrates theme from localStorage / prefers-color-scheme. */
-const themeBoot = `(function(){try{var k='strokeform-theme';var s=localStorage.getItem(k);var m=s==='light'||s==='dark'?s:(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.setAttribute('data-theme',m);document.documentElement.style.colorScheme=m;}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();`;
+/** Prefer light when unset; only dark when stored or OS prefers dark. */
+const themeBoot = `(function(){try{var k='strokeform-theme';var s=localStorage.getItem(k);var m=s==='light'||s==='dark'?s:(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',m);document.documentElement.style.colorScheme=m;}catch(e){document.documentElement.setAttribute('data-theme','light');}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

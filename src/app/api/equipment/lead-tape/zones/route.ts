@@ -4,7 +4,7 @@ import { LEAD_TAPE_MASS_PRESETS, LEAD_TAPE_ZONES } from "@/lib/equipment/leadTap
 export async function GET() {
   return Response.json({
     meta: {
-      source: "Strokeform lead-tape coaching model",
+      source: "Racket Form lead-tape coaching model",
       note: "Masses and zone effects are coaching-grade estimates, not lab certificates.",
     },
     massPresetsG: [...LEAD_TAPE_MASS_PRESETS],

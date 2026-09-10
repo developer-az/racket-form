@@ -1,6 +1,7 @@
 "use client";
 
-import { useDeferredValue, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type { EquipmentTab, RacketCatalogMeta, RacketProfile } from "@/types/equipment";
 import { matchesEquipmentSearch, searchMatchScore } from "@/lib/equipment/search";
 import { racketImageUrl } from "@/lib/equipment/media/urls";
@@ -82,6 +83,7 @@ export function RacketExplorer({
   const setRacket = useGearStore((s) => s.setRacket);
   const setTab = useGearStore((s) => s.setTab);
   const playerGrip = usePlayerStore((s) => s.profile.grips.forehand);
+  const searchParams = useSearchParams();
   const [selectedSlug, setSelectedSlug] = useState(
     setupSlug && initialRackets.some((r) => r.slug === setupSlug)
       ? setupSlug
@@ -89,6 +91,13 @@ export function RacketExplorer({
   );
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const deferredQuery = useDeferredValue(query);
+
+  useEffect(() => {
+    const slug = searchParams.get("racket");
+    if (slug && initialRackets.some((r) => r.slug === slug)) {
+      setSelectedSlug(slug);
+    }
+  }, [searchParams, initialRackets]);
 
   const brands = useMemo(() => {
     const all = uniqueSortedBrands(initialRackets);

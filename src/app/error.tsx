@@ -22,7 +22,7 @@ export default function Error({
           That play didn&apos;t clear the net
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
-          Strokeform hit an unexpected error. Retry this surface, or jump back to a known-good rail.
+          Racket Form hit an unexpected error. Retry this surface, or jump back to a known-good rail.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <button type="button" onClick={reset} className="sf-btn sf-btn-primary">

@@ -7,7 +7,7 @@ export function SiteFooter({ note }: { note?: string }) {
       <div className="mx-auto grid w-full max-w-[var(--page-max-wide)] gap-10 px-[max(1rem,env(safe-area-inset-left))] py-12 md:grid-cols-[1.4fr_1fr_1fr] md:px-10 md:py-14">
         <div>
           <p className="font-[family-name:var(--font-display)] text-sm font-semibold tracking-[0.12em]">
-            STROKEFORM
+            Racket Form
           </p>
           <p className="mt-3 max-w-sm text-sm leading-relaxed text-[var(--muted)]">
             Biomechanics you can scrub, multi-source gear intelligence with skill spans and quirks,
@@ -33,6 +33,11 @@ export function SiteFooter({ note }: { note?: string }) {
               </Link>
             </li>
             <li>
+              <Link href="/pickleball" className="text-[var(--foreground)]/85 transition hover:text-[var(--accent)]">
+                Pickleball
+              </Link>
+            </li>
+            <li>
               <Link href="/account" className="text-[var(--foreground)]/85 transition hover:text-[var(--accent)]">
                 Account
               </Link>
@@ -49,7 +54,7 @@ export function SiteFooter({ note }: { note?: string }) {
       </div>
       <div className="border-t border-[var(--line)]">
         <div className="mx-auto flex w-full max-w-[var(--page-max-wide)] flex-wrap items-center justify-between gap-2 px-[max(1rem,env(safe-area-inset-left))] py-4 text-[11px] text-[var(--muted)] md:px-10">
-          <p>© {year} Strokeform</p>
+          <p>© {year} Racket Form</p>
           <p className="tracking-[0.08em] uppercase">Logged feel outweighs spec math</p>
         </div>
       </div>

@@ -19,7 +19,7 @@ export default function GlobalError({
       <body className="flex min-h-dvh flex-col items-center justify-center bg-[#0a1812] px-6 text-[#eef3ef]">
         <div className="max-w-md border border-white/10 bg-[#0d1c16] p-8">
           <p className="text-[10px] font-semibold tracking-[0.18em] text-[#c5e85a] uppercase">
-            Strokeform
+            Racket Form
           </p>
           <h1 className="mt-3 text-2xl font-semibold tracking-tight">Something broke on court</h1>
           <p className="mt-3 text-sm leading-relaxed text-[#9aada3]">

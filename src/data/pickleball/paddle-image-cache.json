@@ -1,0 +1,94 @@
+{
+  "meta": {
+    "source": "Tennis Warehouse CDN",
+    "count": 17,
+    "note": "Matched curated pickleball paddles to TW product codes for real photos."
+  },
+  "paddles": {
+    "joola-perseus-pro-iv-16": {
+      "code": "JPERP4",
+      "title": "JOOLA Ben Johns Perseus Pro IV Pickleball Paddle",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=JPERP4-1.jpg&nw=400"
+    },
+    "joola-perseus-pro-iv-14": {
+      "code": "JPERP4",
+      "title": "JOOLA Ben Johns Perseus Pro IV Pickleball Paddle",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=JPERP4-1.jpg&nw=400"
+    },
+    "crbn-trufoam-genesis-1": {
+      "code": "CBTFP1",
+      "title": "CRBN TruFoam Genesis 1 Pickleball Paddle",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=CBTFP1-1.jpg&nw=400"
+    },
+    "crbn-trufoam-genesis-4": {
+      "code": "CBTFP4",
+      "title": "CRBN TruFoam Genesis 4 Pickleball Paddle",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=CBTFP4-1.jpg&nw=400"
+    },
+    "crbn-1x-16": {
+      "code": "PS16PA",
+      "title": "CRBN 1 X-Series 16mm Pickleball Paddle",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=PS16PA-1.jpg&nw=400"
+    },
+    "gearbox-pro-ultimate-power": {
+      "code": "GBPULPW",
+      "title": "Gearbox Pro Ultimate Power Pickleball Paddle",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=GBPULPW-1.jpg&nw=400"
+    },
+    "gearbox-pro-ultimate-hyper": {
+      "code": "GBPULHY",
+      "title": "Gearbox Pro Ultimate Hyper Pickleball Paddle",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=GBPULHY-1.jpg&nw=400"
+    },
+    "gearbox-gx2-elongated": {
+      "code": "GBGX2EL",
+      "title": "Gearbox GX2 Elongated Pickleball Paddle",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=GBGX2EL-1.jpg&nw=400"
+    },
+    "six-zero-ruby-16": {
+      "code": "SZERUBY",
+      "title": "Six Zero Ruby Pickleball Paddle",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=SZERUBY-1.jpg&nw=400"
+    },
+    "six-zero-ruby-pro": {
+      "code": "SZRPR",
+      "title": "Six Zero Ruby Pro Pickleball Paddle",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=SZRPR-1.jpg&nw=400"
+    },
+    "selkirk-labs-008-invikta": {
+      "code": "SELAB8I",
+      "title": "Selkirk LABS Project 008 Invikta Pickleball Paddle",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=SELAB8I-1.jpg&nw=400"
+    },
+    "selkirk-labs-008-epic": {
+      "code": "SELAB8E",
+      "title": "Selkirk LABS Project 008 Epic Pickleball Paddle",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=SELAB8E-1.jpg&nw=400"
+    },
+    "selkirk-luxx-infinigrit-invikta": {
+      "code": "BESTS03",
+      "title": "Selkirk LUXX InfiniGrit Invikta Pickleball Paddle",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=BESTS03-1.jpg&nw=400"
+    },
+    "paddletek-bantam-tko-c-14": {
+      "code": "PTBTK14",
+      "title": "Paddletek Bantam TKO-C Pickleball Paddle",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=PTBTK14-1.jpg&nw=400"
+    },
+    "franklin-c45-dynasty-16": {
+      "code": "FC45PDY",
+      "title": "Franklin C45 Carbon Fiber Dynasty Pickleball Paddle",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=FC45PDY-1.jpg&nw=400"
+    },
+    "engage-alpha-pro-16": {
+      "code": "EPALPRO",
+      "title": "Engage Alpha Pro Pickleball Paddle",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=EPALPRO-1.jpg&nw=400"
+    },
+    "volair-mach1-forza-16": {
+      "code": "VLFORZ6",
+      "title": "Volair Mach 1 Forza 16 Pickleball Paddle",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=VLFORZ6-1.jpg&nw=400"
+    }
+  }
+}

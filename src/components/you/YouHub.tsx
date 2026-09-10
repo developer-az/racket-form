@@ -300,7 +300,7 @@ export function YouHub({
               <CourtEmpty
                 kicker="No mold yet"
                 title="Browse a racket when you’re ready"
-                body="Save a frame (and optionally a bed) so Strokeform can calculate leave, flight, and whether the bag is court-ready from specs."
+                body="Save a frame (and optionally a bed) so Racket Form can calculate leave, flight, and whether the bag is court-ready from specs."
                 primary={{ href: "/gear?tab=rackets", label: "Browse rackets" }}
                 secondary={{ href: "/lab", label: "Open form lab" }}
               />
