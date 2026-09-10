@@ -25,47 +25,47 @@ export type ThemeColors = {
 };
 
 const LIGHT: ThemeColors = {
-  background: "#f3f6f4",
-  foreground: "#0d1f18",
+  background: "#eef6f1",
+  foreground: "#04150e",
   panel: "#ffffff",
-  bgScene: "#dfe8e2",
-  bgSunken: "#e6ebe8",
-  muted: "#4a5c54",
-  line: "rgba(13, 31, 24, 0.1)",
-  accent: "#3f7a24",
+  bgScene: "#c8ddd2",
+  bgSunken: "#dcebe3",
+  muted: "#3d564a",
+  line: "rgba(4, 21, 14, 0.11)",
+  accent: "#12a84a",
   accentFg: "#ffffff",
-  amber: "#c47a2c",
-  sky: "#2a7a9b",
-  court: "#2d6a4f",
-  silhouette: "#1a2e24",
-  silhouetteRim: "#3a4a40",
-  chartPower: "#c47a2c",
-  chartSpin: "#2a7a9b",
-  chartControl: "#3f7a24",
-  chartComfort: "#b0892e",
-  chartFill: "rgba(63, 122, 36, 0.14)",
+  amber: "#e09a12",
+  sky: "#0b9bb8",
+  court: "#0f7a3a",
+  silhouette: "#0d2418",
+  silhouetteRim: "#2a4a38",
+  chartPower: "#e09a12",
+  chartSpin: "#0b9bb8",
+  chartControl: "#12a84a",
+  chartComfort: "#c9921a",
+  chartFill: "rgba(18, 168, 74, 0.16)",
 };
 
 const DARK: ThemeColors = {
-  background: "#121211",
-  foreground: "#f2f0eb",
-  panel: "#1a1a18",
-  bgScene: "#161614",
-  bgSunken: "#0e0e0c",
-  muted: "#a8a59c",
-  line: "rgba(242, 240, 235, 0.1)",
-  accent: "#c5e85a",
-  accentFg: "#121211",
-  amber: "#e8a05a",
-  sky: "#7ec8e8",
-  court: "#2d6a4f",
-  silhouette: "#c8c5bb",
-  silhouetteRim: "#e4e1d8",
-  chartPower: "#f4a261",
-  chartSpin: "#7dd3fc",
-  chartControl: "#c5e85a",
-  chartComfort: "#e9c46a",
-  chartFill: "rgba(197, 232, 90, 0.2)",
+  background: "#0b1410",
+  foreground: "#eef7f1",
+  panel: "#132019",
+  bgScene: "#0f1c16",
+  bgSunken: "#08110d",
+  muted: "#9ab5a6",
+  line: "rgba(238, 247, 241, 0.1)",
+  accent: "#3ddc75",
+  accentFg: "#04150e",
+  amber: "#f0b03a",
+  sky: "#4ec8e0",
+  court: "#1a8f4a",
+  silhouette: "#c5ddd0",
+  silhouetteRim: "#e4f2ea",
+  chartPower: "#f0b03a",
+  chartSpin: "#4ec8e0",
+  chartControl: "#3ddc75",
+  chartComfort: "#e8c45a",
+  chartFill: "rgba(61, 220, 117, 0.2)",
 };
 
 export const THEME_STORAGE_KEY = "strokeform-theme";
@@ -76,19 +76,19 @@ export function themeColors(mode: ThemeMode): ThemeColors {
 
 /** Read current theme from the document (client only). */
 export function getThemeColors(): ThemeColors {
-  if (typeof document === "undefined") return DARK;
+  if (typeof document === "undefined") return LIGHT;
   const attr = document.documentElement.getAttribute("data-theme");
   if (attr === "light" || attr === "dark") return themeColors(attr);
-  return window.matchMedia("(prefers-color-scheme: light)").matches ? LIGHT : DARK;
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? DARK : LIGHT;
 }
 
 export function resolveInitialTheme(): ThemeMode {
-  if (typeof window === "undefined") return "dark";
+  if (typeof window === "undefined") return "light";
   try {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
     if (stored === "light" || stored === "dark") return stored;
   } catch {
     /* ignore */
   }
-  return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }

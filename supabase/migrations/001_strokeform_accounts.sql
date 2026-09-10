@@ -1,4 +1,5 @@
--- Strokeform account storage: profile row + game snapshot (player profile + gear bag).
+-- Racket Form account storage: profile row + game snapshot (player profile + gear bag).
+-- Migration filename kept as 001_strokeform_accounts.sql for deploy stability.
 -- Run in Supabase SQL editor or via supabase db push.
 
 create table if not exists public.profiles (

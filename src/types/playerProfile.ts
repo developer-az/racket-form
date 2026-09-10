@@ -1,6 +1,6 @@
 /**
  * Persistent player identity — grips, constraints, preferences, logs.
- * This is Strokeform's memory layer: who you are across sessions.
+ * This is Racket Form's memory layer: who you are across sessions.
  */
 
 import type { ForehandGripKind } from "@/lib/equipment/forehandMold";

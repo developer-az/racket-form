@@ -797,7 +797,7 @@ function buildPlaystyle(input: {
 }): { label: string } {
   const { power: p, spin: s, control: c, launchAngleDeg: launch, swingPathDeg: path } = input;
 
-  // Strokeform archetype first — never a vague “everyone is a baseliner”
+  // Racket Form archetype first — never a vague “everyone is a baseliner”
   let core = input.archetype ?? input.fitRole ?? "Modern all-court shaper";
 
   if (s != null && p != null && s >= 74 && s >= (c ?? 50) + 6 && (path == null || path >= 24)) {

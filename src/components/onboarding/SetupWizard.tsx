@@ -91,7 +91,7 @@ export function SetupWizard({
   return (
     <div className="fixed inset-0 z-[60] flex flex-col bg-[var(--background)]">
       <div className="flex items-center justify-between px-5 py-4 md:px-10">
-        <p className="font-[family-name:var(--font-display)] text-sm tracking-tight">STROKEFORM</p>
+        <p className="font-[family-name:var(--font-display)] text-sm tracking-tight">Racket Form</p>
         {id !== "welcome" && id !== "payoff" ? (
           <button type="button" onClick={next} className="text-sm text-[var(--muted)]">
             Skip

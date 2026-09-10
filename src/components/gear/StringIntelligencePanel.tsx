@@ -17,11 +17,11 @@ export function StringIntelligencePanel({
   return (
     <section
       className={`sf-intel-panel${compact ? " !p-4 md:!p-5" : ""}`}
-      aria-label="Strokeform string intelligence"
+      aria-label="Racket Form string intelligence"
     >
       <header className="border-b border-[var(--line)] pb-4">
         <div>
-          <p className="sf-kicker">Strokeform string lab</p>
+          <p className="sf-kicker">Racket Form string lab</p>
           <h3
             className={`mt-2 font-[family-name:var(--font-display)] font-semibold tracking-tight ${
               compact ? "text-lg md:text-xl" : "text-lg md:text-xl"

@@ -28,7 +28,7 @@ export interface PlayerFit {
 export interface FitBadge {
   key: string;
   label: string;
-  /** CSS color token or hex matching Strokeform palette */
+  /** CSS color token or hex matching Racket Form palette */
   color: string;
   hint: string;
 }

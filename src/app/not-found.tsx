@@ -9,7 +9,7 @@ export default function NotFound() {
           This court line doesn&apos;t exist
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
-          The route you asked for isn&apos;t in the Strokeform map. Pick a hub and keep playing.
+          The route you asked for isn&apos;t in the Racket Form map. Pick a hub and keep playing.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link href="/you" className="sf-btn sf-btn-primary">

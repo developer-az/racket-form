@@ -33,7 +33,7 @@ export default async function GearPage() {
 
       <SiteFooter
         note={
-          "Specs advise; logged feel decides. Play scores and court-ready verdicts come from mass, SW, RA, pattern, string, and tension — not the model name. Launch, path, and quirks are Strokeform coaching models, not laboratory certificates."
+          "Specs advise; logged feel decides. Play scores and court-ready verdicts come from mass, SW, RA, pattern, string, and tension — not the model name. Launch, path, and quirks are Racket Form coaching models, not laboratory certificates."
         }
       />
     </div>

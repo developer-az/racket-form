@@ -4,7 +4,7 @@ import { STRINGS } from "@/data/equipment/strings";
 import { analyzeFrame, analyzeString } from "@/lib/equipment/strokeformIntel";
 
 /**
- * Public intelligence index — documents Strokeform's multi-source analysis
+ * Public intelligence index — documents Racket Form's multi-source analysis
  * and returns sample frame/string intel for transparency.
  */
 export async function GET(request: Request) {
@@ -15,10 +15,10 @@ export async function GET(request: Request) {
   const { rackets, meta } = await loadRackets();
 
   const payload: Record<string, unknown> = {
-    product: "Strokeform Intelligence",
+    product: "Racket Form Intelligence",
     version: "2026.1",
     method:
-      "Aggregates Racqix specs (+ expert scores when present), tour usage lists, Tennis Warehouse media matches, and Strokeform physics / quirk engines. Archetypes and skill spans are Strokeform-specific — not retailer blurbs.",
+      "Aggregates Racqix specs (+ expert scores when present), tour usage lists, Tennis Warehouse media matches, and Racket Form physics / quirk engines. Archetypes and skill spans are Racket Form–specific — not retailer blurbs.",
     sources: [
       "racqix-specs",
       "racqix-expert",

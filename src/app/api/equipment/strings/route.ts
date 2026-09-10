@@ -6,7 +6,7 @@ export async function GET() {
   return NextResponse.json(
     {
       meta: {
-        source: "Strokeform curated modern string catalog",
+        source: "Racket Form curated modern string catalog",
         count: STRINGS.length,
       },
       strings: withStringImages(STRINGS),

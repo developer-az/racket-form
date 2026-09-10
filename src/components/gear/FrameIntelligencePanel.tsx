@@ -86,11 +86,11 @@ export function FrameIntelligencePanel({
   return (
     <section
       className={`sf-intel-panel sf-rise${compact ? " !p-4 md:!p-5" : ""}`}
-      aria-label="Strokeform frame intelligence"
+      aria-label="Racket Form frame intelligence"
     >
       <header className="border-b border-[var(--line)] pb-5">
         <div className="min-w-0">
-          <p className="sf-kicker">Strokeform intelligence</p>
+          <p className="sf-kicker">Racket Form intelligence</p>
           <h3
             className={`mt-2 font-[family-name:var(--font-display)] font-semibold tracking-tight ${
               compact ? "text-lg md:text-xl" : "text-xl md:text-2xl"

@@ -3,7 +3,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 
 export const metadata: Metadata = {
   title: "Account",
-  description: "Sign in, sync your court, and manage your Strokeform player profile.",
+  description: "Sign in, sync your court, and manage your Racket Form player profile.",
 };
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {

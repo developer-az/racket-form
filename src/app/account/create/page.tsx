@@ -155,7 +155,7 @@ export default function CreateAccountPage() {
         />
 
         <AuthCheckbox
-          label="Email me gear tips, lab updates, and Strokeform news (optional)."
+          label="Email me gear tips, lab updates, and Racket Form news (optional)."
           checked={newsletter}
           onChange={setNewsletter}
         />

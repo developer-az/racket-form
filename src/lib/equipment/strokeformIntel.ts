@@ -1,9 +1,9 @@
 /**
- * Strokeform Frame & String Intelligence
+ * Racket Form Frame & String Intelligence
  * --------------------------------------
  * Proprietary coaching analysis layered on multi-source equipment data.
  * Sources are aggregated; interpretations (quirks, skill ceiling, archetypes)
- * are Strokeform-specific — not a paste of retailer blurbs.
+ * are Racket Form–specific — not a paste of retailer blurbs.
  */
 
 import type { RacketProfile, StringProfile } from "@/types/equipment";
@@ -131,13 +131,13 @@ export function frameSources(r: RacketProfile, liveCatalog: boolean): DataSource
     },
     {
       id: "strokeform-physics",
-      label: "Strokeform physics",
+      label: "Racket Form physics",
       role: "Launch, path, plow, whip, and play scores from specs — model name is not an input",
       confidence: 88,
     },
     {
       id: "strokeform-quirks",
-      label: "Strokeform quirk engine",
+      label: "Racket Form quirk engine",
       role: "Archetype, skill span, coaching quirks",
       confidence: 90,
     },
@@ -214,8 +214,8 @@ export function describeTrust(sources: DataSourceCredit[]): TrustSummary {
       headline: "Specs verified, coaching layered on top",
       detail:
         verifiedCount >= 2
-          ? "Multiple independent sources back the numbers below. Strokeform adds quirk and skill-span reads on that base."
-          : "Core specs are verified; Strokeform models launch, quirks, and skill span from them.",
+          ? "Multiple independent sources back the numbers below. Racket Form adds quirk and skill-span reads on that base."
+          : "Core specs are verified; Racket Form models launch, quirks, and skill span from them.",
       verifiedCount,
       modeledCount,
     };
@@ -227,7 +227,7 @@ export function describeTrust(sources: DataSourceCredit[]): TrustSummary {
       label: "Solid confidence",
       headline: "Good spec base — verify feel on court",
       detail:
-        "Most ratings come from catalog specs plus Strokeform physics. Log a session if the mold feels off.",
+        "Most ratings come from catalog specs plus Racket Form physics. Log a session if the mold feels off.",
       verifiedCount,
       modeledCount,
     };
@@ -250,7 +250,7 @@ export function describeTrust(sources: DataSourceCredit[]): TrustSummary {
     label: "Early read",
     headline: "Mostly modeled — confirm with your bag",
     detail:
-      "Strokeform is extrapolating from partial data. Pair with a session log before trusting the skill span.",
+      "Racket Form is extrapolating from partial data. Pair with a session log before trusting the skill span.",
     verifiedCount,
     modeledCount,
   };
@@ -478,7 +478,7 @@ function specialCopy(
   const strengthQuirk = quirks.find((q) => q.polarity === "strength");
   const headline = `${r.brand} ${r.model} — ${primary}`;
   const body = [
-    `Strokeform reads this as a ${skill.band.toLowerCase()} frame with a skill span of ${skill.floor}→${skill.ceiling}/100.`,
+    `Racket Form reads this as a ${skill.band.toLowerCase()} frame with a skill span of ${skill.floor}→${skill.ceiling}/100.`,
     strengthQuirk ? `Its signature quirk: ${strengthQuirk.title.toLowerCase()} — ${strengthQuirk.meaning}` : null,
     demandQuirk ? `The tax: ${demandQuirk.title.toLowerCase()}. ${demandQuirk.coaching}` : null,
     `Teaching window ~${r.idealLaunchAngleDeg.toFixed(1)}° leave / ~${r.idealSwingPathDeg.toFixed(0)}° path — not a generic “baseline” label.`,
@@ -568,7 +568,7 @@ export function analyzeString(s: StringProfile): StringIntelligence {
   const sources: DataSourceCredit[] = [
     {
       id: "strokeform-string-lab",
-      label: "Strokeform string lab",
+      label: "Racket Form string lab",
       role: "Material / shape / tension–gauge response model",
       confidence: 86,
     },
