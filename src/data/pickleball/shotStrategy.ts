@@ -182,4 +182,23 @@ export const SHOT_STRATEGIES: ShotStrategyCard[] = [
     partnerDependence: 88,
     diagram: "erne-atp",
   },
+  {
+    id: "hand-battle",
+    title: "Hand battles / fast hands",
+    when: "Both teams own the kitchen line and the next ball will be a compact volley exchange — not a swing.",
+    how: [
+      "Paddle at chest, elbows soft, face nearly square (0° to −2°). The player who is ready first owns the point.",
+      "Punch 6–8 inches through the hip line or middle seam; recover to chest before they can counter.",
+      "Target rank: feet (hardest volley) → middle (who takes it?) → hip. Never feed the chest.",
+      "If the ball is below the 34\" tape, reset — do not speed up from the shoes.",
+      "Call the middle out loud. Late calls lose more hand battles than slow hands.",
+    ],
+    avoid: "Taking a full swing at the kitchen or dropping the paddle to your hip after contact.",
+    patience: 40,
+    pace: 78,
+    placement: 88,
+    risk: 70,
+    partnerDependence: 74,
+    diagram: "hand-battle",
+  },
 ];

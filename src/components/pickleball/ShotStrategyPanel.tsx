@@ -1,13 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { ShotStrategyCard } from "@/types/pickleball";
 import { ScoreMeter } from "@/components/gear/ScoreMeter";
-import { ShotDiagram } from "./PickleDiagrams";
+import { ShotGeometryPanel } from "./PickleDiagrams";
 
 export function ShotStrategyPanel({ strategies }: { strategies: ShotStrategyCard[] }) {
   const [selectedId, setSelectedId] = useState(strategies[0]?.id ?? "");
   const [compareId, setCompareId] = useState(strategies[1]?.id ?? strategies[0]?.id ?? "");
+  const detailRef = useRef<HTMLDivElement | null>(null);
 
   const selected = strategies.find((s) => s.id === selectedId) ?? strategies[0];
   const compare = strategies.find((s) => s.id === compareId) ?? strategies[1] ?? strategies[0];
@@ -17,6 +18,11 @@ export function ShotStrategyPanel({ strategies }: { strategies: ShotStrategyCard
     if (id === compareId) {
       const other = strategies.find((s) => s.id !== id);
       if (other) setCompareId(other.id);
+    }
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches) {
+      requestAnimationFrame(() =>
+        detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      );
     }
   };
 
@@ -52,47 +58,51 @@ export function ShotStrategyPanel({ strategies }: { strategies: ShotStrategyCard
         <p className="sf-kicker sf-kicker-muted">Smart game</p>
         <h2 className="sf-section-title mt-1">Shot decisions that win</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--muted)]">
-          Serve returns, dink patterns, drops, drives, resets, speed-ups, feet/hips targeting, and
-          Erne / around-the-post awareness — when to hit smart, not just hard.
+          Serve returns, dink patterns, drops, drives, resets, speed-ups, feet/hips targeting, hand
+          battles, and Erne / around-the-post awareness — when to hit smart, not just hard. Zones
+          and face angles are a teaching model, not tour telemetry.
         </p>
       </header>
 
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {strategies.map((shot) => {
-          const on = shot.id === selected?.id;
-          return (
-            <button
-              key={shot.id}
-              type="button"
-              onClick={() => selectShot(shot.id)}
-              aria-pressed={on}
-              data-active={on ? "true" : "false"}
-              className={`sf-panel p-4 text-left transition hover:bg-[var(--overlay-hover)] ${
-                on ? "ring-1 ring-[var(--line-strong)]" : ""
-              }`}
-            >
-              <p className="font-[family-name:var(--font-display)] text-base tracking-tight">
-                {shot.title}
-              </p>
-              <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-[var(--muted)]">
-                {shot.when}
-              </p>
-              <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-[10px] tabular-nums text-[var(--muted)]">
-                <span>
-                  Pace <span className="text-[var(--foreground)]">{shot.pace}</span>
-                </span>
-                <span>
-                  Place <span className="text-[var(--foreground)]">{shot.placement}</span>
-                </span>
-              </div>
-            </button>
-          );
-        })}
-      </div>
+      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.15fr)] lg:items-start lg:gap-6">
+        <div className="grid gap-2 sm:grid-cols-2">
+          {strategies.map((shot) => {
+            const on = shot.id === selected?.id;
+            return (
+              <button
+                key={shot.id}
+                type="button"
+                onClick={() => selectShot(shot.id)}
+                aria-pressed={on}
+                data-active={on ? "true" : "false"}
+                className={`sf-panel p-4 text-left transition hover:bg-[var(--overlay-hover)] ${
+                  on ? "ring-1 ring-[var(--line-strong)]" : ""
+                }`}
+              >
+                <p className="font-[family-name:var(--font-display)] text-base tracking-tight">
+                  {shot.title}
+                </p>
+                <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-[var(--muted)]">
+                  {shot.when}
+                </p>
+                <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-[10px] tabular-nums text-[var(--muted)]">
+                  <span>
+                    Pace <span className="text-[var(--foreground)]">{shot.pace}</span>
+                  </span>
+                  <span>
+                    Place <span className="text-[var(--foreground)]">{shot.placement}</span>
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
 
-      {selected ? (
-        <section className="sf-panel grid gap-6 p-4 md:grid-cols-[1.2fr_0.8fr] md:p-6">
-          <div className="space-y-4">
+        {selected ? (
+          <section
+            ref={detailRef}
+            className="sf-panel scroll-mt-20 space-y-5 p-4 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:scroll-mt-4 md:p-6"
+          >
             <div>
               <p className="sf-kicker sf-kicker-muted">When</p>
               <h3 className="mt-1 font-[family-name:var(--font-display)] text-xl tracking-tight">
@@ -102,6 +112,7 @@ export function ShotStrategyPanel({ strategies }: { strategies: ShotStrategyCard
                 {selected.when}
               </p>
             </div>
+            {selected.diagram ? <ShotGeometryPanel kind={selected.diagram} /> : null}
             <div>
               <p className="sf-kicker sf-kicker-muted">How</p>
               <ol className="mt-2 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-[var(--muted)]">
@@ -118,14 +129,6 @@ export function ShotStrategyPanel({ strategies }: { strategies: ShotStrategyCard
               </p>
               <p className="mt-1 text-sm text-[var(--foreground)]/90">{selected.avoid}</p>
             </div>
-            {selected.diagram ? (
-              <div className="sf-viz-stage">
-                <ShotDiagram kind={selected.diagram} />
-              </div>
-            ) : null}
-          </div>
-
-          <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <ScoreMeter label="Pace" value={selected.pace} accent="var(--chart-power)" />
               <ScoreMeter label="Placement" value={selected.placement} accent="var(--sky)" />
@@ -170,9 +173,9 @@ export function ShotStrategyPanel({ strategies }: { strategies: ShotStrategyCard
                 ))}
               </div>
             ) : null}
-          </div>
-        </section>
-      ) : null}
+          </section>
+        ) : null}
+      </div>
     </div>
   );
 }

@@ -72,6 +72,23 @@ export type PaddleProfile = {
   tourPresence?: string | null;
   /** Optional hand-authored coaching tips — overrides generated tips when set. */
   tips?: string[];
+  /** Optional hand-authored pro-use block — overrides generated pro patterns when set. */
+  proUse?: PaddleProUse;
+};
+
+export type PaddleProUse = {
+  headline: string;
+  howTheyWin: string[];
+  fastHands: string;
+  dominate: string;
+};
+
+export type PaddleTapeZone = "tip" | "three-nine" | "throat" | "handle";
+
+export type PaddleTapePiece = {
+  id: string;
+  zone: PaddleTapeZone;
+  massG: number;
 };
 
 export type PaddleCatalogMeta = {
@@ -99,7 +116,8 @@ export type DoublesLesson = {
     | "transition-unit"
     | "kitchen-battle"
     | "third-shot-choice"
-    | "stay-back-vs-up";
+    | "stay-back-vs-up"
+    | "hand-battle";
 };
 
 export type ShotStrategyCard = {
@@ -126,7 +144,8 @@ export type ShotStrategyCard = {
     | "drive-lanes"
     | "reset-zone"
     | "lob-overhead"
-    | "erne-atp";
+    | "erne-atp"
+    | "hand-battle";
 };
 
 export type TechLever = {

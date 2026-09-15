@@ -1,18 +1,11 @@
 "use client";
 
-import { startTransition, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { startTransition, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import type { PaddleProfile, PlayBias } from "@/types/pickleball";
-import { PADDLE_TECH_LEVERS } from "@/data/pickleball/paddles";
-import { ScoreGrid, ScoreMeter } from "@/components/gear/ScoreMeter";
 import { AisleChip, ChipRow, ProductCard, SearchField } from "@/components/gear/CatalogShop";
-import { EquipmentThumb } from "@/components/gear/EquipmentThumb";
 import { brandAccent } from "@/lib/equipment/media/brandColors";
-import {
-  hasExternalPaddlePhoto,
-  paddleImageUrl,
-  photoFirst,
-} from "@/lib/pickleball/media";
-import { paddleCoachingTips } from "@/lib/pickleball/paddleTips";
+import { hasExternalPaddlePhoto, paddleImageUrl, photoFirst } from "@/lib/pickleball/media";
+import { PaddleInspector } from "./PaddleInspector";
 
 const BIAS_LABEL: Record<PlayBias, string> = {
   control: "Control",
@@ -23,44 +16,31 @@ const BIAS_LABEL: Record<PlayBias, string> = {
 
 const PAGE_SIZE = 24;
 
-function clampScore(n: number) {
-  return Math.max(0, Math.min(100, Math.round(n)));
-}
-
-function balanceLabel(balance: number, balanceMm?: number | null) {
-  if (balanceMm != null) {
-    const lean = balanceMm >= 245 ? "head-forward" : balanceMm <= 232 ? "handle-biased" : "even";
-    return `${balanceMm} mm · ${lean}`;
-  }
-  if (balance > 0.15) return "Head-forward";
-  if (balance < -0.15) return "Handle-biased";
-  return "Even";
-}
-
-function provenanceLabel(p: PaddleProfile) {
-  if (p.specsProvenance === "pickleball-effect-lab") return "Lab-measured specs";
-  if (p.specsProvenance === "coaching-estimate") return "Coaching estimate";
-  return "Catalog specs";
-}
-
 function tierBadge(p: PaddleProfile) {
   if (p.catalogTier === "lab-measured") return "Lab";
   if (p.catalogTier === "tour-seed") return "Tour seed";
   return undefined;
 }
 
-export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
+export function PaddleTechPanel({
+  paddles,
+  selectedId,
+  onSelect,
+}: {
+  paddles: PaddleProfile[];
+  selectedId?: string | null;
+  onSelect?: (id: string) => void;
+}) {
   const [query, setQuery] = useState("");
   const [bias, setBias] = useState<"all" | PlayBias>("all");
   const [brand, setBrand] = useState<"all" | string>("all");
   const [tier, setTier] = useState<"all" | "lab-measured" | "tour-seed">("all");
-  const [selectedId, setSelectedId] = useState(paddles[0]?.id ?? "");
+  const [localId, setLocalId] = useState(selectedId || paddles[0]?.id || "");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const deferredQuery = useDeferredValue(query);
+  const detailRef = useRef<HTMLDivElement | null>(null);
 
-  const [leverChoices, setLeverChoices] = useState<Record<string, string>>(() =>
-    Object.fromEntries(PADDLE_TECH_LEVERS.map((l) => [l.id, l.options[0]?.id ?? ""])),
-  );
+  const activeId = selectedId || localId;
 
   const brands = useMemo(() => {
     const set = new Set(paddles.map((p) => p.brand));
@@ -100,22 +80,18 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
   }, [deferredQuery, bias, brand, tier]);
 
   const shown = filtered.slice(0, visibleCount);
-  const selected = filtered.find((p) => p.id === selectedId) ?? filtered[0] ?? null;
-  const tips = useMemo(() => (selected ? paddleCoachingTips(selected) : []), [selected]);
+  const selected =
+    paddles.find((p) => p.id === activeId) ?? filtered[0] ?? paddles[0] ?? null;
 
-  const leverEffect = useMemo(() => {
-    let control = 70;
-    let power = 70;
-    const notes: string[] = [];
-    for (const lever of PADDLE_TECH_LEVERS) {
-      const opt = lever.options.find((o) => o.id === leverChoices[lever.id]);
-      if (!opt) continue;
-      control += opt.controlDelta;
-      power += opt.powerDelta;
-      notes.push(`${lever.label}: ${opt.note}`);
+  const selectPaddle = (id: string) => {
+    setLocalId(id);
+    onSelect?.(id);
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches) {
+      requestAnimationFrame(() =>
+        detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      );
     }
-    return { control: clampScore(control), power: clampScore(power), notes };
-  }, [leverChoices]);
+  };
 
   const setFilter = <T,>(setter: (v: T) => void, value: T) => {
     startTransition(() => setter(value));
@@ -125,62 +101,15 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
   const tourCount = paddles.length - labCount;
 
   return (
-    <div className="pickle-catalog space-y-10">
-      <section className="sf-panel overflow-hidden">
-        <div className="space-y-5 p-4 md:p-6">
-          <div>
-            <p className="sf-kicker sf-kicker-muted">Starters · paddle tech</p>
-            <h2 className="sf-section-title mt-1">How gear shifts control vs power</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--muted)]">
-              Flip one lever at a time — core, face, weight, grip/edge — and watch the control/power
-              balance move. Then browse paddles with coaching tips for how to actually play them.
-            </p>
-          </div>
-
-          <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
-            <div className="space-y-4">
-              {PADDLE_TECH_LEVERS.map((lever) => (
-                <div key={lever.id}>
-                  <ChipRow label={lever.label}>
-                    {lever.options.map((opt) => (
-                      <AisleChip
-                        key={opt.id}
-                        label={opt.label}
-                        active={leverChoices[lever.id] === opt.id}
-                        onClick={() =>
-                          setLeverChoices((prev) => ({ ...prev, [lever.id]: opt.id }))
-                        }
-                      />
-                    ))}
-                  </ChipRow>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-4 rounded-[var(--radius)] border border-[var(--line)] bg-[var(--bg-sunken)]/70 p-4">
-              <p className="sf-kicker sf-kicker-muted">Live balance</p>
-              <ScoreMeter label="Control" value={leverEffect.control} accent="var(--chart-control)" />
-              <ScoreMeter label="Power" value={leverEffect.power} accent="var(--chart-power)" />
-              <ul className="space-y-2 pt-1 text-xs leading-relaxed text-[var(--muted)]">
-                {leverEffect.notes.map((n) => (
-                  <li key={n} className="border-l border-[var(--line-strong)] pl-2.5">
-                    {n}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="space-y-5">
+    <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:items-start lg:gap-6">
+      <section className="order-1 space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="sf-kicker sf-kicker-muted">Catalog</p>
             <h2 className="sf-section-title mt-1">Paddles players actually use</h2>
             <p className="mt-1 max-w-xl text-xs text-[var(--muted)]">
               {paddles.length} paddles · {labCount} lab-measured · {tourCount} tour-seed. Select a
-              paddle for how-to-play tips — not just mold and numbers.
+              paddle — how-to-play stays beside the grid.
             </p>
           </div>
           <div className="w-full sm:max-w-xs">
@@ -242,7 +171,7 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
           {filtered.length !== paddles.length ? ` · filtered from ${paddles.length}` : ""}
         </p>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {shown.map((p) => {
             const accent = brandAccent(p.brand);
             const active = selected?.id === p.id;
@@ -265,7 +194,7 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
                 accent={accent}
                 accentRail={false}
                 selected={active}
-                onSelect={() => startTransition(() => setSelectedId(p.id))}
+                onSelect={() => startTransition(() => selectPaddle(p.id))}
                 scores={[
                   { label: "Pwr", value: p.power, color: "var(--chart-power)" },
                   { label: "Ctl", value: p.control, color: "var(--chart-control)" },
@@ -288,153 +217,17 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
           </div>
         ) : null}
 
-        {selected ? (
-          <article className="sf-panel grid gap-6 overflow-hidden p-4 md:grid-cols-[auto_1fr] md:p-6">
-            <div className="relative flex flex-col items-center gap-3 rounded-[var(--radius)] border border-[var(--line)] bg-[var(--bg-scene)] p-4 md:items-start">
-              <EquipmentThumb
-                src={paddleImageUrl(selected)}
-                alt={`${selected.brand} ${selected.name}`}
-                size="lg"
-              />
-              <p className="text-center text-[10px] tracking-[0.1em] text-[var(--muted)] uppercase md:text-left">
-                {selected.shape} · {selected.core} · {selected.texture}
-              </p>
-              <p className="text-center text-[10px] text-[var(--muted)] md:text-left">
-                {provenanceLabel(selected)}
-                {hasExternalPaddlePhoto(selected.id) ? " · TW photo" : " · SVG portrait"}
-              </p>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <p
-                  className="text-[10px] font-bold tracking-[0.14em] uppercase"
-                  style={{ color: brandAccent(selected.brand) }}
-                >
-                  {selected.brand}
-                  {tierBadge(selected) ? ` · ${tierBadge(selected)}` : ""}
-                </p>
-                <h3 className="mt-1 font-[family-name:var(--font-display)] text-xl tracking-tight md:text-2xl">
-                  {selected.name}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">{selected.feel}</p>
-                {selected.tourPresence ? (
-                  <p className="mt-2 border-l border-[var(--line-strong)] pl-3 text-xs leading-relaxed text-[var(--foreground)]/85">
-                    {selected.tourPresence}
-                  </p>
-                ) : null}
-              </div>
-
-              {tips.length > 0 ? (
-                <div className="rounded-[var(--radius)] border border-[var(--line)] bg-[var(--bg-sunken)]/50 p-3.5 md:p-4">
-                  <p className="sf-kicker sf-kicker-muted">How to play this paddle</p>
-                  <ul className="mt-2.5 space-y-2.5">
-                    {tips.map((tip) => (
-                      <li
-                        key={tip}
-                        className="border-l border-[var(--line-strong)] pl-3 text-sm leading-relaxed text-[var(--foreground)]/90"
-                      >
-                        {tip}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-
-              <ScoreGrid
-                scores={[
-                  { label: "Power", value: selected.power, accent: "var(--chart-power)" },
-                  { label: "Control", value: selected.control, accent: "var(--chart-control)" },
-                  { label: "Spin", value: selected.spin, accent: "var(--chart-spin)" },
-                  { label: "Pop", value: selected.pop, accent: "var(--amber)" },
-                  { label: "Sweet spot", value: selected.sweetSpot, accent: "var(--sky)" },
-                ]}
-              />
-              <dl className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
-                <div>
-                  <dt className="text-[var(--muted)]">Weight</dt>
-                  <dd className="mt-0.5 text-[var(--foreground)]">{selected.weightOz.toFixed(2)} oz</dd>
-                </div>
-                <div>
-                  <dt className="text-[var(--muted)]">Thickness</dt>
-                  <dd className="mt-0.5 text-[var(--foreground)]">
-                    {selected.thicknessMm != null ? `${selected.thicknessMm} mm` : "—"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-[var(--muted)]">Swingweight</dt>
-                  <dd className="mt-0.5 text-[var(--foreground)]">
-                    {selected.swingweight != null ? selected.swingweight : "—"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-[var(--muted)]">Twist weight</dt>
-                  <dd className="mt-0.5 text-[var(--foreground)]">
-                    {selected.twistWeight != null ? selected.twistWeight : "—"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-[var(--muted)]">Balance</dt>
-                  <dd className="mt-0.5 text-[var(--foreground)]">
-                    {balanceLabel(selected.balance, selected.balanceMm)}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-[var(--muted)]">Grip</dt>
-                  <dd className="mt-0.5 text-[var(--foreground)]">
-                    {selected.gripCircumferenceIn}&quot;
-                    {selected.gripLengthIn != null ? ` · ${selected.gripLengthIn}" long` : ""}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-[var(--muted)]">Face / grit</dt>
-                  <dd className="mt-0.5 text-[var(--foreground)]">
-                    {selected.face.replace("-", " ")} · {selected.texture}
-                    {selected.measured?.gritType ? ` (${selected.measured.gritType})` : ""}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-[var(--muted)]">Edge</dt>
-                  <dd className="mt-0.5 text-[var(--foreground)]">
-                    {selected.edgeGuard.replace("-", " ")}
-                  </dd>
-                </div>
-                {selected.measured?.spinRpm != null ? (
-                  <div>
-                    <dt className="text-[var(--muted)]">Measured spin</dt>
-                    <dd className="mt-0.5 text-[var(--foreground)]">
-                      {selected.measured.spinRpm} RPM
-                    </dd>
-                  </div>
-                ) : null}
-                {selected.measured?.powerMph != null ? (
-                  <div>
-                    <dt className="text-[var(--muted)]">Measured power / pop</dt>
-                    <dd className="mt-0.5 text-[var(--foreground)]">
-                      {selected.measured.powerMph} / {selected.measured.popMph ?? "—"} mph
-                    </dd>
-                  </div>
-                ) : null}
-                {selected.approval ? (
-                  <div>
-                    <dt className="text-[var(--muted)]">Approval</dt>
-                    <dd className="mt-0.5 text-[var(--foreground)]">{selected.approval}</dd>
-                  </div>
-                ) : null}
-                <div className="sm:col-span-2 lg:col-span-3">
-                  <dt className="text-[var(--muted)]">Unique</dt>
-                  <dd className="mt-0.5 text-[var(--foreground)]">{selected.uniqueTrait}</dd>
-                </div>
-                <div className="sm:col-span-2 lg:col-span-3">
-                  <dt className="text-[var(--muted)]">Best for</dt>
-                  <dd className="mt-0.5 text-[var(--foreground)]">{selected.bestFor}</dd>
-                </div>
-              </dl>
-            </div>
-          </article>
-        ) : (
+        {filtered.length === 0 ? (
           <p className="text-sm text-[var(--muted)]">No paddles match that filter.</p>
-        )}
+        ) : null}
       </section>
+
+      <div
+        ref={detailRef}
+        className="order-2 scroll-mt-20 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:scroll-mt-4"
+      >
+        {selected ? <PaddleInspector paddle={selected} /> : null}
+      </div>
     </div>
   );
 }

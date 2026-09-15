@@ -13,21 +13,21 @@ const TABS: { id: PickleballTab; label: string; short: string; blurb: string }[]
     label: "Paddle tech",
     short: "Paddles",
     blurb:
-      "Lab-measured cores and faces plus a growing tour-seed catalog — how gear trades control for power.",
+      "Lab-measured cores and faces plus a growing tour-seed catalog — pick a paddle and learn it beside the grid.",
   },
   {
     id: "play-correctly",
     label: "Play correctly",
     short: "Doubles",
     blurb:
-      "High-level doubles geometry: when to stay back vs go up, transition timing, stacking, kitchen battles.",
+      "High-level doubles geometry: when to stay back vs go up, transition timing, stacking, kitchen battles, fast hands.",
   },
   {
     id: "shot-strategy",
     label: "Shot strategy",
     short: "Shots",
     blurb:
-      "Serve returns, dink patterns, drops, drives, resets, speed-ups, feet/hips targeting, Erne awareness.",
+      "Serve returns, dink patterns, drops, drives, resets, speed-ups, feet/hips targeting, hand battles, Erne awareness.",
   },
 ];
 
@@ -52,6 +52,7 @@ export function PickleballHub({
   const router = useRouter();
   const pathname = usePathname();
   const tab = parseTab(searchParams.get("tab"));
+  const paddleParam = searchParams.get("paddle");
 
   useEffect(() => {
     const raw = searchParams.get("tab");
@@ -66,6 +67,13 @@ export function PickleballHub({
   const selectTab = (id: PickleballTab) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", id);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const selectPaddle = (id: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", "paddle-tech");
+    params.set("paddle", id);
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
@@ -139,7 +147,11 @@ export function PickleballHub({
             role="tabpanel"
             aria-labelledby="pickle-tab-paddle-tech"
           >
-            <PaddleTechPanel paddles={paddles} />
+            <PaddleTechPanel
+              paddles={paddles}
+              selectedId={paddleParam}
+              onSelect={selectPaddle}
+            />
           </div>
         ) : null}
         {tab === "play-correctly" ? (

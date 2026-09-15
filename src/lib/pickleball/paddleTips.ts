@@ -1,4 +1,4 @@
-import type { PaddleProfile } from "@/types/pickleball";
+import type { PaddleProUse, PaddleProfile } from "@/types/pickleball";
 
 /**
  * Actionable coaching tips for how to *play* a paddle — not just mold/spec copy.
@@ -114,4 +114,67 @@ export function paddleCoachingTips(p: PaddleProfile): string[] {
     if (out.length >= 4) break;
   }
   return out;
+}
+
+/**
+ * How this paddle is actually used at a high level — kitchen geometry, hand speed, finishing.
+ * Optional profile.proUse override for flagship / ambassador models.
+ */
+export function paddleProUse(p: PaddleProfile): PaddleProUse {
+  if (p.proUse) return p.proUse;
+
+  const thick = p.thicknessMm;
+  const howTheyWin: string[] = [];
+
+  if (p.bias === "power") {
+    howTheyWin.push(
+      "Take time away: deep return, then a penetrating third when they are late to the line.",
+    );
+    howTheyWin.push("Finish at the hip or feet — chest-high sitters get blocked by fast hands.");
+  } else if (p.bias === "control") {
+    howTheyWin.push("Build the dink: crosscourt pocket → feet → middle until they lift.");
+    howTheyWin.push("Reset quality wins the point — die in the 7' kitchen, paddle stays up.");
+  } else if (p.bias === "spin") {
+    howTheyWin.push("Dip every third-ball roll and kitchen dink so they volley off their shoe tops.");
+    howTheyWin.push("Closed face on counters (~−4°) so RPM does not dump into the net.");
+  } else {
+    howTheyWin.push("Two gears: neutralize with a drop, then commit when you own the kitchen line.");
+    howTheyWin.push("Drive the middle seam when they are midcourt; drop when they are set.");
+  }
+
+  if (p.shape === "elongated") {
+    howTheyWin.push(
+      "Use reach for stretched blocks and deep returns; miss-hits live near the tip — center the ball.",
+    );
+  } else if (p.shape === "standard" || p.shape === "widebody") {
+    howTheyWin.push(
+      "Win the hand battle: wide ready, square face, short punch — this shape is a kitchen weapon.",
+    );
+  } else {
+    howTheyWin.push("Cover the middle first, then use the slight length for angled rolls.");
+  }
+
+  const thin = thick != null && thick <= 14;
+  const fastHands = thin
+    ? `${thick}mm plays lively — 6–8" punch, soft grip on blocks, recover to chest before they can counter.`
+    : p.shape === "elongated"
+      ? "Elongated mass wants earlier prep. At the line, shorten the lever: choke a finger up if you have to, punch, recover high."
+      : "Paddle at chest height, elbows soft. The player who is ready first owns the speed-up / counter exchange.";
+
+  const dominate =
+    p.power >= 82
+      ? "Dominate by attacking the first ball above the 34\" tape at the hip or feet, then covering the middle rebound. Power paddles lose when you bang from below the net."
+      : "Dominate by never feeding chest-high balls and by calling the middle early. Placement at the feet is statistically the hardest volley for a set opponent — teaching model, not tour telemetry.";
+
+  const headline =
+    p.tourPresence && p.tourPresence.length < 120
+      ? p.tourPresence
+      : `${p.brand} ${p.name} — play the bias (${p.bias}), not the marketing.`;
+
+  return {
+    headline,
+    howTheyWin: howTheyWin.slice(0, 4),
+    fastHands,
+    dominate,
+  };
 }

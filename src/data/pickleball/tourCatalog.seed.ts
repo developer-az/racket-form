@@ -1,4 +1,4 @@
-import type { PaddleProfile, PlayBias, PaddleShape, PaddleCore, PaddleFace, FaceTexture } from "@/types/pickleball";
+import type { PaddleProfile, PaddleProUse, PlayBias, PaddleShape, PaddleCore, PaddleFace, FaceTexture } from "@/types/pickleball";
 
 /**
  * Local tour-level paddle catalog seed.
@@ -41,6 +41,7 @@ type SeedInput = {
   year?: number;
   approval?: string;
   tips?: string[];
+  proUse?: PaddleProUse;
 };
 
 function seed(p: SeedInput): PaddleProfile {
@@ -80,6 +81,7 @@ function seed(p: SeedInput): PaddleProfile {
     catalogTier: "tour-seed",
     tourPresence: p.tourPresence,
     tips: p.tips,
+    proUse: p.proUse,
   };
 }
 
@@ -683,6 +685,18 @@ export const TOUR_PADDLE_SEED: PaddleProfile[] = [
       "Resets: absorb with a soft grip and a slightly open face; the foam will mute pace if you do not stab at it.",
       "Use the elongated reach for deep returns, but step in when you attack so you are not late on the tip.",
     ],
+    proUse: {
+      headline: "Ben Johns-era elongated: drive the window, then own the kitchen with a quiet foam face.",
+      howTheyWin: [
+        "Deep return with reach so the third shot starts under pressure.",
+        "Mix a Flex Foam drive at the body with a roll that dips at their feet.",
+        "At the line, shorten up — foam still needs a compact punch, not a full swing.",
+      ],
+      fastHands:
+        "Elongated + foam is not a widebody blocker. Choke slightly, paddle at chest, 6–8\" punch, recover before the counter.",
+      dominate:
+        "Pros dominate by taking the first attackable ball (hip or feet) and covering the middle. This paddle finishes those balls; it does not hide late prep.",
+    },
   }),
   seed({
     id: "joola-scorpeus-pro-v-14",
@@ -1123,10 +1137,182 @@ export const TOUR_PADDLE_SEED: PaddleProfile[] = [
     tourPresence: "JOOLA standard-shape power option beside Scorpeus/Perseus.",
     year: 2024,
   }),
+  seed({
+    id: "lotto-ultimo-pro-14",
+    brand: "Lotto",
+    name: "Ultimo Pro 14mm",
+    shape: "elongated",
+    core: "polymer",
+    face: "raw-carbon",
+    texture: "raw",
+    weightOz: 8.1,
+    thicknessMm: 14,
+    gripLengthIn: 5.5,
+    edgeGuard: "thin",
+    bias: "power",
+    power: 86,
+    control: 64,
+    spin: 88,
+    pop: 90,
+    sweetSpot: 72,
+    feel: "Thin 14mm triple-layer core with raw aramid grit — elongated, edgeless, built for hand-speed and RPM, not a plush reset paddle.",
+    uniqueTrait: "Edgeless raw-aramid elongated · open throat · 5.5\" handle",
+    bestFor: "Aggressive kitchen attackers who already own a soft reset and want put-away pop.",
+    tourPresence:
+      "Pablo Tellez / Brooklyn Aces MLP paddle — Lotto’s first U.S. pickleball collection (Dick’s Sporting Goods).",
+    year: 2024,
+    tips: [
+      "Keep the swing compact at the line — 14mm pop will sail if you take a full cut on a low ball.",
+      "Use the elongated reach for deep returns, then recover the paddle to chest height before they can counter.",
+      "On drops, open the face ~12–14° and lift; do not slap this thin core.",
+    ],
+    proUse: {
+      headline: "Tellez-style: take time away, then finish at the hip — not a baseline banger’s paddle.",
+      howTheyWin: [
+        "Elongated reach on the return so the third shot starts under pressure.",
+        "Thin-core pop for speed-ups at the hip line once the ball sits above the 34\" tape.",
+        "Long handle for two-hand backhand rolls when stretched on the stretch-pocket dink.",
+      ],
+      fastHands:
+        "Edgeless + 14mm is whippy — paddle stays at chest, 6–8\" punch, recover high. Full swings at the kitchen dump or fly.",
+      dominate:
+        "Pros dominate by owning the first attackable ball at the feet or hip, then covering the middle rebound. This paddle rewards that sequence; it does not hide late contact.",
+    },
+  }),
+  seed({
+    id: "lotto-ultimo-pro-16",
+    brand: "Lotto",
+    name: "Ultimo Pro 16mm",
+    shape: "elongated",
+    core: "polymer",
+    face: "raw-carbon",
+    texture: "raw",
+    weightOz: 8.2,
+    thicknessMm: 16,
+    gripLengthIn: 5.5,
+    edgeGuard: "thin",
+    bias: "spin",
+    power: 78,
+    control: 74,
+    spin: 86,
+    pop: 80,
+    sweetSpot: 78,
+    feel: "Same edgeless aramid elongated template with a 16mm core — more dwell on dinks, still enough pop to finish.",
+    uniqueTrait: "Edgeless 16mm Ultimo Pro · spin with a wider reset window",
+    bestFor: "Players who want Tellez geometry without living on a 14mm trampoline.",
+    tourPresence: "Thicker Ultimo Pro option in Lotto’s MLP / Dick’s collection beside the 14mm.",
+    year: 2024,
+    tips: [
+      "Trust the extra dwell on drops — hold the face open a beat longer than the 14mm.",
+      "Still recover high after every speed-up; 16mm does not forgive a paddle that drops to the hip.",
+      "Brush low-to-high on third-ball rolls — this face wants RPM more than flat pace.",
+    ],
+    proUse: {
+      headline: "Same elongated weapon as the 14mm, with a kitchen you can actually reset from.",
+      howTheyWin: [
+        "Deep returns with reach, then a higher-percentage drop into the 7' kitchen.",
+        "Shape drives with aramid grit instead of banging the sideline.",
+        "Speed up only when the ball is above tape — the 16mm will not bail out a shoelace flick.",
+      ],
+      fastHands:
+        "Slightly slower than the 14mm but still whippy. Compact punch, square face (~0 to −2°) on counters.",
+      dominate:
+        "Use the dwell to build the dink pattern (pocket → feet → middle), then take the first high ball at the hip.",
+    },
+  }),
+  seed({
+    id: "lotto-ultimo-14",
+    brand: "Lotto",
+    name: "Ultimo 14mm",
+    shape: "elongated",
+    core: "polymer",
+    face: "composite",
+    texture: "raw",
+    weightOz: 8.0,
+    thicknessMm: 14,
+    gripLengthIn: 5.25,
+    edgeGuard: "thin",
+    bias: "power",
+    power: 80,
+    control: 66,
+    spin: 76,
+    pop: 84,
+    sweetSpot: 74,
+    feel: "Mid-line elongated pop paddle — livelier than the Arco, less premium grit than Ultimo Pro.",
+    uniqueTrait: "Accessible elongated power in the Lotto ladder",
+    bestFor: "Club attackers who want Ultimo geometry without Pro pricing.",
+    tourPresence: "Lotto Ultimo family at Dick’s — below the Pro, same elongated idea.",
+    year: 2024,
+  }),
+  seed({
+    id: "lotto-ultimo-16",
+    brand: "Lotto",
+    name: "Ultimo 16mm",
+    shape: "elongated",
+    core: "polymer",
+    face: "composite",
+    texture: "raw",
+    weightOz: 8.1,
+    thicknessMm: 16,
+    gripLengthIn: 5.25,
+    edgeGuard: "thin",
+    bias: "all-court",
+    power: 72,
+    control: 76,
+    spin: 74,
+    pop: 74,
+    sweetSpot: 80,
+    feel: "Thicker Ultimo — more kitchen dwell with the same elongated reach.",
+    uniqueTrait: "Elongated all-court step below Ultimo Pro",
+    bestFor: "Doubles players mixing drops and body drives.",
+    tourPresence: "16mm Ultimo in Lotto’s first U.S. pickleball collection.",
+    year: 2024,
+  }),
+  seed({
+    id: "lotto-arco-16",
+    brand: "Lotto",
+    name: "Arco 16mm",
+    shape: "standard",
+    core: "polymer",
+    face: "composite",
+    texture: "smooth",
+    weightOz: 7.9,
+    thicknessMm: 16,
+    gripLengthIn: 5.0,
+    edgeGuard: "standard",
+    bias: "control",
+    power: 64,
+    control: 82,
+    spin: 70,
+    pop: 66,
+    sweetSpot: 84,
+    feel: "Standard-shape control paddle — quieter face for dinks and resets, less put-away pop than Ultimo.",
+    uniqueTrait: "Lotto’s control / wide-sweet-spot option beside the Ultimo line",
+    bestFor: "Kitchen-first partners who win with placement, not firepower.",
+    tourPresence: "Arco 16mm in Lotto’s Dick’s launch collection — the control counterpart to Ultimo Pro.",
+    year: 2024,
+    tips: [
+      "Trust the dwell — hold the dink and drop a beat longer, then roll with shape instead of punching.",
+      "Win hand battles with a wide ready position; this face will not bail you out if you wait and poke on a sit-up.",
+      "When you get a high ball, accelerate early — control paddles need committed speed-ups.",
+    ],
+    proUse: {
+      headline: "Control-first standard shape — dominate the soft game, then take the first lift.",
+      howTheyWin: [
+        "Own the dink pattern: crosscourt pocket → feet → middle until they pop it up.",
+        "Reset quality: open face ~18°, die in the kitchen, paddle stays up.",
+        "Put-aways go at the feet, not the fence.",
+      ],
+      fastHands:
+        "Standard shape + 16mm is built for blocks. Paddle at chest, elbows soft, short punches — this is a hand-battle paddle if you keep it quiet.",
+      dominate:
+        "Pros with control faces win by never feeding chest-high balls and by calling the middle early. Patience is the weapon.",
+    },
+  }),
 ];
 
 export const TOUR_CATALOG_META = {
   source: "Racket Form local tour seed (no public tour-paddle API)",
-  updated: "2026-03-15",
+  updated: "2026-09-15",
   note: "Curated manufacturer/coaching estimates for popular high-level paddles. Merge with Pickleball Effect lab snapshot; lab IDs win on conflict. Keep retail bestsellers (SLK ERA, Boomstik, Pro V, Black Opal, etc.) in sync even when lab CSV lags.",
 };

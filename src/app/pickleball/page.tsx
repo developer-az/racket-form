@@ -33,7 +33,7 @@ export default function PickleballPage() {
 
       <SiteFooter
         note={
-          "Lab-measured paddles use Pickleball Effect static specs, swingweight, twist, balance, spin RPM, and power/pop MPH; score bars map those percentiles for coaching compare. Tour-seed paddles are a local curated catalog (no public tour-paddle API) with manufacturer/coaching estimates so popular high-level models can grow here. Product photos redirect from Tennis Warehouse CDN when matched — otherwise a crafted SVG portrait. Coaching lessons are teaching context, not USA Pickleball rulebook substitutes."
+          "Lab-measured paddles use Pickleball Effect static specs, swingweight, twist, balance, spin RPM, and power/pop MPH; score bars map those percentiles for coaching compare. Tour-seed paddles are a local curated catalog (no public tour-paddle API) with manufacturer/coaching estimates so popular high-level models can grow here. Product photos redirect from Tennis Warehouse CDN when matched — otherwise a crafted SVG portrait. Court overlays use a 20×44 ft teaching court with 7' kitchens; heat-zone difficulty and face-angle degrees are coaching models, not PPA/MLP shot telemetry. Coaching lessons are teaching context, not USA Pickleball rulebook substitutes."
         }
       />
     </div>

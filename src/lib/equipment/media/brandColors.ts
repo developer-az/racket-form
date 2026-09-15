@@ -57,6 +57,7 @@ const BRAND_COLORS: Record<string, string> = {
   monarch: "#4a5568",
   ali: "#163126",
   "racket form": "#12a84a",
+  lotto: "#009fe3",
 };
 
 export function brandAccent(brand: string): string {

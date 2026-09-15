@@ -125,4 +125,19 @@ export const DOUBLES_LESSONS: DoublesLesson[] = [
       "One idea per ball: “drop,” “drive,” “reset,” “attack” — so the pair moves with shared intent.",
     ],
   },
+  {
+    id: "hand-battles",
+    step: "09",
+    title: "Fast hands at the line",
+    blurb:
+      "Pros look like they have faster hands because they are ready first: paddle at chest, short punch, recover before the counter. Full swings at the kitchen lose to compact blocks.",
+    diagram: "hand-battle",
+    points: [
+      "Ready position: paddle at chest height, elbows soft, face nearly square (about 0° to −2°). The first paddle that is still wins the exchange.",
+      "Contact is a 6–8 inch punch — not a tennis swing. Finish and recover to chest in one motion so you own the rebound.",
+      "Attack the hip line or feet, never the chest. Chest-high balls get punched back; shoe-top balls are the hardest volley to handle.",
+      "Speed up only above the 34\" net tape. Shoelace speed-ups gift counters. Expect the counter — paddle stays up.",
+      "If they counter well, reset immediately into the middle 7' kitchen. Ego rallies lose to the player who is ready first.",
+    ],
+  },
 ];
