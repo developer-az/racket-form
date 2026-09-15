@@ -30,12 +30,18 @@ export function ShotStrategyPanel({ strategies }: { strategies: ShotStrategyCard
         accent: "var(--chart-control)",
       },
       { label: "Pace", a: selected.pace, b: compare.pace, accent: "var(--chart-power)" },
+      {
+        label: "Placement",
+        a: selected.placement,
+        b: compare.placement,
+        accent: "var(--sky)",
+      },
       { label: "Risk", a: selected.risk, b: compare.risk, accent: "var(--danger)" },
       {
         label: "Partner need",
         a: selected.partnerDependence,
         b: compare.partnerDependence,
-        accent: "var(--sky)",
+        accent: "var(--amber)",
       },
     ];
   }, [selected, compare]);
@@ -71,6 +77,14 @@ export function ShotStrategyPanel({ strategies }: { strategies: ShotStrategyCard
               <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-[var(--muted)]">
                 {shot.when}
               </p>
+              <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-[10px] tabular-nums text-[var(--muted)]">
+                <span>
+                  Pace <span className="text-[var(--foreground)]">{shot.pace}</span>
+                </span>
+                <span>
+                  Place <span className="text-[var(--foreground)]">{shot.placement}</span>
+                </span>
+              </div>
             </button>
           );
         })}
@@ -112,6 +126,12 @@ export function ShotStrategyPanel({ strategies }: { strategies: ShotStrategyCard
           </div>
 
           <div className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <ScoreMeter label="Pace" value={selected.pace} accent="var(--chart-power)" />
+              <ScoreMeter label="Placement" value={selected.placement} accent="var(--sky)" />
+              <ScoreMeter label="Patience" value={selected.patience} accent="var(--chart-control)" />
+              <ScoreMeter label="Risk" value={selected.risk} accent="var(--danger)" />
+            </div>
             <div>
               <p className="mb-2 text-[0.8125rem] font-medium text-[var(--label)]">Compare with</p>
               <select

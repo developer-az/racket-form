@@ -1,6 +1,15 @@
 import type { ShotStrategyCard } from "@/types/pickleball";
 
-/** Shot strategy — high-level decision making with plain language (kitchen = non-volley zone). */
+/**
+ * Shot strategy — high-level decision making with plain language (kitchen = non-volley zone).
+ *
+ * Score rubric (0–100):
+ * - patience: how long you should wait / build before finishing
+ * - pace: ball speed & aggression at contact (soft reset → speed-up)
+ * - placement: how much target precision matters vs just clearing the ball
+ * - risk: miss / counter cost if executed poorly
+ * - partnerDependence: how much the pair must move or cover together
+ */
 export const SHOT_STRATEGIES: ShotStrategyCard[] = [
   {
     id: "serve-return",
@@ -14,10 +23,11 @@ export const SHOT_STRATEGIES: ShotStrategyCard[] = [
       "After a short return, stop midcourt and prepare a soft reset — charging a pop-up is how points end early against you.",
     ],
     avoid: "Floating a short return and sprinting in anyway — you hand them a body target at the line.",
-    patience: 70,
-    pace: 40,
+    patience: 72,
+    pace: 42,
+    placement: 86,
     risk: 35,
-    partnerDependence: 80,
+    partnerDependence: 82,
     diagram: "serve-return",
   },
   {
@@ -34,6 +44,7 @@ export const SHOT_STRATEGIES: ShotStrategyCard[] = [
     avoid: "Banging from the kitchen when the ball is low — you gift free put-aways.",
     patience: 92,
     pace: 18,
+    placement: 90,
     risk: 22,
     partnerDependence: 70,
     diagram: "dink-pockets",
@@ -50,10 +61,11 @@ export const SHOT_STRATEGIES: ShotStrategyCard[] = [
       "Disguise early: same prep as a drive so they cannot cheat forward.",
     ],
     avoid: "Driving every third when opponents already own the kitchen line.",
-    patience: 85,
+    patience: 88,
     pace: 28,
-    risk: 40,
-    partnerDependence: 65,
+    placement: 88,
+    risk: 42,
+    partnerDependence: 68,
     diagram: "drop-targets",
   },
   {
@@ -68,10 +80,12 @@ export const SHOT_STRATEGIES: ShotStrategyCard[] = [
       "If they block deep, freeze midcourt — do not charge into a counter.",
     ],
     avoid: "Driving into established kitchen players without a high ball — low percentage.",
-    patience: 35,
-    pace: 88,
-    risk: 72,
-    partnerDependence: 45,
+    patience: 32,
+    pace: 86,
+    placement: 58,
+    risk: 70,
+    partnerDependence: 48,
+    diagram: "drive-lanes",
   },
   {
     id: "reset",
@@ -85,10 +99,12 @@ export const SHOT_STRATEGIES: ShotStrategyCard[] = [
       "Quality check: the ball should die in the kitchen, not sit chest-high for their attack.",
     ],
     avoid: "Fighting fire with fire when your feet are not set.",
-    patience: 88,
-    pace: 15,
-    risk: 25,
-    partnerDependence: 60,
+    patience: 90,
+    pace: 12,
+    placement: 78,
+    risk: 28,
+    partnerDependence: 62,
+    diagram: "reset-zone",
   },
   {
     id: "speed-up",
@@ -102,10 +118,11 @@ export const SHOT_STRATEGIES: ShotStrategyCard[] = [
       "Skip speed-ups from your shoes or when late — those are gifts.",
     ],
     avoid: "Speed-ups from shoelaces or off the hip when late.",
-    patience: 30,
-    pace: 95,
-    risk: 80,
-    partnerDependence: 75,
+    patience: 28,
+    pace: 94,
+    placement: 72,
+    risk: 82,
+    partnerDependence: 78,
     diagram: "speed-up-lanes",
   },
   {
@@ -120,9 +137,10 @@ export const SHOT_STRATEGIES: ShotStrategyCard[] = [
       "Partner communication: call the target early so you do not both leave the middle.",
     ],
     avoid: "Feeding chest-high balls to players with fast hands.",
-    patience: 60,
-    pace: 55,
-    risk: 40,
+    patience: 58,
+    pace: 48,
+    placement: 95,
+    risk: 38,
     partnerDependence: 55,
     diagram: "feet-hips",
   },
@@ -138,10 +156,12 @@ export const SHOT_STRATEGIES: ShotStrategyCard[] = [
       "Use sparingly against reliable overheads — pattern them only when they crash.",
     ],
     avoid: "Casual lobs to players with reliable overheads and court position.",
-    patience: 55,
-    pace: 60,
-    risk: 68,
-    partnerDependence: 50,
+    patience: 52,
+    pace: 58,
+    placement: 82,
+    risk: 70,
+    partnerDependence: 52,
+    diagram: "lob-overhead",
   },
   {
     id: "erne-atp",
@@ -155,9 +175,11 @@ export const SHOT_STRATEGIES: ShotStrategyCard[] = [
       "Practice the footwork empty-handed first; illegal kitchen contact is a free point for them.",
     ],
     avoid: "Trying highlight Ernes or around-the-post shots before you own basic kitchen discipline.",
-    patience: 25,
-    pace: 90,
-    risk: 92,
-    partnerDependence: 85,
+    patience: 22,
+    pace: 88,
+    placement: 64,
+    risk: 94,
+    partnerDependence: 88,
+    diagram: "erne-atp",
   },
 ];

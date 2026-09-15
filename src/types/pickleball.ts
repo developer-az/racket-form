@@ -110,11 +110,23 @@ export type ShotStrategyCard = {
   avoid: string;
   /** Coaching scores for interactive compare (0–100). */
   patience: number;
+  /** Ball speed / aggression at contact (soft reset low → speed-up high). */
   pace: number;
+  /** How much target precision matters vs simply sending the ball. */
+  placement: number;
   risk: number;
   partnerDependence: number;
   /** Optional court diagram overlay. */
-  diagram?: "dink-pockets" | "drop-targets" | "speed-up-lanes" | "feet-hips" | "serve-return";
+  diagram?:
+    | "dink-pockets"
+    | "drop-targets"
+    | "speed-up-lanes"
+    | "feet-hips"
+    | "serve-return"
+    | "drive-lanes"
+    | "reset-zone"
+    | "lob-overhead"
+    | "erne-atp";
 };
 
 export type TechLever = {
