@@ -40,6 +40,7 @@ type SeedInput = {
   tourPresence: string;
   year?: number;
   approval?: string;
+  tips?: string[];
 };
 
 function seed(p: SeedInput): PaddleProfile {
@@ -78,6 +79,7 @@ function seed(p: SeedInput): PaddleProfile {
     imageProvenance: null,
     catalogTier: "tour-seed",
     tourPresence: p.tourPresence,
+    tips: p.tips,
   };
 }
 
@@ -676,6 +678,11 @@ export const TOUR_PADDLE_SEED: PaddleProfile[] = [
     bestFor: "Aggressive all-court players who drive and shape from midcourt.",
     tourPresence: "Flagship JOOLA elongated on PPA / MLP — Ben Johns signature line.",
     year: 2025,
+    tips: [
+      "Drive through the window, then recover high — Pro V Flex Foam rewards committed swings more than tentative pokes.",
+      "Resets: absorb with a soft grip and a slightly open face; the foam will mute pace if you do not stab at it.",
+      "Use the elongated reach for deep returns, but step in when you attack so you are not late on the tip.",
+    ],
   }),
   seed({
     id: "joola-scorpeus-pro-v-14",
@@ -890,6 +897,12 @@ export const TOUR_PADDLE_SEED: PaddleProfile[] = [
     bestFor: "Intermediate–advanced all-court players who want plug-and-play power and spin.",
     tourPresence: "Selkirk's volume SLK power paddle — ubiquitous retail / TW seller.",
     year: 2025,
+    tips: [
+      "Play it stock — static, swing, and balance are already dialed; tape only if you want extra plow, not to “fix” it.",
+      "Use the 5.8\" handle for two-hand backhands and stretched blocks, but keep contact in the middle third so tip misses stay rare.",
+      "On kitchen exchanges, take a quieter grip: the Dynamic Fusion pop will finish the ball if you meet it out front.",
+      "Third balls: roll with shape above the tape — InfiniGrit-level spin brings depth without needing a flat drive every time.",
+    ],
   }),
   seed({
     id: "slk-era-power-widebody",
@@ -912,6 +925,11 @@ export const TOUR_PADDLE_SEED: PaddleProfile[] = [
     bestFor: "Players who want ERA Power pop with more block forgiveness.",
     tourPresence: "Widebody twin to the elongated ERA — common Selkirk/SLK retail pair.",
     year: 2025,
+    tips: [
+      "Set a wide ready and block early — the face forgives off-center contact more than the elongated twin.",
+      "You can stay in hands battles longer; use short punches and let the core supply put-away when the ball sits.",
+      "Returns: aim deep middle and sprint — the lower swingweight helps you arrive paddle-up without feeling late.",
+    ],
   }),
   seed({
     id: "slk-halo-control",

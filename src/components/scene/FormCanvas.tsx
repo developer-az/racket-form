@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef, type ComponentRef, type RefObject } from "react";
+import { Suspense, useEffect, useRef, useState, type ComponentRef, type RefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
@@ -48,7 +48,13 @@ function PlaybackDriver() {
   return null;
 }
 
-function CameraRig() {
+function CameraRig({
+  allowZoom,
+  allowRotate,
+}: {
+  allowZoom: boolean;
+  allowRotate: boolean;
+}) {
   const mode = useCoachStore((s) => s.cameraMode);
   const { camera, size } = useThree();
   const controls = useRef<ComponentRef<typeof OrbitControls>>(null);
@@ -84,13 +90,17 @@ function CameraRig() {
         maxPolarAngle={Math.PI * 0.49}
         minDistance={mode === "firstPerson" ? 0.4 : 1.5}
         maxDistance={mode === "firstPerson" ? 4 : 16}
-        enablePan={!narrow}
-        enableDamping
+        enablePan={allowRotate && !narrow}
+        enableZoom={allowZoom}
+        enableRotate={allowRotate}
+        enableDamping={allowRotate}
         dampingFactor={0.12}
         rotateSpeed={narrow ? 0.9 : 0.7}
+        // Never let wheel/pinch steal page scroll on embedded heroes
+        zoomSpeed={allowZoom ? 1 : 0}
         touches={{
           ONE: THREE.TOUCH.ROTATE,
-          TWO: THREE.TOUCH.DOLLY_PAN,
+          TWO: allowZoom ? THREE.TOUCH.DOLLY_PAN : THREE.TOUCH.ROTATE,
         }}
       />
     </>
@@ -226,12 +236,20 @@ function AdaptiveDpr() {
   return null;
 }
 
-function SceneContent({ bg }: { bg: string }) {
+function SceneContent({
+  bg,
+  allowZoom,
+  allowRotate,
+}: {
+  bg: string;
+  allowZoom: boolean;
+  allowRotate: boolean;
+}) {
   return (
     <>
       <PlaybackDriver />
       <AdaptiveDpr />
-      <CameraRig />
+      <CameraRig allowZoom={allowZoom} allowRotate={allowRotate} />
       <color attach="background" args={[bg]} />
       <fog attach="fog" args={[bg, 14, 36]} />
 
@@ -252,9 +270,21 @@ function SceneContent({ bg }: { bg: string }) {
   );
 }
 
-export function FormCanvas() {
+export type FormCanvasProps = {
+  /**
+   * `lab` — full orbit/zoom (Form Lab).
+   * `hero` — no wheel/pinch zoom so page scroll wins; rotate only on pointer drag (desktop).
+   */
+  variant?: "lab" | "hero";
+};
+
+export function FormCanvas({ variant = "lab" }: FormCanvasProps) {
   const { colors } = useTheme();
   const bg = colors.bgScene;
+  const isHero = variant === "hero";
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(!isHero);
+  const [isNarrow, setIsNarrow] = useState(false);
 
   useEffect(() => {
     return useCoachStore.subscribe((state, prev) => {
@@ -267,12 +297,53 @@ export function FormCanvas() {
     });
   }, []);
 
+  useEffect(() => {
+    if (!isHero) return;
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const sync = () => setIsNarrow(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, [isHero]);
+
+  // Pause the WebGL loop when the hero leaves the viewport so scroll stays smooth
+  useEffect(() => {
+    if (!isHero) return;
+    const el = rootRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        const on = entry.isIntersecting && entry.intersectionRatio > 0.12;
+        setActive(on);
+        const store = useCoachStore.getState();
+        if (!on) {
+          store.setPlaying(false);
+        } else if (!store.playing) {
+          store.setPlaying(true);
+        }
+      },
+      { threshold: [0, 0.12, 0.35], rootMargin: "0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [isHero]);
+
+  const allowZoom = !isHero;
+  // On hero mobile, leave touch free for page scroll — orbit stays a desktop affordance
+  const allowRotate = !isHero || !isNarrow;
+
   return (
-    <div className="relative h-full min-h-[240px] w-full touch-none lg:min-h-[420px]" style={{ background: bg }}>
+    <div
+      ref={rootRef}
+      className={`relative h-full min-h-[240px] w-full lg:min-h-[420px] ${
+        isHero ? "touch-pan-y" : "touch-none"
+      }`}
+      style={{ background: bg }}
+    >
       <Canvas
-        className="!absolute inset-0 touch-none"
-        dpr={[1, 1.5]}
-        frameloop="always"
+        className={`!absolute inset-0 ${isHero ? "touch-pan-y" : "touch-none"}`}
+        dpr={[1, isHero ? 1.25 : 1.5]}
+        frameloop={isHero && !active ? "never" : "always"}
         gl={{
           antialias: false,
           alpha: false,
@@ -282,11 +353,11 @@ export function FormCanvas() {
         }}
         onCreated={({ gl }) => {
           gl.setClearColor(new THREE.Color(getThemeColors().bgScene));
-          gl.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+          gl.setPixelRatio(Math.min(window.devicePixelRatio, isHero ? 1.25 : 1.5));
         }}
       >
         <Suspense fallback={null}>
-          <SceneContent bg={bg} />
+          <SceneContent bg={bg} allowZoom={allowZoom} allowRotate={allowRotate} />
         </Suspense>
       </Canvas>
       <div

@@ -142,7 +142,7 @@ export function HomeHeroDemo() {
     <section className="sf-hero-stage relative isolate min-h-[calc(100dvh-var(--header-h))] overflow-hidden">
       <div className="absolute inset-0 bg-[var(--bg-scene)]">
         <div className="sf-hero-demo-canvas absolute inset-0">
-          <FormCanvas />
+          <FormCanvas variant="hero" />
         </div>
       </div>
 
@@ -160,7 +160,8 @@ export function HomeHeroDemo() {
             Scrub elite stroke rails in 3D — phases, joints, and path in one live mold.
           </h1>
           <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-[var(--muted)]">
-            Drag to orbit. Scrub the rail. See what coaches film in slow motion.
+            Scrub the rail. Drag to orbit on desktop. Scroll anytime — the court will not steal the
+            page.
           </p>
           <HomeHeroCtas />
         </div>

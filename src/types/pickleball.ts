@@ -70,6 +70,8 @@ export type PaddleProfile = {
   catalogTier?: PaddleCatalogTier;
   /** Short note on why this paddle matters on tour / in serious play. */
   tourPresence?: string | null;
+  /** Optional hand-authored coaching tips — overrides generated tips when set. */
+  tips?: string[];
 };
 
 export type PaddleCatalogMeta = {

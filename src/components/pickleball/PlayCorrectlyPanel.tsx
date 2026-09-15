@@ -1,28 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { DoublesLesson } from "@/types/pickleball";
 import { PickleDiagram } from "./PickleDiagrams";
 
 export function PlayCorrectlyPanel({ lessons }: { lessons: DoublesLesson[] }) {
-  const reduceMotion = useReducedMotion();
   const [activeId, setActiveId] = useState(lessons[0]?.id ?? "");
   const active = lessons.find((l) => l.id === activeId) ?? lessons[0];
 
   return (
     <div className="space-y-6">
-      <header className="relative overflow-hidden rounded-[var(--radius)] border border-[var(--line)]">
-        <div className="pointer-events-none absolute inset-0 sf-hero-wash opacity-80" aria-hidden />
-        <div className="relative max-w-2xl px-4 py-5 md:px-5">
-          <p className="sf-kicker">Doubles first</p>
-          <h2 className="sf-section-title mt-1">Play the geometry</h2>
-          <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
-            High-level doubles decisions — lane ownership, kitchen (non-volley zone) discipline,
-            serve/return races, when to stay back vs go up, stacking with intent, and attack vs
-            reset at the line.
-          </p>
-        </div>
+      <header className="border-b border-[var(--line)] pb-5">
+        <p className="sf-kicker sf-kicker-muted">Doubles first</p>
+        <h2 className="sf-section-title mt-1">Play the geometry</h2>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--muted)]">
+          High-level doubles decisions — lane ownership, kitchen discipline, serve/return races,
+          when to stay back vs go up, stacking with intent, and attack vs reset at the line.
+        </p>
       </header>
 
       <ol className="flex flex-wrap gap-1" aria-label="Lesson steps">
@@ -48,50 +42,29 @@ export function PlayCorrectlyPanel({ lessons }: { lessons: DoublesLesson[] }) {
         })}
       </ol>
 
-      <AnimatePresence mode="wait">
-        {active ? (
-          <motion.section
-            key={active.id}
-            initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
-            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className="sf-panel grid gap-6 p-4 md:grid-cols-2 md:p-6"
-          >
-            <div>
-              <p className="sf-kicker !text-[var(--muted)]">
-                {active.step} · {active.title}
-              </p>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--foreground)]">{active.blurb}</p>
-              <ul className="mt-4 space-y-3">
-                {active.points.map((point, i) => (
-                  <motion.li
-                    key={point}
-                    initial={reduceMotion ? false : { opacity: 0, x: -6 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: reduceMotion ? 0 : 0.04 * i, duration: 0.25 }}
-                    className="border-l-2 border-[var(--accent)] pl-3 text-sm leading-relaxed text-[var(--muted)]"
-                  >
-                    <span className="text-[var(--foreground)]/90">{point}</span>
-                  </motion.li>
-                ))}
-              </ul>
-            </div>
-            <div className="sf-viz-stage">
-              {active.diagram ? (
-                <PickleDiagram kind={active.diagram} />
-              ) : (
-                <div className="flex h-full min-h-[160px] flex-col justify-center gap-2 p-4">
-                  <p className="sf-kicker">Unit movement</p>
-                  <p className="text-sm text-[var(--muted)]">
-                    After every neutralizing ball, take one step in together.
-                  </p>
-                </div>
-              )}
-            </div>
-          </motion.section>
-        ) : null}
-      </AnimatePresence>
+      {active ? (
+        <section className="sf-panel grid gap-6 p-4 md:grid-cols-2 md:p-6">
+          <div>
+            <p className="sf-kicker sf-kicker-muted">
+              {active.step} · {active.title}
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-[var(--foreground)]">{active.blurb}</p>
+            <ul className="mt-4 space-y-3">
+              {active.points.map((point) => (
+                <li
+                  key={point}
+                  className="border-l border-[var(--line-strong)] pl-3 text-sm leading-relaxed text-[var(--muted)]"
+                >
+                  <span className="text-[var(--foreground)]/90">{point}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="sf-viz-stage">
+            {active.diagram ? <PickleDiagram kind={active.diagram} /> : null}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

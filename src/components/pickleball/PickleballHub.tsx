@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { DoublesLesson, PaddleProfile, PickleballTab, ShotStrategyCard } from "@/types/pickleball";
 import { PaddleTechPanel } from "./PaddleTechPanel";
 import { PlayCorrectlyPanel } from "./PlayCorrectlyPanel";
@@ -52,7 +51,6 @@ export function PickleballHub({
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const reduceMotion = useReducedMotion();
   const tab = parseTab(searchParams.get("tab"));
 
   useEffect(() => {
@@ -135,43 +133,33 @@ export function PickleballHub({
       </div>
 
       <div className="relative z-10 mt-4 md:mt-6">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={tab}
-            initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
-            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+        {tab === "paddle-tech" ? (
+          <div
+            id="pickle-panel-paddle-tech"
+            role="tabpanel"
+            aria-labelledby="pickle-tab-paddle-tech"
           >
-            {tab === "paddle-tech" ? (
-              <div
-                id="pickle-panel-paddle-tech"
-                role="tabpanel"
-                aria-labelledby="pickle-tab-paddle-tech"
-              >
-                <PaddleTechPanel paddles={paddles} />
-              </div>
-            ) : null}
-            {tab === "play-correctly" ? (
-              <div
-                id="pickle-panel-play-correctly"
-                role="tabpanel"
-                aria-labelledby="pickle-tab-play-correctly"
-              >
-                <PlayCorrectlyPanel lessons={lessons} />
-              </div>
-            ) : null}
-            {tab === "shot-strategy" ? (
-              <div
-                id="pickle-panel-shot-strategy"
-                role="tabpanel"
-                aria-labelledby="pickle-tab-shot-strategy"
-              >
-                <ShotStrategyPanel strategies={strategies} />
-              </div>
-            ) : null}
-          </motion.div>
-        </AnimatePresence>
+            <PaddleTechPanel paddles={paddles} />
+          </div>
+        ) : null}
+        {tab === "play-correctly" ? (
+          <div
+            id="pickle-panel-play-correctly"
+            role="tabpanel"
+            aria-labelledby="pickle-tab-play-correctly"
+          >
+            <PlayCorrectlyPanel lessons={lessons} />
+          </div>
+        ) : null}
+        {tab === "shot-strategy" ? (
+          <div
+            id="pickle-panel-shot-strategy"
+            role="tabpanel"
+            aria-labelledby="pickle-tab-shot-strategy"
+          >
+            <ShotStrategyPanel strategies={strategies} />
+          </div>
+        ) : null}
       </div>
     </div>
   );
