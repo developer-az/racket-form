@@ -5,7 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { PaddleProfile, PlayBias } from "@/types/pickleball";
 import { PADDLE_TECH_LEVERS } from "@/data/pickleball/paddles";
 import { ScoreGrid, ScoreMeter } from "@/components/gear/ScoreMeter";
-import { AisleChip, ChipRow, HScroll, ProductCard, SearchField } from "@/components/gear/CatalogShop";
+import { AisleChip, ChipRow, ProductCard, SearchField } from "@/components/gear/CatalogShop";
 import { EquipmentThumb } from "@/components/gear/EquipmentThumb";
 import { brandAccent } from "@/lib/equipment/media/brandColors";
 import {
@@ -114,13 +114,11 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
   const tourCount = paddles.length - labCount;
 
   return (
-    <div className="space-y-8">
-      <section className="sf-panel relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 sf-hero-wash opacity-90" aria-hidden />
-        <div className="pointer-events-none absolute inset-0 sf-hero-grid" aria-hidden />
-        <div className="relative space-y-4 p-4 md:p-5">
+    <div className="pickle-catalog space-y-10">
+      <section className="sf-panel overflow-hidden">
+        <div className="space-y-5 p-4 md:p-6">
           <div>
-            <p className="sf-kicker">Starters · paddle tech</p>
+            <p className="sf-kicker sf-kicker-muted">Starters · paddle tech</p>
             <h2 className="sf-section-title mt-1">How gear shifts control vs power</h2>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--muted)]">
               Flip one lever at a time — core, face, weight, grip/edge — and watch the control/power
@@ -129,7 +127,7 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
             </p>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
             <div className="space-y-4">
               {PADDLE_TECH_LEVERS.map((lever, li) => (
                 <motion.div
@@ -156,9 +154,9 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
 
             <motion.div
               layout={!reduceMotion}
-              className="space-y-4 rounded-md bg-[var(--bg-sunken)]/90 p-4 backdrop-blur-[2px]"
+              className="space-y-4 rounded-[var(--radius)] border border-[var(--line)] bg-[var(--bg-sunken)]/70 p-4"
             >
-              <p className="sf-kicker !text-[var(--muted)]">Live balance</p>
+              <p className="sf-kicker sf-kicker-muted">Live balance</p>
               <ScoreMeter label="Control" value={leverEffect.control} accent="var(--chart-control)" />
               <ScoreMeter label="Power" value={leverEffect.power} accent="var(--chart-power)" />
               <AnimatePresence mode="popLayout">
@@ -169,7 +167,7 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
                       initial={reduceMotion ? false : { opacity: 0, x: -4 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={reduceMotion ? undefined : { opacity: 0 }}
-                      className="border-l-2 border-[var(--amber)] pl-2"
+                      className="border-l border-[var(--line-strong)] pl-2.5"
                     >
                       {n}
                     </motion.li>
@@ -181,10 +179,10 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
         </div>
       </section>
 
-      <section className="space-y-4">
+      <section className="space-y-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="sf-kicker">Catalog</p>
+            <p className="sf-kicker sf-kicker-muted">Catalog</p>
             <h2 className="sf-section-title mt-1">Paddles players actually use</h2>
             <p className="mt-1 max-w-xl text-xs text-[var(--muted)]">
               {paddles.length} paddles · {labCount} lab-measured · {tourCount} tour-seed. Lab rows
@@ -203,44 +201,46 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
           </div>
         </div>
 
-        <ChipRow label="Source">
-          <AisleChip label="All" active={tier === "all"} onClick={() => setTier("all")} />
-          <AisleChip
-            label={`Lab (${labCount})`}
-            active={tier === "lab-measured"}
-            onClick={() => setTier("lab-measured")}
-          />
-          <AisleChip
-            label={`Tour seed (${tourCount})`}
-            active={tier === "tour-seed"}
-            onClick={() => setTier("tour-seed")}
-          />
-        </ChipRow>
-
-        <ChipRow label="Play bias">
-          <AisleChip label="All" active={bias === "all"} onClick={() => setBias("all")} />
-          {(Object.keys(BIAS_LABEL) as PlayBias[]).map((b) => (
+        <div className="space-y-3">
+          <ChipRow label="Source">
+            <AisleChip label="All" active={tier === "all"} onClick={() => setTier("all")} />
             <AisleChip
-              key={b}
-              label={BIAS_LABEL[b]}
-              active={bias === b}
-              onClick={() => setBias(b)}
+              label={`Lab (${labCount})`}
+              active={tier === "lab-measured"}
+              onClick={() => setTier("lab-measured")}
             />
-          ))}
-        </ChipRow>
+            <AisleChip
+              label={`Tour seed (${tourCount})`}
+              active={tier === "tour-seed"}
+              onClick={() => setTier("tour-seed")}
+            />
+          </ChipRow>
 
-        <ChipRow label="Brand">
-          <AisleChip label="All" active={brand === "all"} onClick={() => setBrand("all")} />
-          {brands.map((b) => (
-            <AisleChip key={b} label={b} active={brand === b} onClick={() => setBrand(b)} />
-          ))}
-        </ChipRow>
+          <ChipRow label="Play bias">
+            <AisleChip label="All" active={bias === "all"} onClick={() => setBias("all")} />
+            {(Object.keys(BIAS_LABEL) as PlayBias[]).map((b) => (
+              <AisleChip
+                key={b}
+                label={BIAS_LABEL[b]}
+                active={bias === b}
+                onClick={() => setBias(b)}
+              />
+            ))}
+          </ChipRow>
 
-        <p className="text-[11px] text-[var(--muted)]">
+          <ChipRow label="Brand">
+            <AisleChip label="All" active={brand === "all"} onClick={() => setBrand("all")} />
+            {brands.map((b) => (
+              <AisleChip key={b} label={b} active={brand === b} onClick={() => setBrand(b)} />
+            ))}
+          </ChipRow>
+        </div>
+
+        <p className="text-[11px] tracking-wide text-[var(--muted)]">
           Showing {filtered.length} of {paddles.length}
         </p>
 
-        <HScroll>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {filtered.map((p) => {
             const accent = brandAccent(p.brand);
             const active = selected?.id === p.id;
@@ -254,7 +254,6 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
             return (
               <ProductCard
                 key={p.id}
-                compact
                 image={paddleImageUrl(p)}
                 alt={`${p.brand} ${p.name}`}
                 brand={p.brand}
@@ -262,6 +261,7 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
                 badge={tierBadge(p)}
                 meta={meta}
                 accent={accent}
+                accentRail={false}
                 selected={active}
                 onSelect={() => setSelectedId(p.id)}
                 scores={[
@@ -272,7 +272,7 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
               />
             );
           })}
-        </HScroll>
+        </div>
 
         <AnimatePresence mode="wait">
           {selected ? (
@@ -285,10 +285,7 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
               className="sf-panel grid gap-6 overflow-hidden p-4 md:grid-cols-[auto_1fr] md:p-6"
             >
               <div
-                className="relative flex flex-col items-center gap-3 rounded-md p-3 md:items-start"
-                style={{
-                  background: `linear-gradient(165deg, color-mix(in srgb, ${brandAccent(selected.brand)} 22%, var(--bg-scene)) 0%, var(--bg-scene) 72%)`,
-                }}
+                className="relative flex flex-col items-center gap-3 rounded-[var(--radius)] border border-[var(--line)] bg-[var(--bg-scene)] p-4 md:items-start"
               >
                 <EquipmentThumb
                   src={paddleImageUrl(selected)}
@@ -298,7 +295,7 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
                 <p className="text-center text-[10px] tracking-[0.1em] text-[var(--muted)] uppercase md:text-left">
                   {selected.shape} · {selected.core} · {selected.texture}
                 </p>
-                <p className="text-center text-[10px] text-[var(--amber)] md:text-left">
+                <p className="text-center text-[10px] text-[var(--muted)] md:text-left">
                   {provenanceLabel(selected)}
                   {hasExternalPaddlePhoto(selected.id) ? " · TW photo" : " · SVG portrait"}
                 </p>
@@ -317,7 +314,7 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
                   </h3>
                   <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">{selected.feel}</p>
                   {selected.tourPresence ? (
-                    <p className="mt-2 border-l-2 border-[var(--sky)] pl-3 text-xs leading-relaxed text-[var(--foreground)]/85">
+                    <p className="mt-2 border-l border-[var(--line-strong)] pl-3 text-xs leading-relaxed text-[var(--foreground)]/85">
                       {selected.tourPresence}
                     </p>
                   ) : null}

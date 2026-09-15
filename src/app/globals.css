@@ -567,8 +567,15 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .sf-product-card[data-active="true"] {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
+  border-color: color-mix(in srgb, var(--foreground) 28%, var(--line));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--foreground) 14%, transparent);
+}
+
+/* Pickleball catalog — quieter active filters */
+.pickle-catalog .sf-chip[data-active="true"] {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 10%, var(--panel));
+  border-color: var(--line-strong);
 }
 
 .sf-feel-track {

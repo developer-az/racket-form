@@ -205,7 +205,6 @@ export function FeelBars({
               style={{
                 width: `${Math.max(4, Math.min(100, s.value))}%`,
                 background: s.color,
-                boxShadow: `0 0 8px color-mix(in srgb, ${s.color} 45%, transparent)`,
               }}
             />
           </div>
@@ -231,6 +230,7 @@ export function ProductCard({
   savedLabel = "In bag",
   compact = false,
   accent,
+  accentRail = true,
 }: {
   image: string;
   alt: string;
@@ -248,13 +248,15 @@ export function ProductCard({
   compact?: boolean;
   /** Optional brand accent for left rail / chip */
   accent?: string;
+  /** Left color rail — off for denser uniform grids */
+  accentRail?: boolean;
 }) {
   return (
     <article
-      className={`sf-product-card ${compact ? "w-[12.5rem] shrink-0 snap-start" : "w-full"}`}
+      className={`sf-product-card h-full ${compact ? "w-[12.5rem] shrink-0 snap-start" : "w-full"}`}
       data-active={selected ? "true" : "false"}
       style={
-        accent
+        accent && accentRail
           ? { boxShadow: selected ? undefined : `inset 3px 0 0 ${accent}` }
           : undefined
       }
@@ -262,23 +264,21 @@ export function ProductCard({
       <button
         type="button"
         onClick={onSelect}
-        className="flex w-full min-w-0 flex-col text-left"
+        className="flex h-full w-full min-w-0 flex-col text-left"
         aria-pressed={selected}
         aria-label={alt}
       >
         <span
-          className={`sf-thumb-well relative flex w-full items-center justify-center ${compact ? "h-28" : "h-36"}`}
-          style={
-            accent
-              ? {
-                  background: `linear-gradient(160deg, color-mix(in srgb, ${accent} 18%, var(--bg-scene)) 0%, var(--bg-scene) 70%)`,
-                }
-              : undefined
-          }
+          className={`sf-thumb-well relative flex w-full shrink-0 items-center justify-center ${compact ? "h-28" : "h-32 sm:h-36"}`}
+          style={{
+            background: accent
+              ? `linear-gradient(160deg, color-mix(in srgb, ${accent} 10%, var(--bg-scene)) 0%, var(--bg-scene) 72%)`
+              : "var(--bg-scene)",
+          }}
         >
           <EquipmentThumb src={image} alt="" size={compact ? "sm" : "md"} />
         </span>
-        <span className="flex min-w-0 flex-col gap-1.5 p-3">
+        <span className="flex min-h-0 min-w-0 flex-1 flex-col gap-1.5 p-3">
           <span
             className="block text-[10px] font-bold tracking-[0.12em] uppercase"
             style={{ color: accent ?? "var(--muted)" }}
@@ -303,10 +303,12 @@ export function ProductCard({
                 <span
                   className="w-fit rounded-sm px-1.5 py-0.5 text-[10px] font-semibold tracking-wide"
                   style={{
-                    color: accent ?? "var(--accent)",
-                    background: accent
-                      ? `color-mix(in srgb, ${accent} 18%, transparent)`
-                      : "var(--accent-dim)",
+                    color: accentRail ? (accent ?? "var(--accent)") : "var(--muted)",
+                    background: accentRail
+                      ? accent
+                        ? `color-mix(in srgb, ${accent} 16%, transparent)`
+                        : "var(--accent-dim)"
+                      : "color-mix(in srgb, var(--foreground) 8%, transparent)",
                   }}
                 >
                   {badge}
@@ -317,7 +319,9 @@ export function ProductCard({
               ) : null}
             </span>
           )}
-          <FeelBars scores={scores} />
+          <span className="mt-auto pt-1">
+            <FeelBars scores={scores} />
+          </span>
         </span>
       </button>
       {onSave ? (

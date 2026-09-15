@@ -75,27 +75,23 @@ export function PickleballHub({
 
   return (
     <div className="sf-page">
-      <header className="relative mb-5 overflow-hidden rounded-[var(--radius)] border border-[var(--line)] md:mb-6">
-        <div className="pointer-events-none absolute inset-0 sf-hero-wash" aria-hidden />
-        <div className="pointer-events-none absolute inset-0 sf-hero-grid" aria-hidden />
-        <div className="relative px-4 py-6 md:px-6 md:py-8">
-          <p className="sf-kicker">Court sibling · pickleball</p>
-          <h1 className="sf-page-title mt-1 max-w-xl">Pickleball</h1>
-          <p className="mt-3 max-w-xl text-sm leading-relaxed text-[var(--muted)]">
-            Gear that matches how you play, then doubles decisions that win points — when to stay
-            back, when to claim the kitchen line, and which shot the ball actually asks for.
-          </p>
-          <div className="mt-5 flex flex-wrap gap-2 text-[11px] font-semibold tracking-wide text-[var(--muted)]">
-            <span className="rounded-sm bg-[var(--panel)]/80 px-2 py-1 ring-1 ring-[var(--line)]">
-              {paddles.length} paddles
-            </span>
-            <span className="rounded-sm bg-[var(--panel)]/80 px-2 py-1 ring-1 ring-[var(--line)]">
-              {lessons.length} doubles lessons
-            </span>
-            <span className="rounded-sm bg-[var(--panel)]/80 px-2 py-1 ring-1 ring-[var(--line)]">
-              {strategies.length} shot plays
-            </span>
-          </div>
+      <header className="mb-5 border-b border-[var(--line)] pb-6 md:mb-6 md:pb-8">
+        <p className="sf-kicker sf-kicker-muted">Court sibling · pickleball</p>
+        <h1 className="sf-page-title mt-1 max-w-xl">Pickleball</h1>
+        <p className="mt-3 max-w-xl text-sm leading-relaxed text-[var(--muted)]">
+          Gear that matches how you play, then doubles decisions that win points — when to stay
+          back, when to claim the kitchen line, and which shot the ball actually asks for.
+        </p>
+        <div className="mt-5 flex flex-wrap gap-x-4 gap-y-1 text-[11px] tracking-wide text-[var(--muted)]">
+          <span>{paddles.length} paddles</span>
+          <span aria-hidden className="text-[var(--line-strong)]">
+            ·
+          </span>
+          <span>{lessons.length} doubles lessons</span>
+          <span aria-hidden className="text-[var(--line-strong)]">
+            ·
+          </span>
+          <span>{strategies.length} shot plays</span>
         </div>
       </header>
 
