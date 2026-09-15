@@ -8,6 +8,9 @@ export type FaceTexture = "grit" | "raw" | "smooth" | "thermoformed";
 export type PlayBias = "control" | "power" | "all-court" | "spin";
 export type PaddleSpecsProvenance = "pickleball-effect-lab" | "coaching-estimate" | "manufacturer-catalog";
 
+/** How the paddle entered the local catalog. */
+export type PaddleCatalogTier = "lab-measured" | "tour-seed";
+
 export type PaddleMeasured = {
   source: "pickleball-effect";
   powerMph: number | null;
@@ -63,6 +66,10 @@ export type PaddleProfile = {
   specsProvenance?: PaddleSpecsProvenance;
   imageProvenance?: "tennis-warehouse-cdn" | null;
   imageUrl?: string;
+  /** lab-measured = Pickleball Effect snapshot; tour-seed = curated local catalog. */
+  catalogTier?: PaddleCatalogTier;
+  /** Short note on why this paddle matters on tour / in serious play. */
+  tourPresence?: string | null;
 };
 
 export type PaddleCatalogMeta = {
@@ -71,6 +78,8 @@ export type PaddleCatalogMeta = {
   count: number;
   note?: string;
   sheet?: string;
+  labCount?: number;
+  tourSeedCount?: number;
 };
 
 export type DoublesLesson = {
@@ -87,7 +96,8 @@ export type DoublesLesson = {
     | "stack-basic"
     | "transition-unit"
     | "kitchen-battle"
-    | "third-shot-choice";
+    | "third-shot-choice"
+    | "stay-back-vs-up";
 };
 
 export type ShotStrategyCard = {
@@ -102,7 +112,7 @@ export type ShotStrategyCard = {
   risk: number;
   partnerDependence: number;
   /** Optional court diagram overlay. */
-  diagram?: "dink-pockets" | "drop-targets" | "speed-up-lanes" | "feet-hips";
+  diagram?: "dink-pockets" | "drop-targets" | "speed-up-lanes" | "feet-hips" | "serve-return";
 };
 
 export type TechLever = {

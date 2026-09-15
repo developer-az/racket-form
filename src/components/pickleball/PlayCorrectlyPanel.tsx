@@ -12,13 +12,17 @@ export function PlayCorrectlyPanel({ lessons }: { lessons: DoublesLesson[] }) {
 
   return (
     <div className="space-y-6">
-      <header className="max-w-2xl">
-        <p className="sf-kicker">Doubles first</p>
-        <h2 className="sf-section-title mt-1">How to play correctly</h2>
-        <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
-          Progression for real matches — court jobs, kitchen awareness, third-shot selection,
-          stacking when it helps, kitchen battles, and moving as a unit.
-        </p>
+      <header className="relative overflow-hidden rounded-[var(--radius)] border border-[var(--line)]">
+        <div className="pointer-events-none absolute inset-0 sf-hero-wash opacity-80" aria-hidden />
+        <div className="relative max-w-2xl px-4 py-5 md:px-5">
+          <p className="sf-kicker">Doubles first</p>
+          <h2 className="sf-section-title mt-1">Play the geometry</h2>
+          <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
+            High-level doubles decisions — lane ownership, kitchen (non-volley zone) discipline,
+            serve/return races, when to stay back vs go up, stacking with intent, and attack vs
+            reset at the line.
+          </p>
+        </div>
       </header>
 
       <ol className="flex flex-wrap gap-1" aria-label="Lesson steps">
@@ -73,7 +77,7 @@ export function PlayCorrectlyPanel({ lessons }: { lessons: DoublesLesson[] }) {
                 ))}
               </ul>
             </div>
-            <div className="rounded-md bg-[var(--bg-sunken)] p-3 md:p-4">
+            <div className="sf-viz-stage">
               {active.diagram ? (
                 <PickleDiagram kind={active.diagram} />
               ) : (

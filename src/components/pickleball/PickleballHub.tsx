@@ -14,21 +14,21 @@ const TABS: { id: PickleballTab; label: string; short: string; blurb: string }[]
     label: "Paddle tech",
     short: "Paddles",
     blurb:
-      "Measured cores, faces, swingweight, and real product photos — how gear trades control for power.",
+      "Lab-measured cores and faces plus a growing tour-seed catalog — how gear trades control for power.",
   },
   {
     id: "play-correctly",
     label: "Play correctly",
     short: "Doubles",
     blurb:
-      "Doubles geometry, kitchen battles, third-shot selection, stacking when it helps, unit transitions.",
+      "High-level doubles geometry: when to stay back vs go up, transition timing, stacking, kitchen battles.",
   },
   {
     id: "shot-strategy",
     label: "Shot strategy",
     short: "Shots",
     blurb:
-      "Dink patterns, drops, drives, resets, speed-ups, feet/hips targeting, Erne/ATP awareness.",
+      "Serve returns, dink patterns, drops, drives, resets, speed-ups, feet/hips targeting, Erne awareness.",
   },
 ];
 
@@ -75,13 +75,28 @@ export function PickleballHub({
 
   return (
     <div className="sf-page">
-      <header className="mb-5 border-b border-[var(--line)] pb-5 md:mb-6">
-        <p className="sf-kicker">Court sibling · pickleball</p>
-        <h1 className="sf-page-title mt-1">Pickleball</h1>
-        <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--muted)]">
-          Start with paddle tech, then learn doubles the right way, then build a smart shot toolkit —
-          dinks, drops, drives, and resets that win points without banging every ball.
-        </p>
+      <header className="relative mb-5 overflow-hidden rounded-[var(--radius)] border border-[var(--line)] md:mb-6">
+        <div className="pointer-events-none absolute inset-0 sf-hero-wash" aria-hidden />
+        <div className="pointer-events-none absolute inset-0 sf-hero-grid" aria-hidden />
+        <div className="relative px-4 py-6 md:px-6 md:py-8">
+          <p className="sf-kicker">Court sibling · pickleball</p>
+          <h1 className="sf-page-title mt-1 max-w-xl">Pickleball</h1>
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-[var(--muted)]">
+            Gear that matches how you play, then doubles decisions that win points — when to stay
+            back, when to claim the kitchen line, and which shot the ball actually asks for.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2 text-[11px] font-semibold tracking-wide text-[var(--muted)]">
+            <span className="rounded-sm bg-[var(--panel)]/80 px-2 py-1 ring-1 ring-[var(--line)]">
+              {paddles.length} paddles
+            </span>
+            <span className="rounded-sm bg-[var(--panel)]/80 px-2 py-1 ring-1 ring-[var(--line)]">
+              {lessons.length} doubles lessons
+            </span>
+            <span className="rounded-sm bg-[var(--panel)]/80 px-2 py-1 ring-1 ring-[var(--line)]">
+              {strategies.length} shot plays
+            </span>
+          </div>
+        </div>
       </header>
 
       <div className="sf-sticky-tabs">

@@ -1,3 +1,13 @@
+/**
+ * Build lab-measured paddle snapshot from Pickleball Effect CSV + TW codes.
+ *
+ * Usage (after placing paddles.csv and tw-paddle-codes.json in TEMP):
+ *   node scripts/build-paddle-catalog.mjs
+ *
+ * Tour-level paddles that are not in the lab CSV live in
+ * src/data/pickleball/tourCatalog.seed.ts and are merged at runtime by
+ * loadPaddles() — there is no public tour-paddle API to scrape.
+ */
 import fs from "fs";
 import path from "path";
 

@@ -10,7 +10,7 @@ import { SHOT_STRATEGIES } from "@/data/pickleball/shotStrategy";
 export const metadata: Metadata = {
   title: "Pickleball",
   description:
-    "Pickleball hub: measured paddle tech with real photos, doubles play done right, and smart shot strategy — dinks, drops, drives, and resets.",
+    "Pickleball hub: lab-measured and tour-seed paddles, high-level doubles geometry, and shot strategy — serve returns, dinks, drops, drives, and resets.",
 };
 
 export default function PickleballPage() {
@@ -33,7 +33,7 @@ export default function PickleballPage() {
 
       <SiteFooter
         note={
-          "Paddle static specs, swingweight, twist, balance, spin RPM, and power/pop MPH come from Pickleball Effect lab measurements when labeled; score bars map those percentiles for coaching compare. Product photos redirect from Tennis Warehouse CDN when matched — otherwise a crafted SVG portrait. Coaching lessons are teaching context, not USA Pickleball rulebook substitutes."
+          "Lab-measured paddles use Pickleball Effect static specs, swingweight, twist, balance, spin RPM, and power/pop MPH; score bars map those percentiles for coaching compare. Tour-seed paddles are a local curated catalog (no public tour-paddle API) with manufacturer/coaching estimates so popular high-level models can grow here. Product photos redirect from Tennis Warehouse CDN when matched — otherwise a crafted SVG portrait. Coaching lessons are teaching context, not USA Pickleball rulebook substitutes."
         }
       />
     </div>

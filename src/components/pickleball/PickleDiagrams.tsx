@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 
-/** Lightweight SVG diagrams for doubles teaching — one job each. */
+/** Lightweight SVG diagrams for doubles teaching — one job each, purposeful motion. */
 
 function CourtShell({
   children,
@@ -16,13 +16,19 @@ function CourtShell({
 }) {
   return (
     <svg viewBox={`0 0 320 ${h}`} className="h-auto w-full" role="img" aria-label={label}>
+      <defs>
+        <linearGradient id="pickleCourtWash" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="var(--bg-scene)" />
+          <stop offset="100%" stopColor="color-mix(in srgb, var(--sky) 12%, var(--bg-scene))" />
+        </linearGradient>
+      </defs>
       <rect
         x="8"
         y="12"
         width="304"
         height={h - 24}
         rx="4"
-        fill="var(--bg-scene)"
+        fill="url(#pickleCourtWash)"
         stroke="var(--line-strong)"
       />
       <rect
@@ -32,6 +38,15 @@ function CourtShell({
         height="44"
         fill="color-mix(in srgb, var(--sky) 16%, transparent)"
       />
+      <text
+        x="160"
+        y={h / 2 + 4}
+        textAnchor="middle"
+        className="fill-[var(--sky)]"
+        style={{ fontSize: 9, fontWeight: 700 }}
+      >
+        Kitchen (non-volley zone)
+      </text>
       {children}
     </svg>
   );
@@ -68,15 +83,6 @@ export function CourtRolesDiagram() {
       >
         Partner half
       </text>
-      <text
-        x="160"
-        y="104"
-        textAnchor="middle"
-        className="fill-[var(--sky)]"
-        style={{ fontSize: 10, fontWeight: 700 }}
-      >
-        NVZ / kitchen
-      </text>
       <motion.circle
         cx="100"
         cy="150"
@@ -107,7 +113,7 @@ export function CourtRolesDiagram() {
 
 export function NvzDiagram() {
   return (
-    <svg viewBox="0 0 320 180" className="h-auto w-full" role="img" aria-label="Non-volley zone">
+    <svg viewBox="0 0 320 180" className="h-auto w-full" role="img" aria-label="Kitchen non-volley zone">
       <rect x="24" y="20" width="272" height="140" rx="4" fill="var(--bg-scene)" stroke="var(--line-strong)" />
       <rect
         x="24"
@@ -119,8 +125,11 @@ export function NvzDiagram() {
         strokeWidth="1.5"
       />
       <line x1="160" y1="64" x2="160" y2="116" stroke="var(--line-strong)" strokeWidth="2" />
-      <text x="160" y="94" textAnchor="middle" className="fill-[var(--sky)]" style={{ fontSize: 11, fontWeight: 700 }}>
-        Kitchen — no volleys on the line
+      <text x="160" y="88" textAnchor="middle" className="fill-[var(--sky)]" style={{ fontSize: 11, fontWeight: 700 }}>
+        Kitchen
+      </text>
+      <text x="160" y="102" textAnchor="middle" className="fill-[var(--sky)]" style={{ fontSize: 8, fontWeight: 600 }}>
+        No volleys on the line
       </text>
       <text x="90" y="48" textAnchor="middle" className="fill-[var(--muted)]" style={{ fontSize: 9 }}>
         Volley OK here
@@ -135,33 +144,110 @@ export function NvzDiagram() {
   );
 }
 
+/** Serve deep → return deep → return team claims kitchen line. */
 export function ServeReceiveDiagram() {
   const reduce = useReducedMotion();
   return (
-    <CourtShell label="Serve and return flow">
-      <circle cx="90" cy="160" r="9" fill="var(--amber)" />
-      <circle cx="150" cy="160" r="9" fill="var(--amber)" />
-      <text x="120" y="186" textAnchor="middle" className="fill-[var(--muted)]" style={{ fontSize: 9 }}>
-        Servers stay back
+    <CourtShell label="Serve and return race to the kitchen" h={220}>
+      <circle cx="100" cy="188" r="8" fill="var(--amber)" />
+      <circle cx="160" cy="188" r="8" fill="var(--amber)" />
+      <text x="130" y="210" textAnchor="middle" className="fill-[var(--muted)]" style={{ fontSize: 8 }}>
+        Servers stay back for third
       </text>
+
+      <motion.circle
+        r="5"
+        fill="var(--foreground)"
+        initial={reduce ? false : { cx: 120, cy: 180, opacity: 0.2 }}
+        animate={
+          reduce
+            ? { cx: 230, cy: 42, opacity: 1 }
+            : {
+                cx: [120, 200, 230],
+                cy: [180, 100, 42],
+                opacity: [0.3, 1, 1],
+              }
+        }
+        transition={{ duration: 2.4, repeat: Infinity, repeatDelay: 0.9, ease: "easeInOut" }}
+      />
+      <text x="70" y="130" className="fill-[var(--amber)]" style={{ fontSize: 8, fontWeight: 600 }}>
+        1 Serve deep
+      </text>
+
+      <motion.path
+        d="M240 50 Q180 90 140 170"
+        fill="none"
+        stroke="var(--accent)"
+        strokeWidth="1.5"
+        strokeDasharray="5 4"
+        initial={reduce ? false : { pathLength: 0, opacity: 0.3 }}
+        animate={{ pathLength: 1, opacity: 1 }}
+        transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 2.1, ease: "easeInOut" }}
+      />
+      <text x="210" y="120" className="fill-[var(--accent)]" style={{ fontSize: 8, fontWeight: 600 }}>
+        2 Return deep
+      </text>
+
+      <motion.circle
+        cx="220"
+        r="9"
+        fill="var(--accent)"
+        animate={reduce ? { cy: 70 } : { cy: [40, 40, 70, 70] }}
+        transition={{ duration: 2.4, repeat: Infinity, repeatDelay: 0.9, ease: "easeInOut" }}
+      />
+      <motion.circle
+        cx="270"
+        r="9"
+        fill="var(--accent)"
+        animate={reduce ? { cy: 70 } : { cy: [40, 40, 70, 70] }}
+        transition={{ duration: 2.4, delay: 0.08, repeat: Infinity, repeatDelay: 0.9, ease: "easeInOut" }}
+      />
+      <text x="245" y="30" textAnchor="middle" className="fill-[var(--accent)]" style={{ fontSize: 8, fontWeight: 700 }}>
+        3 Claim kitchen line
+      </text>
+    </CourtShell>
+  );
+}
+
+export function StayBackVsUpDiagram() {
+  const reduce = useReducedMotion();
+  return (
+    <CourtShell label="When to stay back versus go up" h={220}>
+      <circle cx="110" cy="48" r="8" fill="var(--accent)" />
+      <circle cx="210" cy="48" r="8" fill="var(--accent)" />
+      <text x="160" y="34" textAnchor="middle" className="fill-[var(--muted)]" style={{ fontSize: 8 }}>
+        Opponents set at kitchen → hold / drop
+      </text>
+
+      <motion.circle
+        cx="120"
+        r="8"
+        fill="var(--amber)"
+        animate={reduce ? { cy: 170 } : { cy: [170, 170, 110, 110, 170] }}
+        transition={{ duration: 3.2, repeat: Infinity, repeatDelay: 0.6, ease: "easeInOut" }}
+      />
       <motion.circle
         cx="200"
-        cy="48"
-        r="9"
-        fill="var(--accent)"
-        animate={reduce ? undefined : { cy: [48, 78, 78] }}
-        transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 0.8, ease: "easeInOut" }}
+        r="8"
+        fill="var(--amber)"
+        animate={reduce ? { cy: 170 } : { cy: [170, 170, 110, 110, 170] }}
+        transition={{ duration: 3.2, delay: 0.1, repeat: Infinity, repeatDelay: 0.6, ease: "easeInOut" }}
       />
-      <motion.circle
-        cx="260"
-        cy="48"
-        r="9"
-        fill="var(--accent)"
-        animate={reduce ? undefined : { cy: [48, 78, 78] }}
-        transition={{ duration: 1.6, delay: 0.1, repeat: Infinity, repeatDelay: 0.8, ease: "easeInOut" }}
+
+      <motion.path
+        d="M160 160 Q160 130 160 95"
+        fill="none"
+        stroke="var(--sky)"
+        strokeWidth="2"
+        initial={reduce ? false : { pathLength: 0 }}
+        animate={{ pathLength: [0, 1, 1, 0] }}
+        transition={{ duration: 3.2, repeat: Infinity, repeatDelay: 0.6 }}
       />
-      <text x="230" y="36" textAnchor="middle" className="fill-[var(--accent)]" style={{ fontSize: 9, fontWeight: 600 }}>
-        Return → claim NVZ
+      <text x="188" y="130" className="fill-[var(--sky)]" style={{ fontSize: 8, fontWeight: 600 }}>
+        Neutralizing drop → go up
+      </text>
+      <text x="160" y="200" textAnchor="middle" className="fill-[var(--muted)]" style={{ fontSize: 8 }}>
+        Float / jam → freeze midcourt
       </text>
     </CourtShell>
   );
@@ -185,7 +271,7 @@ export function StackBasicDiagram() {
         fill="var(--amber)"
         initial={reduce ? false : { cx: 130, cy: 150, opacity: 0.5 }}
         animate={{ cx: 230, cy: 48, opacity: 1 }}
-        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], repeat: Infinity, repeatDelay: 1.4 }}
       />
       <path
         d="M130 145 Q180 100 230 55"
@@ -212,7 +298,7 @@ export function TransitionUnitDiagram() {
         Mid
       </text>
       <text x="60" y="155" className="fill-[var(--accent)]" style={{ fontSize: 9, fontWeight: 600 }}>
-        NVZ
+        Kitchen
       </text>
       <motion.circle
         cx="140"
@@ -251,7 +337,7 @@ export function KitchenBattleDiagram() {
         strokeDasharray="5 4"
         initial={reduce ? false : { pathLength: 0 }}
         animate={{ pathLength: 1 }}
-        transition={{ duration: 1.1, ease: "easeInOut" }}
+        transition={{ duration: 1.1, ease: "easeInOut", repeat: Infinity, repeatDelay: 1.2 }}
       />
       <motion.path
         d="M210 145 Q160 120 110 85"
@@ -261,7 +347,7 @@ export function KitchenBattleDiagram() {
         strokeDasharray="5 4"
         initial={reduce ? false : { pathLength: 0 }}
         animate={{ pathLength: 1 }}
-        transition={{ duration: 1.1, delay: 0.2, ease: "easeInOut" }}
+        transition={{ duration: 1.1, delay: 0.2, ease: "easeInOut", repeat: Infinity, repeatDelay: 1.2 }}
       />
       <text x="160" y="108" textAnchor="middle" className="fill-[var(--foreground)]" style={{ fontSize: 9, fontWeight: 600 }}>
         Cross · feet · middle
@@ -271,17 +357,34 @@ export function KitchenBattleDiagram() {
 }
 
 export function ThirdShotChoiceDiagram() {
+  const reduce = useReducedMotion();
   return (
     <CourtShell label="Third shot drop vs drive" h={200}>
       <circle cx="120" cy="160" r="8" fill="var(--amber)" />
       <circle cx="180" cy="160" r="8" fill="var(--amber)" />
       <circle cx="120" cy="48" r="8" fill="var(--accent)" />
       <circle cx="220" cy="48" r="8" fill="var(--accent)" />
-      <path d="M150 150 Q160 110 160 90" fill="none" stroke="var(--sky)" strokeWidth="2" />
+      <motion.path
+        d="M150 150 Q160 110 160 90"
+        fill="none"
+        stroke="var(--sky)"
+        strokeWidth="2"
+        initial={reduce ? false : { pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 1.4 }}
+      />
       <text x="188" y="118" className="fill-[var(--sky)]" style={{ fontSize: 9, fontWeight: 600 }}>
         Drop → kitchen
       </text>
-      <path d="M150 150 L200 70" fill="none" stroke="var(--chart-power)" strokeWidth="2" />
+      <motion.path
+        d="M150 150 L200 70"
+        fill="none"
+        stroke="var(--chart-power)"
+        strokeWidth="2"
+        initial={reduce ? false : { pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 1.0, delay: 0.35, repeat: Infinity, repeatDelay: 1.6 }}
+      />
       <text x="210" y="100" className="fill-[var(--chart-power)]" style={{ fontSize: 9, fontWeight: 600 }}>
         Drive → body
       </text>
@@ -293,13 +396,24 @@ export function ThirdShotChoiceDiagram() {
 }
 
 export function DinkPocketsDiagram() {
+  const reduce = useReducedMotion();
   return (
     <CourtShell label="Dink target pockets" h={180}>
       <circle cx="100" cy="55" r="7" fill="var(--accent)" />
       <circle cx="220" cy="55" r="7" fill="var(--accent)" />
       <circle cx="100" cy="140" r="7" fill="var(--amber)" />
       <circle cx="220" cy="140" r="7" fill="var(--amber)" />
-      <rect x="200" y="48" width="28" height="18" rx="3" fill="color-mix(in srgb, var(--amber) 35%, transparent)" stroke="var(--amber)" />
+      <motion.rect
+        x="200"
+        y="48"
+        width="28"
+        height="18"
+        rx="3"
+        fill="color-mix(in srgb, var(--amber) 35%, transparent)"
+        stroke="var(--amber)"
+        animate={reduce ? undefined : { opacity: [0.45, 1, 0.45] }}
+        transition={{ duration: 2.2, repeat: Infinity }}
+      />
       <rect x="148" y="48" width="24" height="18" rx="3" fill="color-mix(in srgb, var(--sky) 35%, transparent)" stroke="var(--sky)" />
       <rect x="88" y="62" width="24" height="14" rx="3" fill="color-mix(in srgb, var(--accent) 30%, transparent)" stroke="var(--accent)" />
       <text x="160" y="100" textAnchor="middle" className="fill-[var(--muted)]" style={{ fontSize: 9 }}>
@@ -310,25 +424,53 @@ export function DinkPocketsDiagram() {
 }
 
 export function DropTargetsDiagram() {
+  const reduce = useReducedMotion();
   return (
     <CourtShell label="Drop landing zones" h={180}>
       <circle cx="130" cy="150" r="8" fill="var(--amber)" />
-      <rect x="100" y="78" width="120" height="28" rx="4" fill="color-mix(in srgb, var(--sky) 28%, transparent)" stroke="var(--sky)" />
+      <motion.rect
+        x="100"
+        y="78"
+        width="120"
+        height="28"
+        rx="4"
+        fill="color-mix(in srgb, var(--sky) 28%, transparent)"
+        stroke="var(--sky)"
+        animate={reduce ? undefined : { opacity: [0.55, 1, 0.55] }}
+        transition={{ duration: 2, repeat: Infinity }}
+      />
       <text x="160" y="96" textAnchor="middle" className="fill-[var(--sky)]" style={{ fontSize: 10, fontWeight: 700 }}>
         Preferred drop zone
       </text>
-      <path d="M130 140 Q150 110 160 95" fill="none" stroke="var(--amber)" strokeWidth="1.5" strokeDasharray="4 3" />
+      <motion.path
+        d="M130 140 Q150 110 160 95"
+        fill="none"
+        stroke="var(--amber)"
+        strokeWidth="1.5"
+        strokeDasharray="4 3"
+        initial={reduce ? false : { pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 1.1, repeat: Infinity, repeatDelay: 1 }}
+      />
     </CourtShell>
   );
 }
 
 export function SpeedUpLanesDiagram() {
+  const reduce = useReducedMotion();
   return (
     <CourtShell label="Speed-up lanes" h={180}>
       <circle cx="110" cy="55" r="7" fill="var(--accent)" />
       <circle cx="210" cy="55" r="7" fill="var(--accent)" />
       <circle cx="160" cy="140" r="7" fill="var(--amber)" />
-      <path d="M160 130 L160 70" stroke="var(--chart-power)" strokeWidth="2" />
+      <motion.path
+        d="M160 130 L160 70"
+        stroke="var(--chart-power)"
+        strokeWidth="2"
+        initial={reduce ? false : { pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 0.8, repeat: Infinity, repeatDelay: 1.2 }}
+      />
       <path d="M160 130 L120 70" stroke="var(--amber)" strokeWidth="1.5" strokeDasharray="4 3" />
       <path d="M160 130 L200 70" stroke="var(--amber)" strokeWidth="1.5" strokeDasharray="4 3" />
       <text x="160" y="100" textAnchor="middle" className="fill-[var(--chart-power)]" style={{ fontSize: 9, fontWeight: 600 }}>
@@ -357,6 +499,52 @@ export function FeetHipsDiagram() {
   );
 }
 
+/** Shot-strategy serve return: depth first, then unit advance. */
+export function ServeReturnShotDiagram() {
+  const reduce = useReducedMotion();
+  return (
+    <CourtShell label="Serve return depth and advance" h={200}>
+      <circle cx="90" cy="170" r="8" fill="var(--amber)" />
+      <circle cx="150" cy="170" r="8" fill="var(--amber)" opacity="0.7" />
+      <text x="120" y="190" textAnchor="middle" className="fill-[var(--muted)]" style={{ fontSize: 8 }}>
+        Serve team
+      </text>
+
+      <motion.circle
+        r="5"
+        fill="var(--foreground)"
+        animate={
+          reduce
+            ? { cx: 200, cy: 150 }
+            : { cx: [250, 200, 140], cy: [55, 100, 155], opacity: [1, 1, 0.85] }
+        }
+        transition={{ duration: 2.0, repeat: Infinity, repeatDelay: 0.8, ease: "easeInOut" }}
+      />
+
+      <motion.circle
+        cx="240"
+        r="9"
+        fill="var(--accent)"
+        animate={reduce ? { cy: 70 } : { cy: [48, 48, 72] }}
+        transition={{ duration: 2.0, repeat: Infinity, repeatDelay: 0.8 }}
+      />
+      <motion.circle
+        cx="280"
+        r="9"
+        fill="var(--accent)"
+        animate={reduce ? { cy: 70 } : { cy: [48, 48, 72] }}
+        transition={{ duration: 2.0, delay: 0.06, repeat: Infinity, repeatDelay: 0.8 }}
+      />
+      <text x="260" y="34" textAnchor="middle" className="fill-[var(--accent)]" style={{ fontSize: 8, fontWeight: 700 }}>
+        Return deep → both go
+      </text>
+      <text x="160" y="118" textAnchor="middle" className="fill-[var(--sky)]" style={{ fontSize: 8, fontWeight: 600 }}>
+        Depth buys the kitchen race
+      </text>
+    </CourtShell>
+  );
+}
+
 export function PickleDiagram({
   kind,
 }: {
@@ -367,7 +555,8 @@ export function PickleDiagram({
     | "stack-basic"
     | "transition-unit"
     | "kitchen-battle"
-    | "third-shot-choice";
+    | "third-shot-choice"
+    | "stay-back-vs-up";
 }) {
   switch (kind) {
     case "court-roles":
@@ -384,13 +573,15 @@ export function PickleDiagram({
       return <KitchenBattleDiagram />;
     case "third-shot-choice":
       return <ThirdShotChoiceDiagram />;
+    case "stay-back-vs-up":
+      return <StayBackVsUpDiagram />;
   }
 }
 
 export function ShotDiagram({
   kind,
 }: {
-  kind: "dink-pockets" | "drop-targets" | "speed-up-lanes" | "feet-hips";
+  kind: "dink-pockets" | "drop-targets" | "speed-up-lanes" | "feet-hips" | "serve-return";
 }) {
   switch (kind) {
     case "dink-pockets":
@@ -401,5 +592,7 @@ export function ShotDiagram({
       return <SpeedUpLanesDiagram />;
     case "feet-hips":
       return <FeetHipsDiagram />;
+    case "serve-return":
+      return <ServeReturnShotDiagram />;
   }
 }

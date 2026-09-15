@@ -5,8 +5,9 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { PaddleProfile, PlayBias } from "@/types/pickleball";
 import { PADDLE_TECH_LEVERS } from "@/data/pickleball/paddles";
 import { ScoreGrid, ScoreMeter } from "@/components/gear/ScoreMeter";
-import { AisleChip, ChipRow, HScroll, SearchField } from "@/components/gear/CatalogShop";
+import { AisleChip, ChipRow, HScroll, ProductCard, SearchField } from "@/components/gear/CatalogShop";
 import { EquipmentThumb } from "@/components/gear/EquipmentThumb";
+import { brandAccent } from "@/lib/equipment/media/brandColors";
 import {
   hasExternalPaddlePhoto,
   paddleImageUrl,
@@ -40,10 +41,18 @@ function provenanceLabel(p: PaddleProfile) {
   return "Catalog specs";
 }
 
+function tierBadge(p: PaddleProfile) {
+  if (p.catalogTier === "lab-measured") return "Lab";
+  if (p.catalogTier === "tour-seed") return "Tour seed";
+  return undefined;
+}
+
 export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
   const reduceMotion = useReducedMotion();
   const [query, setQuery] = useState("");
   const [bias, setBias] = useState<"all" | PlayBias>("all");
+  const [brand, setBrand] = useState<"all" | string>("all");
+  const [tier, setTier] = useState<"all" | "lab-measured" | "tour-seed">("all");
   const [selectedId, setSelectedId] = useState(paddles[0]?.id ?? "");
   const deferredQuery = useDeferredValue(query);
 
@@ -51,10 +60,17 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
     Object.fromEntries(PADDLE_TECH_LEVERS.map((l) => [l.id, l.options[0]?.id ?? ""])),
   );
 
+  const brands = useMemo(() => {
+    const set = new Set(paddles.map((p) => p.brand));
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [paddles]);
+
   const filtered = useMemo(() => {
     const q = deferredQuery.trim().toLowerCase();
     const list = paddles.filter((p) => {
       if (bias !== "all" && p.bias !== bias) return false;
+      if (brand !== "all" && p.brand !== brand) return false;
+      if (tier !== "all" && (p.catalogTier ?? "tour-seed") !== tier) return false;
       if (!q) return true;
       const hay = [
         p.brand,
@@ -65,6 +81,7 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
         p.bestFor,
         p.uniqueTrait,
         p.bias,
+        p.tourPresence ?? "",
         p.thicknessMm != null ? `${p.thicknessMm}mm` : "",
       ]
         .join(" ")
@@ -74,7 +91,7 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
     return [...list].sort((a, b) =>
       photoFirst(hasExternalPaddlePhoto(a.id), hasExternalPaddlePhoto(b.id)),
     );
-  }, [paddles, deferredQuery, bias]);
+  }, [paddles, deferredQuery, bias, brand, tier]);
 
   const selected = filtered.find((p) => p.id === selectedId) ?? filtered[0] ?? null;
 
@@ -93,67 +110,74 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
   }, [leverChoices]);
 
   const ease = [0.22, 1, 0.36, 1] as const;
+  const labCount = paddles.filter((p) => p.catalogTier === "lab-measured").length;
+  const tourCount = paddles.length - labCount;
 
   return (
     <div className="space-y-8">
-      <section className="sf-panel space-y-4 p-4 md:p-5">
-        <div>
-          <p className="sf-kicker">Starters · paddle tech</p>
-          <h2 className="sf-section-title mt-1">How gear shifts control vs power</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--muted)]">
-            Flip one lever at a time — core, face, weight, grip/edge — and watch the control/power
-            balance move. Then browse real paddles with measured specs and product photos.
-          </p>
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="space-y-4">
-            {PADDLE_TECH_LEVERS.map((lever, li) => (
-              <motion.div
-                key={lever.id}
-                initial={reduceMotion ? false : { opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: reduceMotion ? 0 : li * 0.05, duration: 0.28, ease }}
-              >
-                <ChipRow label={lever.label}>
-                  {lever.options.map((opt) => (
-                    <AisleChip
-                      key={opt.id}
-                      label={opt.label}
-                      active={leverChoices[lever.id] === opt.id}
-                      onClick={() =>
-                        setLeverChoices((prev) => ({ ...prev, [lever.id]: opt.id }))
-                      }
-                    />
-                  ))}
-                </ChipRow>
-              </motion.div>
-            ))}
+      <section className="sf-panel relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 sf-hero-wash opacity-90" aria-hidden />
+        <div className="pointer-events-none absolute inset-0 sf-hero-grid" aria-hidden />
+        <div className="relative space-y-4 p-4 md:p-5">
+          <div>
+            <p className="sf-kicker">Starters · paddle tech</p>
+            <h2 className="sf-section-title mt-1">How gear shifts control vs power</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--muted)]">
+              Flip one lever at a time — core, face, weight, grip/edge — and watch the control/power
+              balance move. Then browse the measured lab set plus a growing tour-seed catalog of
+              paddles players actually use.
+            </p>
           </div>
 
-          <motion.div
-            layout={!reduceMotion}
-            className="space-y-4 rounded-md bg-[var(--bg-sunken)] p-4"
-          >
-            <p className="sf-kicker !text-[var(--muted)]">Live balance</p>
-            <ScoreMeter label="Control" value={leverEffect.control} accent="var(--chart-control)" />
-            <ScoreMeter label="Power" value={leverEffect.power} accent="var(--chart-power)" />
-            <AnimatePresence mode="popLayout">
-              <ul className="space-y-2 pt-1 text-xs leading-relaxed text-[var(--muted)]">
-                {leverEffect.notes.map((n) => (
-                  <motion.li
-                    key={n}
-                    initial={reduceMotion ? false : { opacity: 0, x: -4 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={reduceMotion ? undefined : { opacity: 0 }}
-                    className="border-l-2 border-[var(--amber)] pl-2"
-                  >
-                    {n}
-                  </motion.li>
-                ))}
-              </ul>
-            </AnimatePresence>
-          </motion.div>
+          <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+            <div className="space-y-4">
+              {PADDLE_TECH_LEVERS.map((lever, li) => (
+                <motion.div
+                  key={lever.id}
+                  initial={reduceMotion ? false : { opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: reduceMotion ? 0 : li * 0.05, duration: 0.28, ease }}
+                >
+                  <ChipRow label={lever.label}>
+                    {lever.options.map((opt) => (
+                      <AisleChip
+                        key={opt.id}
+                        label={opt.label}
+                        active={leverChoices[lever.id] === opt.id}
+                        onClick={() =>
+                          setLeverChoices((prev) => ({ ...prev, [lever.id]: opt.id }))
+                        }
+                      />
+                    ))}
+                  </ChipRow>
+                </motion.div>
+              ))}
+            </div>
+
+            <motion.div
+              layout={!reduceMotion}
+              className="space-y-4 rounded-md bg-[var(--bg-sunken)]/90 p-4 backdrop-blur-[2px]"
+            >
+              <p className="sf-kicker !text-[var(--muted)]">Live balance</p>
+              <ScoreMeter label="Control" value={leverEffect.control} accent="var(--chart-control)" />
+              <ScoreMeter label="Power" value={leverEffect.power} accent="var(--chart-power)" />
+              <AnimatePresence mode="popLayout">
+                <ul className="space-y-2 pt-1 text-xs leading-relaxed text-[var(--muted)]">
+                  {leverEffect.notes.map((n) => (
+                    <motion.li
+                      key={n}
+                      initial={reduceMotion ? false : { opacity: 0, x: -4 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={reduceMotion ? undefined : { opacity: 0 }}
+                      className="border-l-2 border-[var(--amber)] pl-2"
+                    >
+                      {n}
+                    </motion.li>
+                  ))}
+                </ul>
+              </AnimatePresence>
+            </motion.div>
+          </div>
         </div>
       </section>
 
@@ -161,10 +185,12 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="sf-kicker">Catalog</p>
-            <h2 className="sf-section-title mt-1">Measured paddles</h2>
+            <h2 className="sf-section-title mt-1">Paddles players actually use</h2>
             <p className="mt-1 max-w-xl text-xs text-[var(--muted)]">
-              Weight, swingweight, twist, balance, and spin/power/pop from Pickleball Effect lab
-              tests. Photos via Tennis Warehouse when matched.
+              {paddles.length} paddles · {labCount} lab-measured · {tourCount} tour-seed. Lab rows
+              carry Pickleball Effect weight, swingweight, twist, and spin/power/pop. Tour-seed rows
+              fill popular high-level models with catalog/coaching specs so the list can keep
+              growing.
             </p>
           </div>
           <div className="w-full sm:max-w-xs">
@@ -176,6 +202,20 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
             />
           </div>
         </div>
+
+        <ChipRow label="Source">
+          <AisleChip label="All" active={tier === "all"} onClick={() => setTier("all")} />
+          <AisleChip
+            label={`Lab (${labCount})`}
+            active={tier === "lab-measured"}
+            onClick={() => setTier("lab-measured")}
+          />
+          <AisleChip
+            label={`Tour seed (${tourCount})`}
+            active={tier === "tour-seed"}
+            onClick={() => setTier("tour-seed")}
+          />
+        </ChipRow>
 
         <ChipRow label="Play bias">
           <AisleChip label="All" active={bias === "all"} onClick={() => setBias("all")} />
@@ -189,41 +229,47 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
           ))}
         </ChipRow>
 
+        <ChipRow label="Brand">
+          <AisleChip label="All" active={brand === "all"} onClick={() => setBrand("all")} />
+          {brands.map((b) => (
+            <AisleChip key={b} label={b} active={brand === b} onClick={() => setBrand(b)} />
+          ))}
+        </ChipRow>
+
+        <p className="text-[11px] text-[var(--muted)]">
+          Showing {filtered.length} of {paddles.length}
+        </p>
+
         <HScroll>
           {filtered.map((p) => {
+            const accent = brandAccent(p.brand);
             const active = selected?.id === p.id;
+            const meta = [
+              `${p.weightOz.toFixed(1)} oz`,
+              p.thicknessMm != null ? `${p.thicknessMm}mm` : null,
+              p.swingweight != null ? `SW ${p.swingweight}` : null,
+            ]
+              .filter(Boolean)
+              .join(" · ");
             return (
-              <button
+              <ProductCard
                 key={p.id}
-                type="button"
-                onClick={() => setSelectedId(p.id)}
-                aria-pressed={active}
-                className={`sf-product-card w-[11.5rem] shrink-0 snap-start text-left transition ${
-                  active ? "ring-2 ring-[var(--amber)]" : ""
-                }`}
-                style={{ boxShadow: active ? undefined : "inset 3px 0 0 var(--amber)" }}
-              >
-                <span className="sf-thumb-well flex h-28 items-center justify-center bg-[var(--bg-scene)]">
-                  <EquipmentThumb
-                    src={paddleImageUrl(p)}
-                    alt={`${p.brand} ${p.name}`}
-                    size="md"
-                  />
-                </span>
-                <span className="flex flex-col gap-1 p-3">
-                  <span className="text-[10px] font-bold tracking-[0.12em] text-[var(--amber)] uppercase">
-                    {p.brand}
-                  </span>
-                  <span className="min-h-[2.5rem] font-[family-name:var(--font-display)] text-sm leading-snug">
-                    {p.name}
-                  </span>
-                  <span className="text-[10px] text-[var(--muted)]">
-                    {p.weightOz.toFixed(1)} oz
-                    {p.thicknessMm != null ? ` · ${p.thicknessMm}mm` : ""}
-                    {p.swingweight != null ? ` · SW ${p.swingweight}` : ""}
-                  </span>
-                </span>
-              </button>
+                compact
+                image={paddleImageUrl(p)}
+                alt={`${p.brand} ${p.name}`}
+                brand={p.brand}
+                name={p.name}
+                badge={tierBadge(p)}
+                meta={meta}
+                accent={accent}
+                selected={active}
+                onSelect={() => setSelectedId(p.id)}
+                scores={[
+                  { label: "Pwr", value: p.power, color: "var(--chart-power)" },
+                  { label: "Ctl", value: p.control, color: "var(--chart-control)" },
+                  { label: "Spn", value: p.spin, color: "var(--chart-spin)" },
+                ]}
+              />
             );
           })}
         </HScroll>
@@ -236,9 +282,14 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
               animate={{ opacity: 1, y: 0 }}
               exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
               transition={{ duration: 0.28, ease }}
-              className="sf-panel grid gap-6 p-4 md:grid-cols-[auto_1fr] md:p-6"
+              className="sf-panel grid gap-6 overflow-hidden p-4 md:grid-cols-[auto_1fr] md:p-6"
             >
-              <div className="flex flex-col items-center gap-3 md:items-start">
+              <div
+                className="relative flex flex-col items-center gap-3 rounded-md p-3 md:items-start"
+                style={{
+                  background: `linear-gradient(165deg, color-mix(in srgb, ${brandAccent(selected.brand)} 22%, var(--bg-scene)) 0%, var(--bg-scene) 72%)`,
+                }}
+              >
                 <EquipmentThumb
                   src={paddleImageUrl(selected)}
                   alt={`${selected.brand} ${selected.name}`}
@@ -254,13 +305,22 @@ export function PaddleTechPanel({ paddles }: { paddles: PaddleProfile[] }) {
               </div>
               <div className="space-y-4">
                 <div>
-                  <p className="text-[10px] font-bold tracking-[0.14em] text-[var(--amber)] uppercase">
+                  <p
+                    className="text-[10px] font-bold tracking-[0.14em] uppercase"
+                    style={{ color: brandAccent(selected.brand) }}
+                  >
                     {selected.brand}
+                    {tierBadge(selected) ? ` · ${tierBadge(selected)}` : ""}
                   </p>
                   <h3 className="mt-1 font-[family-name:var(--font-display)] text-xl tracking-tight md:text-2xl">
                     {selected.name}
                   </h3>
                   <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">{selected.feel}</p>
+                  {selected.tourPresence ? (
+                    <p className="mt-2 border-l-2 border-[var(--sky)] pl-3 text-xs leading-relaxed text-[var(--foreground)]/85">
+                      {selected.tourPresence}
+                    </p>
+                  ) : null}
                 </div>
                 <ScoreGrid
                   scores={[

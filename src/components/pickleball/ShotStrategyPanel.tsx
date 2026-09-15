@@ -44,16 +44,19 @@ export function ShotStrategyPanel({ strategies }: { strategies: ShotStrategyCard
 
   return (
     <div className="space-y-6">
-      <header className="max-w-2xl">
-        <p className="sf-kicker">Smart game</p>
-        <h2 className="sf-section-title mt-1">Strategies for hitting</h2>
-        <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
-          Dink patterns, drops, drives, resets, speed-up decisions, targeting feet/hips, and
-          advanced Erne/ATP awareness — when to hit smart, not just hard.
-        </p>
+      <header className="relative overflow-hidden rounded-[var(--radius)] border border-[var(--line)]">
+        <div className="pointer-events-none absolute inset-0 sf-hero-wash opacity-80" aria-hidden />
+        <div className="relative max-w-2xl px-4 py-5 md:px-5">
+          <p className="sf-kicker">Smart game</p>
+          <h2 className="sf-section-title mt-1">Shot decisions that win</h2>
+          <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
+            Serve returns, dink patterns, drops, drives, resets, speed-ups, feet/hips targeting,
+            and Erne / around-the-post awareness — when to hit smart, not just hard.
+          </p>
+        </div>
       </header>
 
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {strategies.map((shot, i) => {
           const on = shot.id === selected?.id;
           return (
@@ -65,6 +68,7 @@ export function ShotStrategyPanel({ strategies }: { strategies: ShotStrategyCard
               transition={{ delay: reduceMotion ? 0 : i * 0.03, duration: 0.28 }}
               onClick={() => selectShot(shot.id)}
               aria-pressed={on}
+              data-active={on ? "true" : "false"}
               className={`sf-panel p-4 text-left transition hover:bg-[var(--overlay-hover)] ${
                 on ? "ring-2 ring-[var(--amber)]" : ""
               }`}
@@ -117,7 +121,7 @@ export function ShotStrategyPanel({ strategies }: { strategies: ShotStrategyCard
                 <p className="mt-1 text-sm text-[var(--foreground)]/90">{selected.avoid}</p>
               </div>
               {selected.diagram ? (
-                <div className="rounded-md bg-[var(--bg-sunken)] p-3">
+                <div className="sf-viz-stage">
                   <ShotDiagram kind={selected.diagram} />
                 </div>
               ) : null}
