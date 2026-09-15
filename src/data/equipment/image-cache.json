@@ -1,7 +1,7 @@
 {
   "meta": {
     "source": "Tennis Warehouse CDN",
-    "count": 373,
+    "count": 377,
     "note": "Accessory/grommet false matches stripped; curated rematch for key Tecnifibre racquets; remaining gaps use crafted SVG portraits."
   },
   "rackets": {
@@ -299,6 +299,26 @@
       "code": "EZ98BB",
       "title": "Yonex EZONE 98 2025",
       "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=EZ98BB-1.jpg&nw=400"
+    },
+    "yonex-percept-97-2023": {
+      "code": "PERC97",
+      "title": "Yonex Percept 97",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=PERC97-1.jpg&nw=400"
+    },
+    "yonex-percept-97-d-2023": {
+      "code": "PERC97",
+      "title": "Yonex Percept 97",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=PERC97-1.jpg&nw=400"
+    },
+    "yonex-percept-97-l-2023": {
+      "code": "PERC97L",
+      "title": "Yonex Percept 97L",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=PERC97L-1.jpg&nw=400"
+    },
+    "yonex-percept-97h-2023": {
+      "code": "PERC97H",
+      "title": "Yonex Percept 97H",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=PERC97H-1.jpg&nw=400"
     },
     "babolat-pure-strike-100-16x20-2024": {
       "code": "PS1020",

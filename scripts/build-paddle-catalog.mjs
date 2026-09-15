@@ -190,6 +190,35 @@ const curated = [
     twCode: null,
     match: (r) => r.Brand === "Ronbus" && /Ripple V2 R1\.14/.test(r["Paddle Name"]),
   },
+  // High-visibility retail / tour models — keep TW codes ready for lab CSV rebuilds
+  {
+    id: "slk-era-power-elongated",
+    brand: "SLK",
+    name: "ERA Power Elongated 16mm",
+    twCode: "SLKERAE",
+    match: (r) => /SLK|Selkirk/i.test(r.Brand) && /ERA Power/i.test(r["Paddle Name"]) && /Elong/i.test(r["Paddle Name"]),
+  },
+  {
+    id: "slk-era-power-widebody",
+    brand: "SLK",
+    name: "ERA Power Widebody 16mm",
+    twCode: "SLKERA",
+    match: (r) => /SLK|Selkirk/i.test(r.Brand) && /ERA Power/i.test(r["Paddle Name"]) && /Wide/i.test(r["Paddle Name"]),
+  },
+  {
+    id: "selkirk-labs-boomstik-elongated",
+    brand: "Selkirk",
+    name: "LABS Boomstik Elongated 16mm",
+    twCode: "SLEBOOM",
+    match: (r) => /Selkirk/i.test(r.Brand) && /Boomstik/i.test(r["Paddle Name"]) && /Elong/i.test(r["Paddle Name"]),
+  },
+  {
+    id: "joola-perseus-pro-v-16",
+    brand: "JOOLA",
+    name: "Perseus Pro V 16mm",
+    twCode: "JPBJPV",
+    match: (r) => r.Brand === "JOOLA" && /Perseus Pro V/i.test(r["Paddle Name"]) && /16/.test(r["Paddle Name"]),
+  },
 ];
 
 function num(v) {

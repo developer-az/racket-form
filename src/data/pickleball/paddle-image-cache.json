@@ -1,7 +1,7 @@
 {
   "meta": {
     "source": "Tennis Warehouse CDN",
-    "count": 17,
+    "count": 21,
     "note": "Matched curated pickleball paddles to TW product codes for real photos."
   },
   "paddles": {
@@ -14,6 +14,11 @@
       "code": "JPERP4",
       "title": "JOOLA Ben Johns Perseus Pro IV Pickleball Paddle",
       "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=JPERP4-1.jpg&nw=400"
+    },
+    "joola-perseus-pro-v-16": {
+      "code": "JPBJPV",
+      "title": "JOOLA Perseus Pro V Ben Johns Pickleball Paddle",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=JPBJPV-1.jpg&nw=400"
     },
     "crbn-trufoam-genesis-1": {
       "code": "CBTFP1",
@@ -69,6 +74,21 @@
       "code": "BESTS03",
       "title": "Selkirk LUXX InfiniGrit Invikta Pickleball Paddle",
       "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=BESTS03-1.jpg&nw=400"
+    },
+    "selkirk-labs-boomstik-elongated": {
+      "code": "SLEBOOM",
+      "title": "Selkirk LABS Boomstik Elongated Pickleball Paddle",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=SLEBOOM-1.jpg&nw=400"
+    },
+    "slk-era-power-elongated": {
+      "code": "SLKERAE",
+      "title": "SLK ERA Power Elongated Pickleball Paddle",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=SLKERAE-1.jpg&nw=400"
+    },
+    "slk-era-power-widebody": {
+      "code": "SLKERA",
+      "title": "SLK ERA Power Widebody Pickleball Paddle",
+      "imageUrl": "https://img.tennis-warehouse.com/watermark/rs.php?path=SLKERA-1.jpg&nw=400"
     },
     "paddletek-bantam-tko-c-14": {
       "code": "PTBTK14",
