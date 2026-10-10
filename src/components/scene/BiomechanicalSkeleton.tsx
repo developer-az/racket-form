@@ -78,10 +78,13 @@ function placeCapsule(
 export function BiomechanicalSkeleton({
   driverRef,
   color,
+  jointColor,
   accent,
 }: {
   driverRef: RefObject<SkeletonDriver>;
   color: string;
+  /** Marker spheres at the joints, like a motion-capture suit */
+  jointColor: string;
   accent: string;
 }) {
   const root = useRef<THREE.Group>(null);
@@ -162,15 +165,15 @@ export function BiomechanicalSkeleton({
     [color],
   );
   const jointMat = useMemo(
-    () => new THREE.MeshLambertMaterial({ color: accent }),
-    [accent],
+    () => new THREE.MeshLambertMaterial({ color: jointColor }),
+    [jointColor],
   );
   const darkMat = useMemo(
     () => new THREE.MeshLambertMaterial({ color: "#1a1a1a" }),
     [],
   );
   const handleMat = useMemo(
-    () => new THREE.MeshLambertMaterial({ color: "#2c1810" }),
+    () => new THREE.MeshLambertMaterial({ color: "#1b1f25" }),
     [],
   );
   const throatMat = useMemo(

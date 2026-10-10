@@ -173,7 +173,7 @@ export function SetupFinder({
           {QUESTIONS.map((x, i) => (
             <span
               key={x.key}
-              className="h-1 flex-1 rounded-full transition-colors"
+              className="h-[2px] flex-1 transition-colors"
               style={{ background: i <= step ? "var(--accent)" : "var(--line)" }}
             />
           ))}
@@ -273,7 +273,7 @@ export function SetupFinder({
                     type="button"
                     data-active={o.item.slug === r.slug}
                     onClick={() => setRacketChoice(o.item.slug)}
-                    className="rounded-full border border-[var(--line)] px-3 py-1.5 text-xs font-medium transition hover:border-[var(--accent)] data-[active=true]:border-[var(--accent)] data-[active=true]:bg-[var(--accent)] data-[active=true]:text-[var(--accent-fg)]"
+                    className="rounded-[var(--radius-sm)] border border-[var(--line-strong)] px-3 py-1.5 text-xs font-medium transition hover:border-[var(--foreground)] data-[active=true]:border-[var(--ink)] data-[active=true]:bg-[var(--ink)] data-[active=true]:text-[var(--ink-fg)]"
                   >
                     {equipmentLabel(o.item.brand, o.item.model)}
                   </button>
@@ -343,7 +343,7 @@ function ResultCard({
       <ul className="mt-3 space-y-1.5 text-sm leading-snug">
         {reasons.map((reason) => (
           <li key={reason} className="flex gap-2">
-            <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" aria-hidden />
+            <span className="mt-[7px] h-1 w-1 shrink-0 bg-[var(--foreground)]" aria-hidden />
             <span>{reason}</span>
           </li>
         ))}

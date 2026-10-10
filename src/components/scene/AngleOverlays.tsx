@@ -41,10 +41,13 @@ export function AngleOverlays({
   driverRef,
   visible,
   accent,
+  secondary,
 }: {
   driverRef: RefObject<SkeletonDriver>;
   visible: boolean;
   accent: string;
+  /** Hip line, so the two rotation lines read as separate channels */
+  secondary: string;
 }) {
   const accum = useRef(0);
   const [arcs, setArcs] = useState<Arc[]>([]);
@@ -99,7 +102,7 @@ export function AngleOverlays({
         <group key={o.id}>
           <Line
             points={o.points}
-            color={o.id === "hips" ? "#f4a261" : accent}
+            color={o.id === "hips" ? secondary : accent}
             lineWidth={o.id === "elbow" || o.id === "knee" ? 2.5 : 2}
             transparent
             opacity={0.9}
@@ -113,7 +116,7 @@ export function AngleOverlays({
               anchorX="center"
               anchorY="bottom"
               outlineWidth={0.008}
-              outlineColor="#0a0f0c"
+              outlineColor="#0a0b0d"
             >
               {o.label}
             </Text>

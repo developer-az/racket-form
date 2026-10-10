@@ -126,10 +126,12 @@ function GroundForce({
   visibleRef,
   peakN,
   kneeRef,
+  color,
 }: {
   visibleRef: RefObject<boolean>;
   peakN: number;
   kneeRef: RefObject<number>;
+  color: string;
 }) {
   const mesh = useRef<THREE.Mesh>(null);
   const mat = useRef<THREE.MeshBasicMaterial>(null);
@@ -149,7 +151,7 @@ function GroundForce({
   return (
     <mesh ref={mesh} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0.15]} visible={false}>
       <ringGeometry args={[0.4, 1, 24]} />
-      <meshBasicMaterial ref={mat} color="#f4a261" transparent opacity={0.3} side={THREE.DoubleSide} depthWrite={false} />
+      <meshBasicMaterial ref={mat} color={color} transparent opacity={0.3} side={THREE.DoubleSide} depthWrite={false} />
     </mesh>
   );
 }
@@ -163,6 +165,7 @@ function AnimatedAthlete() {
 
   const player = getPlayer(playerId)!;
   const stroke = player.strokes[strokeType];
+  const { colors } = useTheme();
 
   const driverRef = useRef<SkeletonDriver>({
     pose: createSkeletonPose(),
@@ -188,25 +191,27 @@ function AnimatedAthlete() {
       <BiomechanicalSkeleton
         key={playerId}
         driverRef={driverRef}
-        color={player.color}
-        accent={player.accent}
+        color={colors.silhouette}
+        jointColor={colors.silhouetteRim}
+        accent={colors.accent}
       />
       {/* Labels load a font — isolate the suspense so the athlete never blanks out */}
       <Suspense fallback={null}>
-        <AngleOverlays driverRef={driverRef} visible={showAngles} accent={player.accent} />
+        <AngleOverlays driverRef={driverRef} visible={showAngles} accent={colors.accent} secondary={colors.chartPower} />
       </Suspense>
       <StrokeBall stroke={stroke} anthropometrics={player.anthropometrics} tRef={tRef} />
       <RacketPathTrail
         stroke={stroke}
         anthropometrics={player.anthropometrics}
         visible={showRacketPath}
-        accent={player.accent}
+        accent={colors.accent}
         tRef={tRef}
       />
       <GroundForce
         visibleRef={gfVisible}
         peakN={stroke.metrics.kineticChain.peakGrfN}
         kneeRef={kneeRef}
+        color={colors.chartPower}
       />
     </group>
   );
@@ -264,7 +269,7 @@ function SceneContent({
       {/* Lean lighting: no shadow maps */}
       <ambientLight intensity={0.55} />
       <directionalLight position={[6, 10, 4]} intensity={1.15} />
-      <hemisphereLight args={["#c8e6d0", "#1a3328", 0.45]} />
+      <hemisphereLight args={["#ffffff", "#5a626d", 0.4]} />
 
       <TennisCourt />
       <AnimatedAthlete />
@@ -272,7 +277,7 @@ function SceneContent({
       {/* Soft blob shadow — far cheaper than ContactShadows / shadow maps */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.015, PLAYER_Z + 0.1]}>
         <circleGeometry args={[0.55, 20]} />
-        <meshBasicMaterial color="#000000" transparent opacity={0.28} depthWrite={false} />
+        <meshBasicMaterial color="#000000" transparent opacity={0.16} depthWrite={false} />
       </mesh>
     </>
   );

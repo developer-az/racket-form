@@ -160,7 +160,7 @@ export function InBandImproveSection({
               </div>
 
               {s.current != null ? (
-                <div className="relative mt-2 h-2 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--foreground)_12%,transparent)]">
+                <div className="relative mt-2 h-[3px] overflow-hidden bg-[color-mix(in_srgb,var(--foreground)_12%,transparent)]">
                   <div
                     className="absolute inset-y-0 opacity-25"
                     style={{

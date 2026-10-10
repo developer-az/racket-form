@@ -60,14 +60,14 @@ export function HomeRacketShowcase({ racket }: { racket: FeaturedRacket }) {
             </div>
             <div className="mt-5 flex flex-wrap items-baseline justify-between gap-2">
               <div>
-                <p className="font-[family-name:var(--font-display)] text-xl font-semibold tracking-tight transition group-hover:text-[var(--accent)] md:text-2xl">
+                <p className="font-[family-name:var(--font-display)] text-xl font-semibold tracking-tight transition md:text-2xl">
                   {racket.brand} {racket.model}
                 </p>
                 <p className="mt-1 text-xs tracking-[0.12em] text-[var(--muted)] uppercase">
                   {racket.year} · {racket.style}
                 </p>
               </div>
-              <p className="text-xs font-semibold tracking-[0.1em] text-[var(--accent)] uppercase">
+              <p className="font-[family-name:var(--font-mono)] text-[11px] tracking-[0.1em] text-[var(--muted)] uppercase transition group-hover:text-[var(--foreground)]">
                 View →
               </p>
             </div>

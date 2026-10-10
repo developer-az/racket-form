@@ -80,7 +80,7 @@ function FeelChip({
         boxShadow: "inset 0 0 0 1px var(--line)",
       }}
     >
-      <p className="sf-kicker" style={{ color }}>
+      <p className="sf-kicker" style={{ "--kicker-mark": color } as React.CSSProperties}>
         {label}
       </p>
       <p className="mt-1 font-[family-name:var(--font-display)] text-xl tabular-nums tracking-tight">

@@ -499,7 +499,7 @@ function FlightGauge({
 }) {
   return (
     <div className="sf-panel px-2.5 py-2">
-      <p className="sf-kicker" style={{ color }}>
+      <p className="sf-kicker" style={{ "--kicker-mark": color } as React.CSSProperties}>
         {label}
       </p>
       <div className="sf-meter-track mt-1.5">
@@ -699,7 +699,7 @@ export function StrikeCoachingBullets({
       </p>
       <ul className="mt-3 space-y-2 text-sm leading-relaxed text-[var(--foreground)]/90">
         {bullets.map((b) => (
-          <li key={b} className="border-l-2 border-[var(--accent)]/45 pl-3">
+          <li key={b} className="border-l border-[var(--line-strong)] pl-3">
             {b}
           </li>
         ))}

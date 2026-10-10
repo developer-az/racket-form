@@ -57,7 +57,7 @@ function HeroDemoChrome() {
         <button
           type="button"
           onClick={togglePlaying}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius)] bg-[var(--accent)] text-[var(--accent-fg)] transition hover:brightness-110 active:scale-[0.97]"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius)] bg-[var(--ink)] text-[var(--ink-fg)] transition hover:opacity-85"
           aria-label={playing ? "Pause stroke" : "Play stroke"}
         >
           {playing ? (
@@ -100,7 +100,7 @@ function HeroDemoChrome() {
         </label>
         <Link
           href="/lab"
-          className="hidden shrink-0 text-xs font-semibold tracking-[0.08em] text-[var(--accent)] uppercase transition hover:text-[var(--foreground)] sm:inline"
+          className="hidden shrink-0 font-[family-name:var(--font-mono)] text-[11px] tracking-[0.1em] text-[var(--foreground)] uppercase transition hover:text-[var(--accent)] sm:inline"
         >
           Full lab →
         </Link>
@@ -120,10 +120,10 @@ function JointReadout({
 }) {
   return (
     <div className="text-right">
-      <p className="text-[10px] font-semibold tracking-[0.1em] text-[var(--muted)] uppercase">{label}</p>
-      <p className="font-[family-name:var(--font-display)] text-lg font-semibold leading-none tracking-tight md:text-xl">
+      <p className="sf-spec-label">{label}</p>
+      <p className="sf-readout mt-1 text-lg leading-none md:text-xl">
         {value}
-        <span className="ml-0.5 text-xs font-sans font-medium text-[var(--muted)]">{unit}</span>
+        <span className="ml-0.5 text-xs text-[var(--muted)]">{unit}</span>
       </p>
     </div>
   );
@@ -153,19 +153,28 @@ export function HomeHeroDemo() {
 
       <div className="pointer-events-none relative z-10 mx-auto flex min-h-[calc(100dvh-var(--header-h))] w-full max-w-[var(--page-max-wide)] flex-col justify-between px-6 pb-[7.5rem] pt-10 md:px-10 md:pb-36 md:pt-14 lg:px-14">
         <div className="pointer-events-auto max-w-xl sf-rise">
-          <p className="font-[family-name:var(--font-display)] text-[clamp(3.25rem,12vw,7.5rem)] font-bold leading-[0.88] tracking-[-0.04em] text-[var(--foreground)]">
-            RACKET
+          <p className="sf-kicker">Racket Form · Form lab and gear fitting</p>
+          <h1 className="mt-6 text-[clamp(2.1rem,3.9vw,3.5rem)] leading-[1.04] font-semibold tracking-[-0.045em] text-[var(--foreground)]">
+            See how the pros hit.
             <br />
-            FORM
-          </p>
-          <h1 className="mt-5 max-w-md text-lg font-medium leading-snug text-[var(--foreground)] md:text-xl md:leading-snug">
-            See exactly how the pros hit, in 3D. Then find the racket, string and grip that fit
-            your game.
+            <span className="text-[var(--muted)]">Then find gear that fits how you do.</span>
           </h1>
-          <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-[var(--muted)]">
-            Forehand, backhand, serve, slice and volley for six tour players. Scrub to any phase and
-            drag to orbit.
+          <p className="mt-6 max-w-md text-[15px] leading-relaxed text-[var(--muted)] md:text-base">
+            Every stroke is solved from real biomechanics, measured on the figure you see, and
+            scrubbable to the frame.
           </p>
+          <dl className="mt-6 hidden gap-8 border-t border-[var(--line)] pt-4 sm:flex">
+            {[
+              ["Athletes", "06"],
+              ["Strokes", "05"],
+              ["Readouts", "Live"],
+            ].map(([k, v]) => (
+              <div key={k}>
+                <dt className="sf-spec-label">{k}</dt>
+                <dd className="sf-readout mt-1 text-lg">{v}</dd>
+              </div>
+            ))}
+          </dl>
           <HomeHeroCtas />
         </div>
       </div>

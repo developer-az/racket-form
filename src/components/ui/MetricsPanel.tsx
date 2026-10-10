@@ -23,7 +23,7 @@ function Metric({
   return (
     <div className="border-t border-[var(--line)] pt-3">
       <p className="sf-label">{label}</p>
-      <p className="mt-1 font-[family-name:var(--font-display)] text-2xl tracking-tight text-[var(--foreground)]">
+      <p className="mt-1 sf-readout text-[1.375rem]">
         {value}
         {unit ? <span className="ml-1 text-sm font-sans text-[var(--muted)]">{unit}</span> : null}
       </p>
@@ -232,7 +232,7 @@ export function SciencePanel() {
         </p>
         <ul className="mt-2 space-y-2 text-sm leading-relaxed text-[var(--foreground)]/85">
           {m.researchNotes.map((n) => (
-            <li key={n} className="border-l-2 border-[var(--accent)]/40 pl-3">
+            <li key={n} className="border-l border-[var(--line-strong)] pl-3">
               {n}
             </li>
           ))}

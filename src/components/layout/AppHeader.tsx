@@ -37,10 +37,10 @@ export function AppHeader() {
             RF
           </span>
           <span className="min-w-0">
-            <span className="block font-[family-name:var(--font-display)] text-[15px] font-bold tracking-[0.06em] text-[var(--foreground)] transition group-hover:text-[var(--accent)] md:text-base">
+            <span className="block whitespace-nowrap text-[15px] font-semibold tracking-[-0.015em] text-[var(--foreground)]">
               Racket Form
             </span>
-            <span className="mt-0.5 hidden text-[10px] tracking-[0.14em] text-[var(--muted)] uppercase sm:block">
+            <span className="hidden font-[family-name:var(--font-mono)] text-[9.5px] tracking-[0.12em] text-[var(--muted)] uppercase sm:block">
               Form · Gear · Court
             </span>
           </span>
@@ -77,9 +77,9 @@ export function AppHeader() {
           {initialized && !isAccount ? (
             <Link
               href={accountHref}
-              className={`sf-nav-account inline-flex min-h-11 max-w-[7.5rem] items-center truncate px-2 text-[12px] font-semibold tracking-[0.04em] transition md:max-w-[140px] ${
+              className={`sf-nav-account inline-flex min-h-11 max-w-[7.5rem] items-center truncate px-2 text-[13px] font-medium transition md:max-w-[140px] ${
                 user
-                  ? "text-[var(--foreground)] hover:text-[var(--accent)]"
+                  ? "text-[var(--foreground)] hover:opacity-75"
                   : "text-[var(--muted)] hover:text-[var(--foreground)]"
               }`}
               title={cloudReady ? accountLabel : "Local court — sign in when cloud is configured"}

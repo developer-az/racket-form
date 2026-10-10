@@ -201,7 +201,7 @@ export function FeelBars({
           </div>
           <div className="sf-feel-track mt-1">
             <div
-              className="h-full rounded-full"
+              className="h-full"
               style={{
                 width: `${Math.max(4, Math.min(100, s.value))}%`,
                 background: s.color,
@@ -270,11 +270,7 @@ export function ProductCard({
       >
         <span
           className={`sf-thumb-well relative flex w-full shrink-0 items-center justify-center ${compact ? "h-28" : "h-32 sm:h-36"}`}
-          style={{
-            background: accent
-              ? `linear-gradient(160deg, color-mix(in srgb, ${accent} 10%, var(--bg-scene)) 0%, var(--bg-scene) 72%)`
-              : "var(--bg-scene)",
-          }}
+          style={{ background: "var(--bg-sunken)" }}
         >
           <EquipmentThumb src={image} alt="" size={compact ? "sm" : "md"} />
         </span>

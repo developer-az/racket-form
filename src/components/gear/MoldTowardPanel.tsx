@@ -194,7 +194,7 @@ export function MoldTowardPanel({
               {plan.steps.map((s, i) => (
                 <li
                   key={`${s.zone}-${i}`}
-                  className="flex gap-2 border-l-2 border-[var(--accent)]/40 pl-2"
+                  className="flex gap-2 border-l border-[var(--line-strong)] pl-2"
                 >
                   <span className="shrink-0 tabular-nums text-[var(--accent)]">
                     +{s.massG}g {LEAD_TAPE_ZONES[s.zone].label.split(" ")[0]}

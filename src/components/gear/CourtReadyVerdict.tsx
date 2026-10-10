@@ -17,11 +17,11 @@ export function CourtReadyVerdict({
     <section
       className="sf-intel-panel"
       aria-label="Court-ready verdict"
-      style={{ boxShadow: `inset 3px 0 0 ${tone}` }}
+      style={{ boxShadow: `inset 1.5px 0 0 ${tone}` }}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="sf-kicker" style={{ color: tone }}>
+          <p className="sf-kicker" style={{ "--kicker-mark": tone } as React.CSSProperties}>
             Combined physics
           </p>
           <h3
@@ -37,7 +37,7 @@ export function CourtReadyVerdict({
         </div>
         <div className="shrink-0 text-right">
           <p
-            className="font-[family-name:var(--font-display)] text-3xl tabular-nums tracking-tight"
+            className="sf-readout text-3xl"
             style={{ color: tone }}
           >
             {playability.score}
@@ -91,7 +91,7 @@ export function CourtReadyVerdict({
                   boxShadow: `inset 2px 0 0 ${flagTone}, inset 0 0 0 1px var(--line)`,
                 }}
               >
-                <p className="sf-kicker" style={{ color: flagTone }}>
+                <p className="sf-kicker" style={{ "--kicker-mark": flagTone } as React.CSSProperties}>
                   {f.severity === "ok" ? "in window" : f.severity}
                 </p>
                 <p className="mt-1 text-sm font-medium text-[var(--foreground)]">{f.title}</p>

@@ -304,9 +304,9 @@ export function CombinedSetupPanel({
                 <p className="text-[10px] uppercase tracking-[0.14em]" style={{ color }}>
                   {label}
                 </p>
-                <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--foreground)_12%,transparent)]">
+                <div className="mt-1.5 h-[3px] overflow-hidden bg-[color-mix(in_srgb,var(--foreground)_12%,transparent)]">
                   <div
-                    className="h-full rounded-full transition-[width] duration-500"
+                    className="h-full transition-[width] duration-500"
                     style={{
                       width: `${Math.max(0, Math.min(100, v ?? 0))}%`,
                       background: color,
@@ -472,7 +472,7 @@ export function CombinedSetupPanel({
               </p>
               <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-[var(--foreground)]/85">
                 {insight.forehand.practice.map((p) => (
-                  <li key={p} className="border-l-2 border-[var(--accent)]/40 pl-2.5">
+                  <li key={p} className="border-l border-[var(--line-strong)] pl-2.5">
                     {p}
                   </li>
                 ))}
@@ -638,7 +638,7 @@ export function CombinedSetupPanel({
                 </p>
                 <ul className="mt-1.5 space-y-1.5 text-xs leading-relaxed text-[var(--foreground)]/85">
                   {wp.practice.map((p) => (
-                    <li key={p} className="border-l-2 border-[var(--accent)]/40 pl-2.5">
+                    <li key={p} className="border-l border-[var(--line-strong)] pl-2.5">
                       {p}
                     </li>
                   ))}
@@ -772,7 +772,7 @@ export function CombinedSetupPanel({
           </p>
           <ul className="mt-3 space-y-2 text-sm leading-relaxed text-[var(--foreground)]/90">
             {insight.pros.map((p) => (
-              <li key={p} className="border-l-2 border-[var(--accent)]/50 pl-3">
+              <li key={p} className="border-l border-[var(--line-strong)] pl-3">
                 {p}
               </li>
             ))}
