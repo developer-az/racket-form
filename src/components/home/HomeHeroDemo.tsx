@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { PLAYERS } from "@/data/players";
 import { PHASE_LABELS, sampleStroke } from "@/lib/kinematics";
+import { measureStroke } from "@/lib/motion/solver";
 import { useCoachStore } from "@/store/coachStore";
 import { HomeHeroCtas } from "@/components/home/HomeHeroCtas";
 
@@ -32,6 +33,7 @@ function HeroDemoChrome() {
   const player = PLAYERS.find((p) => p.id === playerId) ?? PLAYERS[0];
   const stroke = player.strokes[strokeType];
   const pose = sampleStroke(stroke, t);
+  const angles = measureStroke(stroke, player.anthropometrics, t);
 
   return (
     <div className="sf-hero-demo-chrome pointer-events-auto">
@@ -45,9 +47,9 @@ function HeroDemoChrome() {
           </p>
         </div>
         <div className="flex gap-4 tabular-nums">
-          <JointReadout label="Elbow" value={Math.round(pose.joints.elbowFlexion)} />
-          <JointReadout label="Knee" value={Math.round(pose.joints.leadKneeFlexion)} />
-          <JointReadout label="Trunk" value={Math.round(Math.abs(pose.joints.spineTwist))} />
+          <JointReadout label="Elbow" value={Math.round(angles.elbowFlexion)} />
+          <JointReadout label="Knee" value={Math.round(angles.frontKneeFlexion)} />
+          <JointReadout label="Turn" value={Math.round(Math.abs(angles.trunkRotation))} />
         </div>
       </div>
 

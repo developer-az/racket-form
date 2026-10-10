@@ -7,16 +7,17 @@ import * as THREE from "three";
 import { useCoachStore } from "@/store/coachStore";
 import { getPlayer } from "@/data/players";
 import { sampleStroke } from "@/lib/kinematics";
+import { createSkeletonPose, solveStrokePose } from "@/lib/motion/solver";
 import { BiomechanicalSkeleton, type SkeletonDriver } from "./BiomechanicalSkeleton";
 import { AngleOverlays } from "./AngleOverlays";
 import { RacketPathTrail } from "./RacketPathTrail";
+import { StrokeBall } from "./StrokeBall";
 import { TennisCourt } from "./TennisCourt";
-import type { JointAngles } from "@/types/biomechanics";
 import { getThemeColors } from "@/lib/theme/colors";
 import { useTheme } from "@/components/theme/ThemeProvider";
 
 const PLAYER_Z = 11.5;
-const LOOK_AT: [number, number, number] = [0, 1.1, PLAYER_Z];
+const LOOK_AT: [number, number, number] = [0, 1.15, PLAYER_Z - 0.2];
 
 /** High-resolution playback clock shared with the 3D scene (avoids 60fps React). */
 export let playbackT = 0;
@@ -56,34 +57,38 @@ function CameraRig({
   allowRotate: boolean;
 }) {
   const mode = useCoachStore((s) => s.cameraMode);
+  // Serves reach ~2.7 m — frame higher and a little wider so contact stays in shot
+  const tall = useCoachStore((s) => s.stroke === "serve");
   const { camera, size } = useThree();
   const controls = useRef<ComponentRef<typeof OrbitControls>>(null);
   const narrow = size.width < 1024;
 
   useEffect(() => {
-    const zPull = narrow ? 1.4 : 0;
+    const zPull = (narrow ? 1.4 : 0) + (tall ? 1.1 : 0);
+    const lift = tall ? 0.45 : 0;
+    const look: [number, number, number] = [LOOK_AT[0], LOOK_AT[1] + lift, LOOK_AT[2]];
     const positions: Record<typeof mode, [number, number, number]> = {
-      orbit: [3.2, 2.1, PLAYER_Z + 4.2 + zPull],
-      side: [5.5 + (narrow ? 1.2 : 0), 1.6, PLAYER_Z + 0.2],
-      behind: [0.3, 1.8, PLAYER_Z + 5.5 + zPull],
-      front: [0.2, 1.7, PLAYER_Z - 4.8 - zPull],
+      orbit: [2.7 + (tall ? 0.6 : 0), 1.8 + lift, PLAYER_Z + 3.3 + zPull],
+      side: [4.4 + zPull, 1.5 + lift, PLAYER_Z - 0.2],
+      behind: [0.3, 1.75 + lift, PLAYER_Z + 4.4 + zPull],
+      front: [0.2, 1.6 + lift, PLAYER_Z - 4.4 - zPull],
       firstPerson: [0.55, 1.55, PLAYER_Z + 0.35],
     };
     const targets: Record<typeof mode, [number, number, number]> = {
-      orbit: LOOK_AT,
-      side: LOOK_AT,
-      behind: LOOK_AT,
-      front: LOOK_AT,
-      firstPerson: [0.15, 1.35, PLAYER_Z - 1.2],
+      orbit: look,
+      side: look,
+      behind: look,
+      front: look,
+      firstPerson: [0.15, 1.35 + lift, PLAYER_Z - 1.2],
     };
     camera.position.set(...positions[mode]);
     controls.current?.target.set(...targets[mode]);
     controls.current?.update();
-  }, [mode, camera, narrow]);
+  }, [mode, camera, narrow, tall]);
 
   return (
     <>
-      <PerspectiveCamera makeDefault fov={narrow ? 50 : 42} position={[3.2, 2.1, PLAYER_Z + 4.2]} />
+      <PerspectiveCamera makeDefault fov={narrow ? 50 : 42} position={[2.7, 1.8, PLAYER_Z + 3.3]} />
       <OrbitControls
         ref={controls}
         target={LOOK_AT}
@@ -150,46 +155,34 @@ function AnimatedAthlete() {
   const stroke = player.strokes[strokeType];
 
   const driverRef = useRef<SkeletonDriver>({
-    joints: sampleStroke(stroke, 0).joints,
+    pose: createSkeletonPose(),
     racketSpeedMs: 0,
-    handedness: stroke.handedness,
-    oneHanded: stroke.oneHanded,
   });
-  const jointsRef = useRef<JointAngles>(driverRef.current.joints);
   const kneeRef = useRef(25);
   const tRef = useRef(0);
   const gfVisible = useRef(showGroundForce);
   gfVisible.current = showGroundForce;
 
-  // Keep stroke identity on the driver without re-rendering the mesh tree
-  driverRef.current.handedness = stroke.handedness;
-  driverRef.current.oneHanded = stroke.oneHanded;
-
+  // Solve before children render this frame (negative priority runs first)
   useFrame(() => {
     if (typeof document !== "undefined" && document.hidden) return;
-    const pose = sampleStroke(stroke, playbackT);
-    driverRef.current.joints = pose.joints;
-    driverRef.current.racketSpeedMs = pose.racketSpeedMs;
-    jointsRef.current = pose.joints;
-    kneeRef.current = pose.joints.leadKneeFlexion;
+    const driver = driverRef.current;
+    solveStrokePose(driver.pose, stroke, player.anthropometrics, playbackT);
+    driver.racketSpeedMs = sampleStroke(stroke, playbackT).racketSpeedMs;
+    kneeRef.current = driver.pose.measured.frontKneeFlexion;
     tRef.current = playbackT;
-  });
+  }, -1);
 
   return (
     <group position={[0, 0, PLAYER_Z]}>
       <BiomechanicalSkeleton
         key={playerId}
         driverRef={driverRef}
-        anthropometrics={player.anthropometrics}
         color={player.color}
         accent={player.accent}
       />
-      <AngleOverlays
-        jointsRef={jointsRef}
-        visible={showAngles}
-        accent={player.accent}
-        handedness={stroke.handedness}
-      />
+      <AngleOverlays driverRef={driverRef} visible={showAngles} accent={player.accent} />
+      <StrokeBall stroke={stroke} anthropometrics={player.anthropometrics} tRef={tRef} />
       <RacketPathTrail
         stroke={stroke}
         anthropometrics={player.anthropometrics}
