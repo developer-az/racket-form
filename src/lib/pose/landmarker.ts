@@ -4,7 +4,7 @@ import { BLAZE_COUNT, type LandmarkXYZ, type PoseFrame } from "./landmarks";
 import type { MotionClip } from "@/lib/motion/types";
 
 const MODEL =
-  "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task";
+  "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
 const WASM = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.1.0/wasm";
 
 const MAX_SECONDS = 24;
@@ -18,16 +18,11 @@ export type LandmarkerProgress = {
 };
 
 type PoseLandmarkerHandle = {
-  detectForVideo: (video: HTMLVideoElement, ts: number) => {
-    worldLandmarks: LandmarkXYZ[][];
-    landmarks: LandmarkXYZ[][];
-  };
   detect: (video: HTMLVideoElement) => {
     worldLandmarks: LandmarkXYZ[][];
     landmarks: LandmarkXYZ[][];
   };
   close?: () => void;
-  setOptions?: (opts: { runningMode: "IMAGE" | "VIDEO" }) => Promise<void>;
 };
 
 let landmarkerPromise: Promise<PoseLandmarkerHandle> | null = null;
@@ -36,8 +31,9 @@ async function createLandmarker(): Promise<PoseLandmarkerHandle> {
   const { FilesetResolver, PoseLandmarker } = await import("@mediapipe/tasks-vision");
   const fileset = await FilesetResolver.forVisionTasks(WASM);
   return PoseLandmarker.createFromOptions(fileset, {
-    baseOptions: { modelAssetPath: MODEL, delegate: "GPU" },
-    runningMode: "VIDEO",
+    // CPU avoids stealing the Three.js WebGL context on shared GPUs.
+    baseOptions: { modelAssetPath: MODEL, delegate: "CPU" },
+    runningMode: "IMAGE",
     numPoses: 1,
     minPoseDetectionConfidence: 0.4,
     minPosePresenceConfidence: 0.4,
@@ -106,9 +102,6 @@ async function framesBySeek(
   landmarker: PoseLandmarkerHandle,
   onProgress?: (p: LandmarkerProgress) => void,
 ): Promise<PoseFrame[]> {
-  if (landmarker.setOptions) {
-    await landmarker.setOptions({ runningMode: "IMAGE" });
-  }
   const duration = Math.min(video.duration || 0, MAX_SECONDS);
   if (!Number.isFinite(duration) || duration <= 0) {
     throw new Error("Could not read video duration.");
@@ -118,6 +111,7 @@ async function framesBySeek(
   for (let t = 0; t < duration - 0.001; t += step) {
     await seek(video, t);
     const result = landmarker.detect(video);
+    await new Promise((r) => setTimeout(r, 0));
     const world = result.worldLandmarks[0];
     if (world?.length) {
       frames.push({
@@ -132,66 +126,6 @@ async function framesBySeek(
       detail: `Pose ${frames.length} frames`,
     });
   }
-  if (landmarker.setOptions) {
-    await landmarker.setOptions({ runningMode: "VIDEO" });
-  }
-  return frames;
-}
-
-async function framesByPlayback(
-  video: HTMLVideoElement,
-  landmarker: PoseLandmarkerHandle,
-  onProgress?: (p: LandmarkerProgress) => void,
-): Promise<PoseFrame[] | null> {
-  const duration = Math.min(video.duration || 0, MAX_SECONDS);
-  if (!duration) return null;
-  const frames: PoseFrame[] = [];
-  const rvfc = (
-    video as HTMLVideoElement & {
-      requestVideoFrameCallback?: (cb: (now: number, meta: { mediaTime: number }) => void) => number;
-    }
-  ).requestVideoFrameCallback;
-  if (typeof rvfc !== "function") return null;
-
-  video.muted = true;
-  video.playbackRate = 1;
-  try {
-    await video.play();
-  } catch {
-    return null;
-  }
-
-  const minDt = 1 / TARGET_FPS;
-  let last = -1;
-  await new Promise<void>((resolve) => {
-    const tick = (_now: number, meta: { mediaTime: number }) => {
-      const t = meta.mediaTime;
-      if (t - last >= minDt && t <= duration) {
-        last = t;
-        const result = landmarker.detectForVideo(video, t * 1000);
-        const world = result.worldLandmarks[0];
-        if (world?.length) {
-          frames.push({
-            time: t,
-            world: copyLm(world),
-            image: copyLm(result.landmarks[0]),
-          });
-        }
-        onProgress?.({
-          stage: "pose",
-          progress: 0.2 + 0.7 * Math.min(1, t / duration),
-          detail: `Pose ${frames.length} frames`,
-        });
-      }
-      if (video.ended || t >= duration - 0.02 || frames.length >= MAX_FRAMES) {
-        video.pause();
-        resolve();
-        return;
-      }
-      rvfc.call(video, tick);
-    };
-    rvfc.call(video, tick);
-  });
   return frames;
 }
 
@@ -246,10 +180,7 @@ export async function reconstructFromVideoFile(
   const video = await decodeVideo(file, onProgress);
   const url = (video as HTMLVideoElement & { _objectUrl?: string })._objectUrl;
   try {
-    let frames = await framesByPlayback(video, landmarker, onProgress);
-    if (!frames || frames.length < 6) {
-      frames = await framesBySeek(video, landmarker, onProgress);
-    }
+    const frames = await framesBySeek(video, landmarker, onProgress);
     if (frames.length < 4) {
       throw new Error("No person detected. Fill the frame with one swing, brighter light.");
     }

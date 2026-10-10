@@ -334,6 +334,7 @@ export function FormCanvas({ variant = "lab" }: FormCanvasProps) {
     return () => io.disconnect();
   }, [isHero]);
 
+  const reconstructing = useStudyStore((s) => s.status === "working");
   const allowZoom = !isHero;
   // On hero mobile, leave touch free for page scroll — orbit stays a desktop affordance
   const allowRotate = !isHero || !isNarrow;
@@ -350,7 +351,7 @@ export function FormCanvas({ variant = "lab" }: FormCanvasProps) {
       <Canvas
         className={`!absolute inset-0 ${isHero ? "touch-pan-y" : "touch-none"}`}
         dpr={[1, isHero ? 1.25 : 1.5]}
-        frameloop={isHero && !active ? "never" : "always"}
+        frameloop={reconstructing || (isHero && !active) ? "never" : "always"}
         gl={{
           antialias: false,
           alpha: false,

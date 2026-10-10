@@ -6,6 +6,7 @@ import type { MotionClip } from "@/lib/motion/types";
 import { putStudyClip, removeStudyClip, studyKey, clearStudyClips } from "@/lib/pose/registry";
 import { reconstructFromVideoFile, type LandmarkerProgress } from "@/lib/pose/landmarker";
 import type { ReconstructMeta } from "@/lib/pose/reconstruct";
+import { useCoachStore } from "@/store/coachStore";
 
 export type StudyRecord = {
   key: string;
@@ -153,6 +154,7 @@ export const useStudyStore = create<StudyState>((set, get) => ({
   recordFor: (playerId, stroke) => get().records[studyKey(playerId, stroke)],
 
   attachVideo: async ({ file, playerId, stroke, handedness, oneHanded }) => {
+    useCoachStore.getState().setPlaying(false);
     set({ status: "working", progress: 0, detail: "Starting…", error: null });
     const onProgress = (p: LandmarkerProgress) => {
       set({ progress: p.progress, detail: p.detail });
@@ -167,6 +169,7 @@ export const useStudyStore = create<StudyState>((set, get) => ({
       install(record);
       const records = { ...get().records, [record.key]: record };
       set({ records, lastKey: record.key, status: "ready", progress: 1, detail: "Ready", error: null });
+      useCoachStore.getState().setPlaying(true);
       void idbPut(record);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Reconstruction failed";
