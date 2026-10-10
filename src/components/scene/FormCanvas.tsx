@@ -137,7 +137,7 @@ function GroundForce({
   return (
     <mesh ref={mesh} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0.15]} visible={false}>
       <ringGeometry args={[0.4, 1, 24]} />
-      <meshBasicMaterial ref={mat} color="#c4843a" transparent opacity={0.3} side={THREE.DoubleSide} depthWrite={false} />
+      <meshBasicMaterial ref={mat} color={getThemeColors().amber} transparent opacity={0.3} side={THREE.DoubleSide} depthWrite={false} />
     </mesh>
   );
 }

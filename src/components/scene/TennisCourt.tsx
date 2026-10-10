@@ -12,8 +12,8 @@ export function TennisCourt() {
   const singlesW = 8.23;
 
   const mats = useMemo(() => {
-    const floor = theme === "light" ? "#cfcbc2" : "#0e0f10";
-    const outer = theme === "light" ? "#c4c0b6" : "#161718";
+    const floor = colors.bgScene;
+    const outer = theme === "light" ? colors.bgSunken : "#161718";
     const line = theme === "light" ? "#d5e4e8" : "#8aa8b0";
     return {
       ground: new THREE.MeshLambertMaterial({ color: floor }),
@@ -21,14 +21,14 @@ export function TennisCourt() {
       inner: new THREE.MeshLambertMaterial({ color: colors.court }),
       line: new THREE.MeshBasicMaterial({ color: line }),
       net: new THREE.MeshLambertMaterial({
-        color: theme === "light" ? "#d8d4cc" : "#2a2c2b",
+        color: colors.silhouetteRim,
         transparent: true,
         opacity: 0.4,
       }),
-      tape: new THREE.MeshBasicMaterial({ color: "#e8e6e1" }),
-      post: new THREE.MeshLambertMaterial({ color: "#3a3c3b" }),
+      tape: new THREE.MeshBasicMaterial({ color: colors.background }),
+      post: new THREE.MeshLambertMaterial({ color: colors.silhouette }),
     };
-  }, [theme, colors.court]);
+  }, [theme, colors]);
 
   return (
     <group>

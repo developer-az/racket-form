@@ -49,7 +49,7 @@ function HeroDemoChrome() {
             {player.shortName} · {PHASE_LABELS[phase]}
           </p>
           <p className="mt-0.5 max-w-md truncate text-xs text-[var(--muted)] md:text-[13px]">
-            {clip ? cue : "No reconstructed swing yet — attach a study video in the lab."}
+            {clip ? cue : "Reconstruct a swing in the lab to put it on this rail."}
           </p>
         </div>
         <div className="flex gap-4 tabular-nums">
@@ -165,11 +165,12 @@ export function HomeHeroDemo() {
             FORM
           </p>
           <h1 className="mt-5 max-w-md text-lg font-medium leading-snug text-[var(--foreground)] md:text-xl md:leading-snug">
-            Upload a swing. Reconstruct it onto the athlete.
+            Reconstruct a swing onto the athlete. Replace the CC study clip anytime.
           </h1>
           <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-[var(--muted)]">
-            Same Pose Landmarker sampler as the lab. No keyed mannequin. Orbit on desktop — the
-            viewport will not steal the page.
+            Same clip sampler as the lab. Groundstrokes and serve are reconstructed from CC
+            study video — not a keyed mannequin. Orbit on desktop — the viewport will not steal
+            the page.
           </p>
           <HomeHeroCtas />
         </div>

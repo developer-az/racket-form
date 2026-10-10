@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { Anthropometrics } from "@/types/biomechanics";
 import { createSkeletonPose, type SkeletonPose } from "@/lib/motion/pose";
+import { useTheme } from "@/components/theme/ThemeProvider";
 
 /** Mutable pose feed — updated from the animation loop without React re-renders */
 export interface SkeletonDriver {
@@ -170,51 +171,57 @@ export function BiomechanicalSkeleton({
     strings: null,
   });
 
+  const { colors } = useTheme();
   const skinMat = useMemo(
-    () => new THREE.MeshLambertMaterial({ color: "#2c2e2d" }),
-    [],
+    () => new THREE.MeshLambertMaterial({ color: colors.silhouette }),
+    [colors.silhouette],
   );
   const jointMat = useMemo(
-    () => new THREE.MeshLambertMaterial({ color: "#4a4d4b" }),
-    [],
+    () => new THREE.MeshLambertMaterial({ color: colors.silhouetteRim }),
+    [colors.silhouetteRim],
   );
   const chainMat = useMemo(
-    () => new THREE.MeshLambertMaterial({ color: "#0b8fa8", emissive: "#0b8fa8", emissiveIntensity: 0.18 }),
-    [],
+    () =>
+      new THREE.MeshLambertMaterial({
+        color: colors.accent,
+        emissive: colors.accent,
+        emissiveIntensity: 0.18,
+      }),
+    [colors.accent],
   );
   void color;
   void accent;
   const darkMat = useMemo(
-    () => new THREE.MeshLambertMaterial({ color: "#1a1a1a" }),
-    [],
+    () => new THREE.MeshLambertMaterial({ color: colors.foreground }),
+    [colors.foreground],
   );
   const handleMat = useMemo(
-    () => new THREE.MeshLambertMaterial({ color: "#2c1810" }),
-    [],
+    () => new THREE.MeshLambertMaterial({ color: colors.silhouette }),
+    [colors.silhouette],
   );
   const throatMat = useMemo(
-    () => new THREE.MeshLambertMaterial({ color: "#222222" }),
-    [],
+    () => new THREE.MeshLambertMaterial({ color: colors.foreground }),
+    [colors.foreground],
   );
   const stringMat = useMemo(
     () =>
       new THREE.MeshBasicMaterial({
-        color: "#f5f5f0",
+        color: colors.background,
         transparent: true,
         opacity: 0.35,
         side: THREE.DoubleSide,
         depthWrite: false,
       }),
-    [],
+    [colors.background],
   );
   const hoopMat = useMemo(
     () =>
       new THREE.MeshLambertMaterial({
-        color: "#c4843a",
-        emissive: "#c4843a",
+        color: colors.amber,
+        emissive: colors.amber,
         emissiveIntensity: 0.16,
       }),
-    [],
+    [colors.amber],
   );
 
   useLayoutEffect(() => {

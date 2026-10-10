@@ -8,6 +8,7 @@ import type { Anthropometrics, StrokeProfile } from "@/types/biomechanics";
 import type { MotionClip } from "@/lib/motion/types";
 import { sampleMotion } from "@/lib/motion/sample";
 import { createSkeletonPose } from "@/lib/motion/pose";
+import { useTheme } from "@/components/theme/ThemeProvider";
 
 /** Sample racket tip positions from the same clip sampler as the lab / hero. */
 export function RacketPathTrail({
@@ -48,15 +49,17 @@ export function RacketPathTrail({
     }
   });
 
+  const { colors } = useTheme();
+
   if (!visible) return null;
 
   const active = points.slice(0, fadeCount);
 
   return (
     <group>
-      <Line points={points} color="#c4843a" lineWidth={1} transparent opacity={0.22} dashed dashSize={0.08} gapSize={0.05} />
+      <Line points={points} color={colors.amber} lineWidth={1} transparent opacity={0.22} dashed dashSize={0.08} gapSize={0.05} />
       {active.length > 1 && (
-        <Line points={active} color="#c4843a" lineWidth={2.5} transparent opacity={0.9} />
+        <Line points={active} color={colors.amber} lineWidth={2.5} transparent opacity={0.9} />
       )}
     </group>
   );

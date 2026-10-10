@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "motion:check": "npx tsx scripts/reconstruct-check.mts"
+    "motion:check": "npx tsx scripts/reconstruct-check.mts && npx tsx scripts/study-clip-check.mts"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^1.1.0",

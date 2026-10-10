@@ -40,7 +40,8 @@ export function CoachLab() {
               Video · BlazePose · plant IK
             </p>
             <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
-              Reconstruct the uploaded swing onto this athlete. Constraints on. Scrub the rail.
+              CC study reconstruction on the rail. Replace it with your video. Constraints on.
+              Scrub the pose.
             </p>
           </div>
           <PlayerStrokePicker />

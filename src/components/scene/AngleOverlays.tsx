@@ -7,6 +7,7 @@ import * as THREE from "three";
 import type { SkeletonPose } from "@/lib/motion/pose";
 import { poseAngles } from "@/lib/motion/solve";
 import { deg } from "@/lib/kinematics";
+import { useTheme } from "@/components/theme/ThemeProvider";
 
 function makeArc(
   origin: THREE.Vector3,
@@ -111,21 +112,23 @@ export function AngleOverlays({
     ];
   }, [visible, snap]);
 
+  const { colors } = useTheme();
+
   if (!visible) return null;
 
   return (
     <group>
       {overlays.map((o) => (
         <group key={o.id}>
-          <Line points={o.points} color="#0b8fa8" lineWidth={2} transparent opacity={0.85} />
+          <Line points={o.points} color={colors.accent} lineWidth={2} transparent opacity={0.85} />
           <Text
             position={o.labelPos}
             fontSize={0.07}
-            color="#0b8fa8"
+            color={colors.accent}
             anchorX="left"
             anchorY="middle"
             outlineWidth={0.008}
-            outlineColor="#1a1c1b"
+            outlineColor={colors.background}
           >
             {o.label}
           </Text>

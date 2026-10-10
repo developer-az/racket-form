@@ -7,12 +7,17 @@ import { putStudyClip, removeStudyClip, studyKey, clearStudyClips } from "@/lib/
 import { reconstructFromVideoFile, type LandmarkerProgress } from "@/lib/pose/landmarker";
 import type { ReconstructMeta } from "@/lib/pose/reconstruct";
 import { useCoachStore } from "@/store/coachStore";
+import { allSeedTargets, cloneSeedClip, SEED_META } from "@/data/motion/seeds";
+import { getPlayer } from "@/data/players";
+
+export type StudyKind = "seed" | "upload";
 
 export type StudyRecord = {
   key: string;
   playerId: string;
   stroke: StrokeType;
   clip: MotionClip;
+  kind: StudyKind;
   sourceName: string;
   durationSec: number;
   reconstructedAt: number;
@@ -116,6 +121,7 @@ function toRecord(
     playerId: clip.playerId,
     stroke: clip.stroke,
     clip,
+    kind: "upload",
     sourceName,
     durationSec,
     reconstructedAt: Date.now(),
@@ -125,29 +131,65 @@ function toRecord(
   };
 }
 
+function seedRecord(playerId: string, stroke: StrokeType, oneHanded: boolean): StudyRecord {
+  const clip = cloneSeedClip(playerId, stroke, oneHanded);
+  const meta = SEED_META[stroke];
+  return {
+    key: clip.id,
+    playerId,
+    stroke,
+    clip,
+    kind: "seed",
+    sourceName: meta.name,
+    durationSec: Math.max(1, clip.frameCount / 20),
+    reconstructedAt: 0,
+    meanVisibility: 0.85,
+    hittingSide: clip.authoredHand,
+    frameCount: clip.frameCount,
+  };
+}
+
+function installSeeds(records: Record<string, StudyRecord>) {
+  for (const target of allSeedTargets()) {
+    const key = studyKey(target.playerId, target.stroke);
+    if (records[key]?.kind === "upload") continue;
+    const row = seedRecord(target.playerId, target.stroke, target.oneHanded);
+    records[key] = row;
+    install(row);
+  }
+}
+
+function seededRecords(): Record<string, StudyRecord> {
+  const records: Record<string, StudyRecord> = {};
+  installSeeds(records);
+  return records;
+}
+
 export const useStudyStore = create<StudyState>((set, get) => ({
   hydrated: false,
-  records: {},
+  records: seededRecords(),
   lastKey: null,
-  status: "idle",
+  status: "ready",
   progress: 0,
   detail: "",
   error: null,
 
   hydrate: async () => {
     if (get().hydrated) return;
-    const rows = await idbAll();
+    const rows = (await idbAll()).filter((row) => row.kind !== "seed");
     const records: Record<string, StudyRecord> = {};
     clearStudyClips();
     for (const row of rows) {
-      records[row.key] = row;
+      records[row.key] = { ...row, kind: "upload" };
       install(row);
     }
+    installSeeds(records);
+    const uploads = rows.sort((a, b) => b.reconstructedAt - a.reconstructedAt);
     set({
       hydrated: true,
       records,
-      lastKey: rows.sort((a, b) => b.reconstructedAt - a.reconstructedAt)[0]?.key ?? null,
-      status: Object.keys(records).length ? "ready" : "idle",
+      lastKey: uploads[0]?.key ?? null,
+      status: "ready",
     });
   },
 
@@ -193,6 +235,7 @@ export const useStudyStore = create<StudyState>((set, get) => ({
       key: clip.id,
       playerId,
       clip,
+      kind: "upload",
       reconstructedAt: Date.now(),
     };
     install(record);
@@ -206,10 +249,16 @@ export const useStudyStore = create<StudyState>((set, get) => ({
     removeStudyClip(key);
     const records = { ...get().records };
     delete records[key];
+    const player = getPlayer(playerId);
+    const oneHanded = player?.strokes[stroke].oneHanded ?? true;
+    const seeded = seedRecord(playerId, stroke, oneHanded);
+    records[key] = seeded;
+    install(seeded);
+    const lastUpload = Object.values(records).find((r) => r.kind === "upload");
     set({
       records,
-      lastKey: get().lastKey === key ? Object.keys(records)[0] ?? null : get().lastKey,
-      status: Object.keys(records).length ? "ready" : "idle",
+      lastKey: get().lastKey === key ? lastUpload?.key ?? null : get().lastKey,
+      status: "ready",
     });
     void idbDel(key);
   },

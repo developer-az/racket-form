@@ -24,7 +24,7 @@ export function LabReferencePlate() {
       <p className="mt-1 text-xs text-[var(--muted)]">
         {record
           ? `${record.sourceName} · ${player.shortName} ${stroke.type}`
-          : "Attach a video to mark phases from the reconstructed swing"}
+          : "Phase marks from the reconstructed swing"}
       </p>
       <div className="mt-3 grid grid-cols-4 gap-1.5">
         {marks.slice(0, 4).map((p) => {

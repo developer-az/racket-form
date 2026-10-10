@@ -31,8 +31,9 @@ export function VideoStudy() {
         Study video
       </p>
       <p className="text-xs leading-relaxed text-[var(--muted)]">
-        Upload a swing. On-device BlazePose rebuilds it onto {player.shortName}’s armature —{" "}
-        {stroke.label.toLowerCase()}.
+        {record?.kind === "seed"
+          ? `CC study reconstruction on ${player.shortName}’s armature — ${stroke.label.toLowerCase()}. Replace it with your video.`
+          : `Upload a swing. On-device BlazePose rebuilds it onto ${player.shortName}’s armature — ${stroke.label.toLowerCase()}.`}
       </p>
 
       <input
@@ -60,7 +61,7 @@ export function VideoStudy() {
         onClick={() => inputRef.current?.click()}
         className="sf-btn sf-btn-primary w-full disabled:opacity-50"
       >
-        {busy ? "Reconstructing…" : record ? "Replace video" : "Attach swing video"}
+        {busy ? "Reconstructing…" : record?.kind === "upload" ? "Replace video" : "Attach swing video"}
       </button>
 
       {canApply ? (
@@ -92,16 +93,19 @@ export function VideoStudy() {
         <div className="space-y-1 border-t border-[var(--line)] pt-2">
           <p className="truncate text-xs text-[var(--foreground)]">{record.sourceName}</p>
           <p className="font-mono text-[10px] tracking-[0.08em] text-[var(--muted)] uppercase">
+            {record.kind === "seed" ? "CC study · " : ""}
             {record.frameCount} frames · vis {(record.meanVisibility * 100).toFixed(0)}% ·{" "}
             {record.hittingSide} hit
           </p>
-          <button
-            type="button"
-            onClick={() => clearCurrent(playerId, strokeType)}
-            className="text-[11px] text-[var(--muted)] underline-offset-2 hover:text-[var(--foreground)] hover:underline"
-          >
-            Detach
-          </button>
+          {record.kind === "upload" ? (
+            <button
+              type="button"
+              onClick={() => clearCurrent(playerId, strokeType)}
+              className="text-[11px] text-[var(--muted)] underline-offset-2 hover:text-[var(--foreground)] hover:underline"
+            >
+              Detach to CC study clip
+            </button>
+          ) : null}
         </div>
       ) : null}
 

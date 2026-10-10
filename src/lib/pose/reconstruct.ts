@@ -31,6 +31,8 @@ export type ReconstructOpts = {
   /** Player the clip is geared to (mirroring at playback). */
   handedness: "left" | "right";
   oneHanded: boolean;
+  /** Keep the supplied track — used when the swing is already trimmed. */
+  skipIsolate?: boolean;
 };
 
 export type ReconstructMeta = {
@@ -142,10 +144,19 @@ function isolateSwing(frames: PoseFrame[], stroke: StrokeType, hitRight: boolean
       peakI = i;
     }
   }
+  // Coaching clips often have several demos. Prefer the first real hit,
+  // not a later flourish / high finish that wins on raw wrist speed.
+  const thresh = peak * 0.72;
+  for (let i = 0; i < speeds.length; i++) {
+    if (speeds[i] >= thresh && frames[i].time > 0.2) {
+      peakI = i;
+      break;
+    }
+  }
   const span = frames[frames.length - 1].time - frames[0].time;
   if (span <= 2.4) return frames;
-  const back = stroke === "serve" ? 1.55 : 0.95;
-  const fwd = stroke === "serve" ? 0.55 : 0.45;
+  const back = stroke === "serve" ? 1.55 : 1.15;
+  const fwd = stroke === "serve" ? 0.55 : 0.55;
   const tPeak = frames[peakI].time;
   return frames.filter((f) => f.time >= tPeak - back && f.time <= tPeak + fwd);
 }
@@ -375,7 +386,7 @@ export function reconstructClip(
   if (smoothed.length < 2) {
     throw new Error("No usable pose frames — try a closer, better-lit swing video.");
   }
-  const isolated = isolateSwing(smoothed, opts.stroke, hitRight);
+  const isolated = opts.skipIsolate ? smoothed : isolateSwing(smoothed, opts.stroke, hitRight);
   const frames = isolated.length >= 4 ? isolated : smoothed;
 
   const roots: number[] = [];
