@@ -237,7 +237,7 @@ export function BiomechanicalSkeleton({
     };
   }, [skinMat, jointMat, chainMat, darkMat, handleMat, throatMat, stringMat, hoopMat]);
 
-  useFrame((_, dt) => {
+  useFrame(() => {
     const driver = driverRef.current;
     if (!driver || !root.current) return;
 
@@ -409,11 +409,7 @@ export function BiomechanicalSkeleton({
       hoopMat.emissiveIntensity = 0.08 + glow * 0.35;
     }
 
-    if (driver.racketSpeedMs < 3) {
-      root.current.position.y = 0.02 + Math.sin(performance.now() * 0.002) * 0.006;
-    } else {
-      root.current.position.y = THREE.MathUtils.damp(root.current.position.y, 0.02, 8, dt);
-    }
+    root.current.position.y = 0;
   });
 
   const bind = (key: keyof typeof meshes.current) => (node: THREE.Mesh | null) => {

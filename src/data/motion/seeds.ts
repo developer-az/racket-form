@@ -67,6 +67,7 @@ export function cloneSeedClip(playerId: string, stroke: StrokeType, oneHanded: b
     oneHanded,
     root: src.root.slice(),
     quats: src.quats.slice(),
+    world: src.world?.slice(),
     phases: src.phases.map((p) => ({ ...p })),
   };
 }

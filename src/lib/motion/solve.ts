@@ -11,6 +11,12 @@ import {
 import { clamp, flexionDeg, mirrorQuatYZ, packQuat, twoBoneIk, unpackQuat } from "./math";
 import { createSkeletonPose, type SkeletonPose } from "./pose";
 import { segmentLens } from "./segments";
+import {
+  applyWorldSample,
+  mirrorWorldSample,
+  retargetWorldPose,
+  type WorldSample,
+} from "./worldJoints";
 
 const Y = new THREE.Vector3(0, 1, 0);
 const NY = new THREE.Vector3(0, -1, 0);
@@ -185,7 +191,7 @@ function applyRacketContinuity(pose: SkeletonPose, continuity: MotionContinuity 
     const prev = new THREE.Vector3(continuity.prevShaft.x, continuity.prevShaft.y, continuity.prevShaft.z);
     if (prev.lengthSq() > 1e-8) {
       prev.normalize();
-      if (shaft.dot(prev) < -0.55) {
+      if (shaft.dot(prev) < -0.2) {
         shaft.negate();
         pose.racketTip.copy(pose.hitHand).addScaledVector(shaft, len);
       }
@@ -243,6 +249,14 @@ export function solveMotionClip(
 ): SkeletonPose {
   const posed = opts.pose ?? createSkeletonPose();
   const authored = opts.authoredHand ?? "right";
+  if (sample.world) {
+    const world =
+      opts.handedness !== authored ? mirrorWorldSample(sample.world as WorldSample) : (sample.world as WorldSample);
+    applyWorldSample(world, posed);
+    retargetWorldPose(posed, anthro);
+    applyRacketContinuity(posed, opts.continuity);
+    return posed;
+  }
   const src = opts.handedness !== authored ? mirrorSample(sample) : sample;
   fkClipSample(src, anthro, posed);
   applyPlantAndGround(posed, anthro, opts.stroke);

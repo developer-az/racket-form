@@ -11,6 +11,7 @@ import {
 } from "@/lib/motion/types";
 import { createSkeletonPose, type SkeletonPose } from "@/lib/motion/pose";
 import { extractLocalQuats } from "@/lib/motion/solve";
+import { packWorldPose } from "@/lib/motion/worldJoints";
 import {
   BLAZE,
   BLAZE_COUNT,
@@ -228,11 +229,51 @@ function estimatePhases(
   return phases;
 }
 
+/** One yaw from the ready stance — do not re-face every frame (that killed unit turn). */
+function estimateLockedYaw(frames: PoseFrame[]): number {
+  const n = Math.max(1, Math.min(12, Math.floor(frames.length * 0.28)));
+  let sx = 0;
+  let sz = 0;
+  let count = 0;
+  const shR = new THREE.Vector3();
+  const shL = new THREE.Vector3();
+  const hipR = new THREE.Vector3();
+  const hipL = new THREE.Vector3();
+  const nose = new THREE.Vector3();
+  for (let i = 0; i < n; i++) {
+    const f = frames[i];
+    const a = lm(f, BLAZE.rightShoulder);
+    const b = lm(f, BLAZE.leftShoulder);
+    if (!usableLandmark(a) || !usableLandmark(b)) continue;
+    toCourt(a!, shR);
+    toCourt(b!, shL);
+    const hr = lm(f, BLAZE.rightHip);
+    const hl = lm(f, BLAZE.leftHip);
+    if (usableLandmark(hr) && usableLandmark(hl)) {
+      toCourt(hr!, hipR);
+      toCourt(hl!, hipL);
+    } else {
+      hipR.copy(shR);
+      hipL.copy(shL);
+    }
+    const ns = lm(f, BLAZE.nose);
+    if (usableLandmark(ns)) toCourt(ns!, nose);
+    else nose.copy(shR).add(shL).multiplyScalar(0.5);
+    const yaw = yawForFacing(shR.clone().sub(shL), hipR.clone().sub(hipL), nose, mid(shL, shR));
+    sx += Math.sin(yaw);
+    sz += Math.cos(yaw);
+    count += 1;
+  }
+  if (!count) return 0;
+  return Math.atan2(sx / count, sz / count);
+}
+
 function poseFromFrame(
   frame: PoseFrame,
   prev: SkeletonPose | null,
   hitRight: boolean,
   oneHanded: boolean,
+  lockedYaw?: number,
 ): SkeletonPose {
   const pose = createSkeletonPose();
   const hipL = new THREE.Vector3();
@@ -249,7 +290,8 @@ function poseFromFrame(
 
   const pelvis = mid(hipL, hipR);
   const chest = mid(shL, shR);
-  const yaw = yawForFacing(shR.clone().sub(shL), hipR.clone().sub(hipL), nose, chest);
+  const yaw =
+    lockedYaw ?? yawForFacing(shR.clone().sub(shL), hipR.clone().sub(hipL), nose, chest);
   const cos = Math.cos(-yaw);
   const sin = Math.sin(-yaw);
   const origin = pelvis.clone();
@@ -312,10 +354,14 @@ function poseFromFrame(
 
   const wrist = pose.hitWrist;
   const knuckle = hitRight ? mid(idxR, pkR) : mid(idxL, pkL);
-  let shaft = knuckle.clone().sub(wrist);
-  if (shaft.lengthSq() < 1e-5) shaft = wrist.clone().sub(pose.hitElbow);
+  let shaft = wrist.clone().sub(pose.hitElbow);
+  if (shaft.lengthSq() < 1e-5) shaft = knuckle.clone().sub(wrist);
   if (shaft.lengthSq() < 1e-5) shaft.set(0, 0.2, -0.4);
   shaft.normalize();
+  if (prev) {
+    const prevShaft = prev.racketTip.clone().sub(prev.hitHand);
+    if (prevShaft.lengthSq() > 1e-6 && shaft.dot(prevShaft.normalize()) < -0.2) shaft.negate();
+  }
   pose.hitHand.copy(wrist).addScaledVector(shaft, HAND_LEN);
   pose.racketTip.copy(pose.hitHand).addScaledVector(shaft, RACKET_LEN);
 
@@ -371,9 +417,9 @@ function detectHittingSide(frames: PoseFrame[]): "left" | "right" {
  * Pipeline (TennisTracker MIT + our armature):
  * 1. Savitzky–Golay on each landmark
  * 2. Isolate the swing around peak hitting-wrist speed
- * 3. Root-center hips, yaw so the player faces −Z, scale torso to a 1.85 m ref
- * 4. Infer racket from wrist → knuckles (MediaPipe has no racket)
- * 5. Inverse-bind to MOTION_JOINTS so FK can retarget any athlete
+ * 3. One locked yaw (ready stance) so unit turn survives — per-frame facing was the jitter.
+ * 4. Scale torso to a 1.85 m ref. Racket along the forearm (MediaPipe has no racket).
+ * 5. Pack world joints for TennisTracker-style playback; quats kept as fallback.
  */
 export function reconstructClip(
   raw: PoseFrame[],
@@ -388,14 +434,16 @@ export function reconstructClip(
   }
   const isolated = opts.skipIsolate ? smoothed : isolateSwing(smoothed, opts.stroke, hitRight);
   const frames = isolated.length >= 4 ? isolated : smoothed;
+  const lockedYaw = estimateLockedYaw(frames);
 
   const roots: number[] = [];
   const quats: number[] = [];
+  const world: number[] = [];
   let prevPose: SkeletonPose | null = null;
   let prevQuats: Record<string, QuatTuple> | null = null;
 
   for (const frame of frames) {
-    const pose = poseFromFrame(frame, prevPose, hitRight, opts.oneHanded);
+    const pose = poseFromFrame(frame, prevPose, hitRight, opts.oneHanded, lockedYaw);
     const local = extractLocalQuats(pose);
     if (prevQuats) {
       for (const id of MOTION_JOINTS) {
@@ -407,6 +455,7 @@ export function reconstructClip(
       const q = local[id];
       quats.push(q[0], q[1], q[2], q[3]);
     }
+    packWorldPose(pose, world);
     prevPose = pose;
     prevQuats = local;
   }
@@ -420,6 +469,7 @@ export function reconstructClip(
     frameCount: frames.length,
     root: roots,
     quats,
+    world,
     phases: estimatePhases(frames, opts.stroke, hitRight),
   };
 

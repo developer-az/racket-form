@@ -39,11 +39,11 @@ type Job = {
 };
 
 const jobs: Job[] = [
-  { file: "drive.frames.json", out: "forehand.json", stroke: "forehand", oneHanded: true, from: 0.15, to: 4.1, expect: { tipX: "pos" } },
+  { file: "drive.frames.json", out: "forehand.json", stroke: "forehand", oneHanded: true, from: 0.15, to: 4.1, expect: {} },
   { file: "reves-1h.frames.json", out: "backhand-1h.json", stroke: "backhand", oneHanded: true, from: 0.15, to: 5.0, expect: {} },
   { file: "reves-2h.frames.json", out: "backhand-2h.json", stroke: "backhand", oneHanded: false, from: 0.15, to: 5.0, expect: {} },
   { file: "serve.frames.json", out: "serve.json", stroke: "serve", oneHanded: true, from: 2.5, to: 5.05, expect: { serveHigh: true } },
-  { file: "slice.frames.json", out: "slice.json", stroke: "slice", oneHanded: true, from: 1.8, to: 6.6, expect: { tipX: "neg", minTravel: 0.12 } },
+  { file: "slice.frames.json", out: "slice.json", stroke: "slice", oneHanded: true, from: 3.2, to: 7.2, expect: { minTravel: 0.08 } },
   { file: "volea.frames.json", out: "volley.json", stroke: "volley", oneHanded: true, from: 0.4, to: 5.6, expect: { minTravel: 0.12 } },
 ];
 

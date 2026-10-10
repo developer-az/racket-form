@@ -8,6 +8,13 @@ import {
   type Vec3Tuple,
 } from "./types";
 import type { StrokePhase } from "../../types/biomechanics";
+import {
+  WORLD_JOINTS,
+  emptyWorldSample,
+  lerpWorldSample,
+  readWorldJoint,
+  type WorldSample,
+} from "./worldJoints";
 
 function framePair(clip: MotionClip, t: number) {
   const x = clamp01(t);
@@ -39,6 +46,15 @@ function phaseAtClip(clip: MotionClip, t: number): StrokePhase {
   return best.phase;
 }
 
+function readWorld(clip: MotionClip, frame: number): WorldSample | undefined {
+  if (!clip.world?.length) return undefined;
+  const out = emptyWorldSample();
+  for (let j = 0; j < WORLD_JOINTS.length; j++) {
+    out[WORLD_JOINTS[j]] = readWorldJoint(clip.world, frame, j);
+  }
+  return out;
+}
+
 export function sampleClip(clip: MotionClip, t: number): SampledClip {
   const { i0, i1, local } = framePair(clip, t);
   const root: Vec3Tuple = [0, 0, 0];
@@ -50,10 +66,14 @@ export function sampleClip(clip: MotionClip, t: number): SampledClip {
     slerpQuat(readQuat(clip, i0, j), readQuat(clip, i1, j), local, out);
     quats[id] = out;
   }
+  const wa = readWorld(clip, i0);
+  const wb = readWorld(clip, i1);
+  const world = wa && wb ? lerpWorldSample(wa, wb, local, emptyWorldSample()) : wa;
   return {
     t: clamp01(t),
     root,
     quats,
+    world,
     phase: phaseAtClip(clip, clamp01(t)),
   };
 }

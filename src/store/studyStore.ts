@@ -228,6 +228,7 @@ export const useStudyStore = create<StudyState>((set, get) => ({
       playerId,
       quats: last.clip.quats.slice(),
       root: last.clip.root.slice(),
+      world: last.clip.world?.slice(),
       phases: last.clip.phases.map((p) => ({ ...p })),
     };
     const record: StudyRecord = {

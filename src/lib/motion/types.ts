@@ -41,6 +41,11 @@ export interface MotionClip {
   root: number[];
   /** frameCount × joints × 4, joint order = MOTION_JOINTS */
   quats: number[];
+  /**
+   * Optional world-space joints (TennisTracker path).
+   * frameCount × WORLD_JOINTS × 3. Preferred over quat FK at playback.
+   */
+  world?: number[];
   phases: MotionPhaseMark[];
 }
 
@@ -48,6 +53,7 @@ export interface SampledClip {
   t: number;
   root: Vec3Tuple;
   quats: Record<MotionJointId, QuatTuple>;
+  world?: Record<string, Vec3Tuple>;
   phase: StrokePhase;
 }
 
