@@ -18,14 +18,17 @@ export function HomeHeroCtas() {
 
   return (
     <div className="sf-rise mt-8 flex flex-wrap gap-3" style={{ animationDelay: "0.18s" }}>
-      <Link href="/lab" className="sf-btn sf-btn-primary sf-btn-glow">
+      {returning ? (
+        <Link href="/you" className="sf-btn sf-btn-primary sf-btn-glow">
+          Open your court
+        </Link>
+      ) : (
+        <Link href="/gear" className="sf-btn sf-btn-primary sf-btn-glow">
+          Find my setup
+        </Link>
+      )}
+      <Link href="/lab" className="sf-btn sf-btn-secondary">
         Enter form lab
-      </Link>
-      <Link href="/gear?tab=rackets" className="sf-btn sf-btn-secondary">
-        Browse rackets
-      </Link>
-      <Link href="/you" className="sf-btn sf-btn-ghost">
-        {returning ? "Open your court" : "Your court"}
       </Link>
     </div>
   );

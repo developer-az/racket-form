@@ -1,48 +1,49 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { EquipmentTab, GripProfile, RacketCatalogMeta, RacketProfile, StringProfile } from "@/types/equipment";
 import { useGearStore } from "@/store/gearStore";
 import { MySetupBar } from "./MySetupBar";
-import { CombinedSetupPanel } from "./CombinedSetupPanel";
+import { CombinedSetupPanel, SavedBanner } from "./CombinedSetupPanel";
 import { SetupDials } from "./SetupDials";
 import { RacketExplorer } from "./RacketExplorer";
 import { StringExplorer } from "./StringExplorer";
 import { GripExplorer } from "./GripExplorer";
 import { LeadTapeLab } from "./LeadTapeLab";
 import { AccountabilityStrip } from "./AccountabilityStrip";
+import { SetupFinder } from "./SetupFinder";
 
 const TABS: { id: EquipmentTab; label: string; short: string; blurb: string }[] = [
   {
     id: "overview",
-    label: "Setup",
+    label: "My setup",
     short: "Setup",
-    blurb: "Tension, gauge, grip size — then molded leave and substitutes.",
+    blurb: "How your racket, string and grip play together — and what to tweak.",
   },
   {
     id: "rackets",
     label: "Rackets",
     short: "Frames",
-    blurb: "Filter frames, compare to your bag, save what you hit with.",
+    blurb: "675 current frames. Filter by feel, compare to your bag, add in one tap.",
   },
   {
     id: "strings",
     label: "Strings",
     short: "Strings",
-    blurb: "Poly, multi, gut — compare beds; dials move the scores.",
+    blurb: "Poly, multifilament and gut. Tension and gauge sliders update the scores live.",
   },
   {
     id: "grips",
     label: "Grips",
     short: "Grips",
-    blurb: "Overgrips and replacements — tack, cushion, sweat feel.",
+    blurb: "Overgrips and replacement grips compared on tack, cushion and sweat.",
   },
   {
     id: "lead-tape",
     label: "Lead tape",
     short: "Tape",
-    blurb: "Mold toward a target or place strips — SW and leave update live.",
+    blurb: "Add weight to your frame and see stability and swingweight change.",
   },
 ];
 
@@ -62,6 +63,7 @@ export function GearLab({
 }) {
   const tab = useGearStore((s) => s.tab);
   const setTab = useGearStore((s) => s.setTab);
+  const hasSetup = useGearStore((s) => Boolean(s.setup.racketSlug || s.setup.stringId));
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -88,26 +90,63 @@ export function GearLab({
   };
 
   const activeBlurb = TABS.find((t) => t.id === tab)?.blurb;
+  const finderParam = searchParams.get("finder") === "1";
+  const [finderOpen, setFinderOpen] = useState(false);
+  const [resaved, setResaved] = useState(false);
+  // The setup tab already shows the finder when the bag is empty
+  const showFinder = (finderOpen || finderParam) && !(tab === "overview" && !hasSetup);
+  const closeFinder = () => {
+    setFinderOpen(false);
+    setResaved(true);
+    selectTab("overview", { finder: null });
+    requestAnimationFrame(() =>
+      document.getElementById("gear-panel-overview")?.scrollIntoView({ behavior: "smooth", block: "start" }),
+    );
+  };
 
   return (
     <div className="sf-page">
       <header className="mb-5 flex flex-wrap items-end justify-between gap-4 border-b border-[var(--line)] pb-5 md:mb-6">
         <div>
-          <p className="sf-kicker">How the bag plays</p>
+          <p className="sf-kicker">Gear lab</p>
           <h1 className="sf-page-title mt-1">
-            Gear
+            Find gear that fits your game
           </h1>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--muted)]">
-            We calculate plow, leave, spin window, and whether the whole bag is court-ready —
-            from mass, SW, RA, pattern, string, tension, and you. Not from the model name.
+            Answer four questions for a complete starting bag, or browse every frame, string and
+            grip. Either way you see how the whole setup plays, calculated from real specs.
           </p>
+          {hasSetup ? (
+            <button
+              type="button"
+              onClick={() => setFinderOpen(true)}
+              className="sf-btn sf-btn-secondary mt-4 text-xs"
+            >
+              Find my setup again
+            </button>
+          ) : null}
         </div>
         <MySetupBar onSelectTab={selectTab} />
       </header>
 
       <AccountabilityStrip />
 
-      {SHOW_DIALS.has(tab) ? (
+      {showFinder ? (
+        <div className="mb-6">
+          <SetupFinder
+            rackets={rackets}
+            strings={strings}
+            grips={grips}
+            onSaved={closeFinder}
+            onBrowse={() => {
+              setFinderOpen(false);
+              selectTab("rackets", { finder: null });
+            }}
+          />
+        </div>
+      ) : null}
+
+      {SHOW_DIALS.has(tab) && (hasSetup || tab === "strings") ? (
         <div className="mb-3">
           <SetupDials strings={strings} compact hideStringDials={tab === "strings"} />
         </div>
@@ -155,6 +194,11 @@ export function GearLab({
       <div className="relative z-10 mt-4 md:mt-6">
         {tab === "overview" ? (
           <div id="gear-panel-overview" role="tabpanel" aria-labelledby="gear-tab-overview">
+            {resaved && hasSetup ? (
+              <div className="mb-6">
+                <SavedBanner onDismiss={() => setResaved(false)} />
+              </div>
+            ) : null}
             <CombinedSetupPanel
               rackets={rackets}
               strings={strings}

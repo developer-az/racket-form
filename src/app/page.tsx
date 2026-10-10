@@ -22,20 +22,21 @@ export default async function Home() {
         <section className="border-t border-[var(--line)] bg-[var(--bg-sunken)]/70">
           <div className="mx-auto flex w-full max-w-[var(--page-max-wide)] flex-col gap-8 px-6 py-16 md:flex-row md:items-end md:justify-between md:px-10 md:py-20 lg:px-14">
             <div className="max-w-xl">
-              <p className="sf-kicker">Your court</p>
+              <p className="sf-kicker">Your setup</p>
               <h2 className="mt-4 font-[family-name:var(--font-display)] text-3xl font-semibold tracking-tight md:text-4xl">
-                Mold the bag. Keep every change honest.
+                A complete bag in four taps.
               </h2>
               <p className="mt-3 text-[15px] leading-relaxed text-[var(--muted)]">
-                Skill spans, quirks, and one-lever decisions — specs advise; logged feel decides.
+                Tell us how you play. We match frame weight, head size, stiffness, string and
+                tension, explain every pick, and show how the whole setup plays.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link href="/you" className="sf-btn sf-btn-primary">
-                Open your court
+              <Link href="/gear" className="sf-btn sf-btn-primary">
+                Find my setup
               </Link>
-              <Link href="/gear" className="sf-btn sf-btn-secondary">
-                Gear lab
+              <Link href="/gear?tab=rackets" className="sf-btn sf-btn-secondary">
+                Browse rackets
               </Link>
             </div>
           </div>

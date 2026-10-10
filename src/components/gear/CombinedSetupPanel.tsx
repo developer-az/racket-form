@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import type { EquipmentTab, GripProfile, RacketProfile, StringProfile } from "@/types/equipment";
 import { synthesizeCombinedSetup } from "@/lib/equipment/setupSynthesis";
@@ -18,6 +18,7 @@ import { useGearStore } from "@/store/gearStore";
 import { usePlayerStore } from "@/store/playerStore";
 import { prefersArmFriendlySetup } from "@/lib/player/constraints";
 import { EquipmentThumb } from "./EquipmentThumb";
+import { SetupFinder } from "./SetupFinder";
 import { InBandImproveSection } from "./InBandImproveSection";
 import { CourtReadyVerdict } from "./CourtReadyVerdict";
 import { LaunchAngleVisual, SwingPathVisual, StrikeCoachingBullets, strikeZoneForFrame, ForehandGripBevelVisual, FaceAngleAtContactVisual, ContactGeometryVisual } from "./RacketVisuals";
@@ -63,6 +64,7 @@ export function CombinedSetupPanel({
     [setup.gripLayers, setup.gripSize, setup.gripLabel],
   );
 
+  const [justSaved, setJustSaved] = useState(false);
   const insight = useMemo(
     () =>
       synthesizeCombinedSetup(setup, racket, string, grip, grips, {
@@ -94,53 +96,31 @@ export function CombinedSetupPanel({
 
   if (!insight.hasAny) {
     return (
-      <div
-        className="sf-panel mb-8 px-5 py-6"
-        style={{ animation: "rise 0.5s ease-out both" }}
-      >
-        <p className="sf-kicker">
-          Combined setup
-        </p>
-        <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl tracking-tight">
-          Calculate if this bag is court-ready
-        </h2>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--muted)]">
-          Frame mass, SW, RA, and pattern plus string, tension, gauge, grip, tape, and your
-          arm/grip — not the model name. Fastest path is{" "}
-          <Link href="/you" className="text-[var(--accent)] hover:underline">
-            You → bag
-          </Link>
-          .
-        </p>
-        <div className="mt-5 flex flex-wrap gap-2">
-          {(
-            [
-              ["rackets", "Pick a racket"],
-              ["strings", "Pick a string"],
-              ["grips", "Pick a grip"],
-            ] as const
-          ).map(([tab, label]) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => go(tab)}
-              className="sf-btn sf-btn-secondary text-xs"
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+      <div className="mb-8">
+        <SetupFinder
+          rackets={rackets}
+          strings={strings}
+          grips={grips}
+          onBrowse={() => go("rackets")}
+          onSaved={() => {
+            setJustSaved(true);
+            requestAnimationFrame(() =>
+              document.getElementById("gear-panel-overview")?.scrollIntoView({ behavior: "smooth", block: "start" }),
+            );
+          }}
+        />
       </div>
     );
   }
 
   return (
     <div className="mb-8 space-y-6" style={{ animation: "rise 0.5s ease-out both" }}>
+      {justSaved ? <SavedBanner onDismiss={() => setJustSaved(false)} /> : null}
       <div className="sf-panel px-5 py-6 md:px-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0 flex-1">
+          <div className="min-w-[min(100%,18rem)] flex-1">
             <p className="sf-kicker">
-              Combined setup
+              How your setup plays
             </p>
             <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl tracking-tight md:text-3xl">
               {insight.playstyle}
@@ -919,5 +899,19 @@ function PieceCard({
         <p className="mt-0.5 truncate text-xs text-[var(--muted)]">{meta}</p>
       </div>
     </button>
+  );
+}
+
+export function SavedBanner({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <div className="sf-alert sf-alert-accent flex flex-wrap items-center justify-between gap-3" role="status">
+      <p>
+        <span className="font-semibold">Your bag is saved.</span> Below is how it plays together.
+        Nudge tension above or swap any piece from the tabs.
+      </p>
+      <button type="button" onClick={onDismiss} className="sf-text-link shrink-0 text-xs">
+        Got it
+      </button>
+    </div>
   );
 }

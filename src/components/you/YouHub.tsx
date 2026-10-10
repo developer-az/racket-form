@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { GripProfile, RacketProfile, StringProfile } from "@/types/equipment";
 import { usePlayerStore } from "@/store/playerStore";
 import { hasAnyGear, setupSummary, useGearStore } from "@/store/gearStore";
@@ -20,6 +21,7 @@ import { BagTab } from "./BagTab";
 import { AfterPlayTab } from "./AfterPlayTab";
 import { HistoryTab } from "./HistoryTab";
 import { WorkOnThis } from "./WorkOnThis";
+import { SetupFinder } from "@/components/gear/SetupFinder";
 import { CourtEmpty, CourtLoading } from "@/components/ui/CourtState";
 
 type HubTab = "today" | "bag" | "play" | "history";
@@ -38,6 +40,7 @@ export function YouHub({
   const setHydrated = usePlayerStore((s) => s.setHydrated);
   const setup = useGearStore((s) => s.setup);
 
+  const router = useRouter();
   const [tab, setTab] = useState<HubTab>("today");
   const [playerCardOpen, setPlayerCardOpen] = useState(false);
   const bagKey = `${setup.stringId ?? ""}|${setup.racketSlug ?? ""}|${setup.tensionLbs ?? ""}|${setup.gaugeMm ?? ""}|${JSON.stringify(setup.leadTape ?? null)}`;
@@ -198,7 +201,29 @@ export function YouHub({
       </div>
 
       <div className="mt-8">
-        {tab === "today" && (
+        {tab === "today" && needsBag && (
+          <div className="space-y-4">
+            <SetupFinder
+              rackets={rackets}
+              strings={strings}
+              grips={grips}
+              onBrowse={() => router.push("/gear?tab=rackets")}
+            />
+            <p className="text-sm text-[var(--muted)]">
+              Just exploring?{" "}
+              <Link href="/lab" className="sf-text-link">
+                Watch tour strokes in the form lab
+              </Link>{" "}
+              or{" "}
+              <Link href="/gear?tab=rackets" className="sf-text-link">
+                browse every racket
+              </Link>
+              .
+            </p>
+          </div>
+        )}
+
+        {tab === "today" && !needsBag && (
           <div className="space-y-6">
             {needsGrip ? (
               <button
@@ -206,16 +231,8 @@ export function YouHub({
                 onClick={() => setPlayerCardOpen(true)}
                 className="sf-alert sf-alert-accent w-full text-left"
               >
-                Add a grip so Lab can show your face angle. Optional — skip if you just want to browse.
+                Tell us your forehand grip to see your racket-face angle at contact (optional).
               </button>
-            ) : null}
-            {needsBag ? (
-              <div className="sf-alert flex flex-wrap items-center justify-between gap-3">
-                <p>Add a frame when you want a court-ready calculation from specs.</p>
-                <Link href="/gear?tab=rackets" className="sf-text-link shrink-0">
-                  Browse rackets
-                </Link>
-              </div>
             ) : null}
 
             <WorkOnThis insight={displayInsight} />
@@ -298,9 +315,9 @@ export function YouHub({
               </>
             ) : (
               <CourtEmpty
-                kicker="No mold yet"
-                title="Browse a racket when you’re ready"
-                body="Save a frame (and optionally a bed) so Racket Form can calculate leave, flight, and whether the bag is court-ready from specs."
+                kicker="One piece missing"
+                title="Add a racket to see how your bag plays"
+                body="With a frame saved we calculate launch, spin window, and whether the whole setup is court-ready."
                 primary={{ href: "/gear?tab=rackets", label: "Browse rackets" }}
                 secondary={{ href: "/lab", label: "Open form lab" }}
               />

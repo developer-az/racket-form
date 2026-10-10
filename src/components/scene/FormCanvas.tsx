@@ -52,9 +52,11 @@ function PlaybackDriver() {
 function CameraRig({
   allowZoom,
   allowRotate,
+  hero,
 }: {
   allowZoom: boolean;
   allowRotate: boolean;
+  hero: boolean;
 }) {
   const mode = useCoachStore((s) => s.cameraMode);
   // Serves reach ~2.7 m — frame higher and a little wider so contact stays in shot
@@ -66,9 +68,17 @@ function CameraRig({
   useEffect(() => {
     const zPull = (narrow ? 1.4 : 0) + (tall ? 1.1 : 0);
     const lift = tall ? 0.45 : 0;
-    const look: [number, number, number] = [LOOK_AT[0], LOOK_AT[1] + lift, LOOK_AT[2]];
+    // Home hero: wider shot, athlete pushed right of the headline on desktop
+    const heroWide = hero && !narrow;
+    const look: [number, number, number] = [
+      LOOK_AT[0] - (heroWide ? 1.5 : 0),
+      LOOK_AT[1] + lift,
+      LOOK_AT[2],
+    ];
     const positions: Record<typeof mode, [number, number, number]> = {
-      orbit: [2.7 + (tall ? 0.6 : 0), 1.8 + lift, PLAYER_Z + 3.3 + zPull],
+      orbit: hero
+        ? [3.2 - (heroWide ? 1.5 : 0), 2.0 + lift, PLAYER_Z + 4.4 + zPull]
+        : [2.7 + (tall ? 0.6 : 0), 1.8 + lift, PLAYER_Z + 3.3 + zPull],
       side: [4.4 + zPull, 1.5 + lift, PLAYER_Z - 0.2],
       behind: [0.3, 1.75 + lift, PLAYER_Z + 4.4 + zPull],
       front: [0.2, 1.6 + lift, PLAYER_Z - 4.4 - zPull],
@@ -84,7 +94,7 @@ function CameraRig({
     camera.position.set(...positions[mode]);
     controls.current?.target.set(...targets[mode]);
     controls.current?.update();
-  }, [mode, camera, narrow, tall]);
+  }, [mode, camera, narrow, tall, hero]);
 
   return (
     <>
@@ -181,7 +191,10 @@ function AnimatedAthlete() {
         color={player.color}
         accent={player.accent}
       />
-      <AngleOverlays driverRef={driverRef} visible={showAngles} accent={player.accent} />
+      {/* Labels load a font — isolate the suspense so the athlete never blanks out */}
+      <Suspense fallback={null}>
+        <AngleOverlays driverRef={driverRef} visible={showAngles} accent={player.accent} />
+      </Suspense>
       <StrokeBall stroke={stroke} anthropometrics={player.anthropometrics} tRef={tRef} />
       <RacketPathTrail
         stroke={stroke}
@@ -233,16 +246,18 @@ function SceneContent({
   bg,
   allowZoom,
   allowRotate,
+  hero,
 }: {
   bg: string;
   allowZoom: boolean;
   allowRotate: boolean;
+  hero: boolean;
 }) {
   return (
     <>
       <PlaybackDriver />
       <AdaptiveDpr />
-      <CameraRig allowZoom={allowZoom} allowRotate={allowRotate} />
+      <CameraRig allowZoom={allowZoom} allowRotate={allowRotate} hero={hero} />
       <color attach="background" args={[bg]} />
       <fog attach="fog" args={[bg, 14, 36]} />
 
@@ -350,7 +365,7 @@ export function FormCanvas({ variant = "lab" }: FormCanvasProps) {
         }}
       >
         <Suspense fallback={null}>
-          <SceneContent bg={bg} allowZoom={allowZoom} allowRotate={allowRotate} />
+          <SceneContent bg={bg} allowZoom={allowZoom} allowRotate={allowRotate} hero={isHero} />
         </Suspense>
       </Canvas>
       <div

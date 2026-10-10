@@ -31,19 +31,19 @@ export const metadata: Metadata = {
     template: "%s · Racket Form",
   },
   description:
-    "Scrub elite stroke rails in 3D, mold your bag with skill spans and quirks, and keep every gear change accountable to how you play.",
+    "See how tour players hit in 3D, then find the racket, string and grip that fit your game.",
   openGraph: {
     siteName: "Racket Form",
     title: "Racket Form — Form Lab & Gear Intelligence",
     description:
-      "Scrub elite stroke rails in 3D, mold your bag with skill spans and quirks, and keep every gear change accountable to how you play.",
+      "See how tour players hit in 3D, then find the racket, string and grip that fit your game.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Racket Form — Form Lab & Gear Intelligence",
     description:
-      "Scrub elite stroke rails in 3D, mold your bag with skill spans and quirks, and keep every gear change accountable to how you play.",
+      "See how tour players hit in 3D, then find the racket, string and grip that fit your game.",
   },
 };
 

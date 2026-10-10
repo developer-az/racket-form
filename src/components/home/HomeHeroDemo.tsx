@@ -159,11 +159,12 @@ export function HomeHeroDemo() {
             FORM
           </p>
           <h1 className="mt-5 max-w-md text-lg font-medium leading-snug text-[var(--foreground)] md:text-xl md:leading-snug">
-            Scrub elite stroke rails in 3D — phases, joints, and path in one live mold.
+            See exactly how the pros hit, in 3D. Then find the racket, string and grip that fit
+            your game.
           </h1>
           <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-[var(--muted)]">
-            Scrub the rail. Drag to orbit on desktop. Scroll anytime — the court will not steal the
-            page.
+            Forehand, backhand, serve, slice and volley for six tour players. Scrub to any phase and
+            drag to orbit.
           </p>
           <HomeHeroCtas />
         </div>
