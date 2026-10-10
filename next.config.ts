@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["three", "@mediapipe/tasks-vision"],
+  transpilePackages: ["three"],
   serverExternalPackages: ["@mediapipe/tasks-vision"],
 };
 
