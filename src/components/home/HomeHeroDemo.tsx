@@ -6,8 +6,8 @@ import { useEffect } from "react";
 import { PLAYERS } from "@/data/players";
 import { PHASE_LABELS } from "@/lib/kinematics";
 import { sampleMotion } from "@/lib/motion/sample";
-import { getMotionClip } from "@/data/motion";
 import { useCoachStore } from "@/store/coachStore";
+import { useStudyStore } from "@/store/studyStore";
 import { HomeHeroCtas } from "@/components/home/HomeHeroCtas";
 
 const FormCanvas = dynamic(
@@ -33,7 +33,7 @@ function HeroDemoChrome() {
 
   const player = PLAYERS.find((p) => p.id === playerId) ?? PLAYERS[0];
   const stroke = player.strokes[strokeType];
-  const clip = getMotionClip(stroke.clipId ?? `${player.id}/${strokeType}`);
+  const clip = useStudyStore((s) => s.records[`${player.id}/${strokeType}`]?.clip);
   const pose = clip ? sampleMotion(clip, stroke, player.anthropometrics, t) : null;
   const phase = pose?.phase ?? stroke.keyframes[0]?.phase ?? "ready";
   const cue = pose?.coachingCue ?? "";
@@ -49,7 +49,7 @@ function HeroDemoChrome() {
             {player.shortName} · {PHASE_LABELS[phase]}
           </p>
           <p className="mt-0.5 max-w-md truncate text-xs text-[var(--muted)] md:text-[13px]">
-            {cue}
+            {clip ? cue : "No reconstructed swing yet — attach a study video in the lab."}
           </p>
         </div>
         <div className="flex gap-4 tabular-nums">
@@ -165,11 +165,11 @@ export function HomeHeroDemo() {
             FORM
           </p>
           <h1 className="mt-5 max-w-md text-lg font-medium leading-snug text-[var(--foreground)] md:text-xl md:leading-snug">
-            Stroke clips. Planted feet. Measured path.
+            Upload a swing. Reconstruct it onto the athlete.
           </h1>
           <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-[var(--muted)]">
-            Same clip sampler as the lab. Scrub the rail. Orbit on desktop — the viewport will not
-            steal the page.
+            Same Pose Landmarker sampler as the lab. No keyed mannequin. Orbit on desktop — the
+            viewport will not steal the page.
           </p>
           <HomeHeroCtas />
         </div>

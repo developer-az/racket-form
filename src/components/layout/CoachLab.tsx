@@ -11,6 +11,7 @@ import { MetricsPanel, SciencePanel } from "@/components/ui/MetricsPanel";
 import { PlayerGripCue } from "@/components/lab/PlayerGripCue";
 import { LabPhaseOverlay } from "@/components/lab/LabPhaseOverlay";
 import { LabReferencePlate } from "@/components/lab/LabReferencePlate";
+import { VideoStudy } from "@/components/lab/VideoStudy";
 import { CourtLoading } from "@/components/ui/CourtState";
 
 const FormCanvas = dynamic(
@@ -21,7 +22,7 @@ const FormCanvas = dynamic(
       <div className="flex h-full min-h-[240px] items-center justify-center bg-[var(--bg-scene)] lg:min-h-[420px]">
         <CourtLoading
           label="Loading biomechanics viewport…"
-          detail="Motion clips, plant IK, court scale — orbit when ready."
+          detail="Pose landmarker, plant IK, court scale — attach a swing to orbit."
         />
       </div>
     ),
@@ -36,13 +37,14 @@ export function CoachLab() {
           <div className="hidden lg:block">
             <p className="sf-kicker">Form lab</p>
             <p className="mt-2 font-mono text-[11px] tracking-[0.08em] text-[var(--muted)] uppercase">
-              Clip · plant IK · ground clamp
+              Video · BlazePose · plant IK
             </p>
             <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
-              Athlete × stroke clip. Constraints on. Scrub the rail.
+              Reconstruct the uploaded swing onto this athlete. Constraints on. Scrub the rail.
             </p>
           </div>
           <PlayerStrokePicker />
+          <VideoStudy />
           <div className="hidden lg:block">
             <PlaybackControls />
           </div>

@@ -1,7 +1,8 @@
-import { allMotionClips } from "../src/data/motion/index.ts";
+import { reconstructClip } from "../src/lib/pose/reconstruct.ts";
 import { sampleClip } from "../src/lib/motion/clipSample.ts";
 import { solveMotionClip } from "../src/lib/motion/solve.ts";
 import { createSkeletonPose } from "../src/lib/motion/pose.ts";
+import { syntheticSwing } from "./syntheticSwing.ts";
 
 const anthro = {
   heightM: 1.85,
@@ -16,12 +17,18 @@ const anthro = {
 
 const pose = createSkeletonPose();
 
-for (const clip of allMotionClips()) {
-  const lefty = clip.playerId === "nadal" ? "left" : "right";
+for (const kind of ["forehand", "backhand", "serve"] as const) {
+  const { clip } = reconstructClip(syntheticSwing(kind), {
+    playerId: "check",
+    stroke: kind,
+    handedness: "right",
+    oneHanded: kind === "backhand",
+  });
   console.log(`\n=== ${clip.id} ===`);
   for (const mark of clip.phases) {
     solveMotionClip(sampleClip(clip, mark.t), anthro, {
-      handedness: lefty,
+      handedness: "right",
+      authoredHand: clip.authoredHand,
       stroke: clip.stroke,
       pose,
     });

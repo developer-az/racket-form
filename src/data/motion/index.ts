@@ -1,25 +1,23 @@
 import type { StrokeType } from "@/types/biomechanics";
 import type { MotionClip } from "@/lib/motion/types";
-import type { PlayerMotionId } from "@/lib/motion/author";
-import { MOTION_CLIPS } from "./registry";
+import { allStudyClips, getStudyClip } from "@/lib/pose/registry";
 
-const cache = new Map<string, MotionClip>(MOTION_CLIPS.map((c) => [c.id, c]));
-
+/** Reconstructed study clips only — no bundled authored mannequins. */
 export function getMotionClip(id: string): MotionClip | undefined {
-  return cache.get(id);
+  return getStudyClip(id);
 }
 
 export function clipIdFor(playerId: string, stroke: StrokeType): string {
   return `${playerId}/${stroke}`;
 }
 
-export function requireMotionClip(playerId: PlayerMotionId | string, stroke: StrokeType): MotionClip {
+export function requireMotionClip(playerId: string, stroke: StrokeType): MotionClip {
   const id = clipIdFor(playerId, stroke);
   const clip = getMotionClip(id);
-  if (!clip) throw new Error(`Motion clip not found: ${id}`);
+  if (!clip) throw new Error(`No reconstructed swing for ${id}`);
   return clip;
 }
 
 export function allMotionClips(): MotionClip[] {
-  return MOTION_CLIPS;
+  return allStudyClips();
 }

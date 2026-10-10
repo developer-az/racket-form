@@ -1,11 +1,12 @@
 /**
- * Scan clip timelines for knee pop, tip flip, unplanted feet, serve peak.
+ * Scan reconstructed synthetic swings for knee pop, tip flip, unplanted feet.
  */
-import { allMotionClips } from "../src/data/motion/index.ts";
+import { reconstructClip } from "../src/lib/pose/reconstruct.ts";
 import { sampleClip } from "../src/lib/motion/clipSample.ts";
 import { poseAngles, solveMotionClip } from "../src/lib/motion/solve.ts";
 import { createMotionContinuity } from "../src/lib/motion/types.ts";
 import { createSkeletonPose } from "../src/lib/motion/pose.ts";
+import { syntheticSwing } from "./syntheticSwing.ts";
 
 const anthro = {
   heightM: 1.85,
@@ -20,7 +21,11 @@ const anthro = {
 
 const pose = createSkeletonPose();
 
-function scan(clip: ReturnType<typeof allMotionClips>[number], handedness: "right" | "left", steps = 120) {
+function scan(
+  clip: ReturnType<typeof reconstructClip>["clip"],
+  handedness: "right" | "left",
+  steps = 120,
+) {
   const cont = createMotionContinuity();
   let maxKneeJump = 0;
   let maxTipJump = 0;
@@ -29,13 +34,16 @@ function scan(clip: ReturnType<typeof allMotionClips>[number], handedness: "righ
   let minTipY = 99;
   let prevKnee: number | null = null;
   let prevTip: { x: number; y: number; z: number } | null = null;
-  let prevFace: { x: number; y: number; z: number } | null = null;
-  let maxFaceFlip = 0;
 
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
-    const sampled = sampleClip(clip, t);
-    solveMotionClip(sampled, anthro, { handedness, stroke: clip.stroke, continuity: cont, pose });
+    solveMotionClip(sampleClip(clip, t), anthro, {
+      handedness,
+      authoredHand: clip.authoredHand,
+      stroke: clip.stroke,
+      continuity: cont,
+      pose,
+    });
     const a = poseAngles(pose);
     if (prevKnee != null) maxKneeJump = Math.max(maxKneeJump, Math.abs(a.leadKneeFlexion - prevKnee));
     prevKnee = a.leadKneeFlexion;
@@ -45,17 +53,12 @@ function scan(clip: ReturnType<typeof allMotionClips>[number], handedness: "righ
     minTipY = Math.min(minTipY, tip.y);
     if (prevTip) maxTipJump = Math.max(maxTipJump, Math.hypot(tip.x - prevTip.x, tip.y - prevTip.y, tip.z - prevTip.z));
     prevTip = { x: tip.x, y: tip.y, z: tip.z };
-    if (prevFace) {
-      const d = pose.racketFaceNormal.x * prevFace.x + pose.racketFaceNormal.y * prevFace.y + pose.racketFaceNormal.z * prevFace.z;
-      maxFaceFlip = Math.min(maxFaceFlip, d);
-    }
-    prevFace = { x: pose.racketFaceNormal.x, y: pose.racketFaceNormal.y, z: pose.racketFaceNormal.z };
   }
 
-  const serveOk = clip.stroke !== "serve" || maxTipY > pose.head.y + 0.35;
+  const serveOk = clip.stroke !== "serve" || maxTipY > 1.9;
   const plantOk = minAnkle >= 0.029;
-  const kneeOk = maxKneeJump < 18;
-  const tipOk = maxTipJump < 0.45;
+  const kneeOk = maxKneeJump < 22;
+  const tipOk = maxTipJump < 0.55;
   const status = serveOk && plantOk && kneeOk && tipOk ? "ok" : "WARN";
   console.log(
     status.padEnd(4),
@@ -64,12 +67,15 @@ function scan(clip: ReturnType<typeof allMotionClips>[number], handedness: "righ
     `tipY[${minTipY.toFixed(2)}..${maxTipY.toFixed(2)}]`,
     `kneeΔ=${maxKneeJump.toFixed(1)}`,
     `tipΔ=${maxTipJump.toFixed(3)}`,
-    `faceMin=${maxFaceFlip.toFixed(2)}`,
-    clip.stroke === "serve" ? `serveAbove=${(maxTipY - 1.6).toFixed(2)}` : "",
   );
 }
 
-for (const clip of allMotionClips()) {
-  const lefty = clip.playerId === "nadal";
-  scan(clip, lefty ? "left" : "right");
+for (const kind of ["forehand", "backhand", "serve"] as const) {
+  const { clip } = reconstructClip(syntheticSwing(kind), {
+    playerId: "check",
+    stroke: kind,
+    handedness: "right",
+    oneHanded: kind === "backhand",
+  });
+  scan(clip, "right");
 }

@@ -26,6 +26,7 @@ export function sampleMotion(
   const sampled = sampleClip(clip, t);
   const solved = solveMotionClip(sampled, anthro, {
     handedness: stroke.handedness,
+    authoredHand: clip.authoredHand,
     stroke: stroke.type,
     continuity,
     pose,

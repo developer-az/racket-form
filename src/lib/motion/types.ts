@@ -34,8 +34,8 @@ export interface MotionClip {
   playerId: string;
   stroke: StrokeType;
   oneHanded: boolean;
-  /** Authored as right-handed. Lefty is mirrored at sample time. */
-  authoredHand: "right";
+  /** Capture handedness. Playback mirrors when the athlete differs. */
+  authoredHand: "left" | "right";
   frameCount: number;
   /** frameCount × 3 */
   root: number[];

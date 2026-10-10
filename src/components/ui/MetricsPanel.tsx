@@ -7,7 +7,7 @@ import { useCoachStore } from "@/store/coachStore";
 import { setupSummary, useGearStore } from "@/store/gearStore";
 import { synthesizeCombinedSetup } from "@/lib/equipment/setupSynthesis";
 import { sampleMotion } from "@/lib/motion/sample";
-import { getMotionClip } from "@/data/motion";
+import { useStudyStore } from "@/store/studyStore";
 
 function Metric({
   label,
@@ -40,7 +40,7 @@ export function MetricsPanel() {
   const player = PLAYERS.find((p) => p.id === playerId)!;
   const stroke = player.strokes[strokeType];
   const m = stroke.metrics;
-  const clip = getMotionClip(stroke.clipId ?? `${playerId}/${strokeType}`);
+  const clip = useStudyStore((s) => s.records[`${playerId}/${strokeType}`]?.clip);
   const pose = clip
     ? sampleMotion(clip, stroke, player.anthropometrics, t)
     : null;

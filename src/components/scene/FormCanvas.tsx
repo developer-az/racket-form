@@ -9,11 +9,12 @@ import { getPlayer } from "@/data/players";
 import { sampleMotion } from "@/lib/motion/sample";
 import { createMotionContinuity } from "@/lib/motion/types";
 import { createSkeletonPose } from "@/lib/motion/pose";
-import { getMotionClip } from "@/data/motion";
+import { useStudyStore } from "@/store/studyStore";
 import { BiomechanicalSkeleton, type SkeletonDriver } from "./BiomechanicalSkeleton";
 import { AngleOverlays } from "./AngleOverlays";
 import { RacketPathTrail } from "./RacketPathTrail";
 import { TennisCourt } from "./TennisCourt";
+import { EmptyStudy } from "@/components/lab/EmptyStudy";
 import { getThemeColors } from "@/lib/theme/colors";
 import { useTheme } from "@/components/theme/ThemeProvider";
 
@@ -150,10 +151,8 @@ function AnimatedAthlete() {
 
   const player = getPlayer(playerId)!;
   const stroke = player.strokes[strokeType];
+  const clip = useStudyStore((s) => s.records[`${playerId}/${strokeType}`]?.clip);
 
-  const clip =
-    getMotionClip(stroke.clipId ?? `${playerId}/${strokeType}`) ??
-    getMotionClip("federer/forehand")!;
   const [solvedPose] = useState(() => createSkeletonPose());
   const continuity = useRef(createMotionContinuity());
   const driverRef = useRef<SkeletonDriver>({
@@ -169,10 +168,11 @@ function AnimatedAthlete() {
 
   useEffect(() => {
     continuity.current = createMotionContinuity();
-  }, [clip.id]);
+  }, [clip?.id]);
 
   useFrame(() => {
     if (typeof document !== "undefined" && document.hidden) return;
+    if (!clip) return;
     gfVisible.current = showGroundForce;
     driverRef.current.handedness = stroke.handedness;
     driverRef.current.oneHanded = stroke.oneHanded;
@@ -184,10 +184,12 @@ function AnimatedAthlete() {
     tRef.current = playbackT;
   });
 
+  if (!clip) return null;
+
   return (
     <group position={[0, 0, PLAYER_Z]}>
       <BiomechanicalSkeleton
-        key={`${playerId}-${strokeType}`}
+        key={`${playerId}-${strokeType}-${clip.id}`}
         driverRef={driverRef}
         anthropometrics={player.anthropometrics}
         color={player.color}
@@ -344,6 +346,7 @@ export function FormCanvas({ variant = "lab" }: FormCanvasProps) {
       }`}
       style={{ background: bg }}
     >
+      {variant === "lab" ? <EmptyStudy /> : null}
       <Canvas
         className={`!absolute inset-0 ${isHero ? "touch-pan-y" : "touch-none"}`}
         dpr={[1, isHero ? 1.25 : 1.5]}

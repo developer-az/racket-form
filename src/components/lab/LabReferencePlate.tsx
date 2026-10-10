@@ -3,61 +3,44 @@
 import { PLAYERS } from "@/data/players";
 import { PHASE_LABELS, sampleStroke } from "@/lib/kinematics";
 import { useCoachStore } from "@/store/coachStore";
+import { useStudyStore } from "@/store/studyStore";
 
-const PLATES: { phase: keyof typeof PHASE_LABELS; note: string }[] = [
-  { phase: "ready", note: "Athletic base" },
-  { phase: "trophy", note: "Toss + sit" },
-  { phase: "contact", note: "Extension" },
-  { phase: "followThrough", note: "Pronation / WW" },
-];
-
-/** Generated phase stills — not match footage. */
+/** Phase marks from the reconstructed clip — not authored stills. */
 export function LabReferencePlate() {
   const playerId = useCoachStore((s) => s.playerId);
   const strokeType = useCoachStore((s) => s.stroke);
   const t = useCoachStore((s) => s.t);
   const player = PLAYERS.find((p) => p.id === playerId) ?? PLAYERS[0];
   const stroke = player.strokes[strokeType];
+  const record = useStudyStore((s) => s.records[`${playerId}/${strokeType}`]);
   const live = sampleStroke(stroke, t);
-  const marks = stroke.keyframes.map((k) => k.phase);
+  const marks = record?.clip.phases ?? stroke.keyframes.map((k) => ({ phase: k.phase, t: k.t }));
 
   return (
     <div className="sf-panel p-3">
       <p className="font-mono text-[10px] tracking-[0.14em] text-[var(--muted)] uppercase">
-        Reference plate
+        Phase rail
       </p>
       <p className="mt-1 text-xs text-[var(--muted)]">
-        Authored stills · {player.shortName} {stroke.type} · live {PHASE_LABELS[live.phase]}
+        {record
+          ? `${record.sourceName} · ${player.shortName} ${stroke.type}`
+          : "Attach a video to mark phases from the reconstructed swing"}
       </p>
       <div className="mt-3 grid grid-cols-4 gap-1.5">
-        {PLATES.filter((p) => marks.includes(p.phase) || p.phase === "ready" || p.phase === "contact").map((p) => {
+        {marks.slice(0, 4).map((p) => {
           const active = live.phase === p.phase;
           return (
             <div
-              key={p.phase}
+              key={`${p.phase}-${p.t}`}
               className="border border-[var(--line)] p-2"
               style={{
                 boxShadow: active ? "inset 0 0 0 1px var(--accent)" : undefined,
               }}
             >
-              <svg viewBox="0 0 40 48" className="mx-auto h-12 w-10" aria-hidden>
-                <line x1="20" y1="12" x2="20" y2="28" stroke="var(--foreground)" strokeWidth="1.2" />
-                <circle cx="20" cy="8" r="3" fill="none" stroke="var(--foreground)" strokeWidth="1.2" />
-                <line
-                  x1="20"
-                  y1="16"
-                  x2={p.phase === "trophy" ? "28" : p.phase === "contact" ? "34" : "30"}
-                  y2={p.phase === "trophy" ? "6" : p.phase === "followThrough" ? "10" : "18"}
-                  stroke="var(--accent)"
-                  strokeWidth="1.4"
-                />
-                <line x1="20" y1="28" x2="14" y2="42" stroke="var(--foreground)" strokeWidth="1.2" />
-                <line x1="20" y1="28" x2="26" y2="42" stroke="var(--foreground)" strokeWidth="1.2" />
-              </svg>
-              <p className="mt-1 font-mono text-[9px] tracking-[0.08em] text-[var(--muted)] uppercase">
-                {PHASE_LABELS[p.phase]}
+              <p className="font-mono text-[9px] tracking-[0.08em] text-[var(--muted)] uppercase">
+                {PHASE_LABELS[p.phase] ?? p.phase}
               </p>
-              <p className="text-[10px] text-[var(--foreground)]">{p.note}</p>
+              <p className="text-[10px] text-[var(--foreground)]">{(p.t * 100).toFixed(0)}%</p>
             </div>
           );
         })}

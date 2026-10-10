@@ -235,13 +235,15 @@ export function solveMotionClip(
   anthro: Anthropometrics,
   opts: {
     handedness: "right" | "left";
+    authoredHand?: "right" | "left";
     stroke: StrokeType;
     continuity?: MotionContinuity;
     pose?: SkeletonPose;
   },
 ): SkeletonPose {
   const posed = opts.pose ?? createSkeletonPose();
-  const src = opts.handedness === "left" ? mirrorSample(sample) : sample;
+  const authored = opts.authoredHand ?? "right";
+  const src = opts.handedness !== authored ? mirrorSample(sample) : sample;
   fkClipSample(src, anthro, posed);
   applyPlantAndGround(posed, anthro, opts.stroke);
   applyRacketContinuity(posed, opts.continuity);

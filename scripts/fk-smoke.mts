@@ -1,7 +1,8 @@
-import { requireMotionClip } from "../src/data/motion/index.ts";
+import { reconstructClip } from "../src/lib/pose/reconstruct.ts";
 import { sampleClip } from "../src/lib/motion/clipSample.ts";
 import { solveMotionClip } from "../src/lib/motion/solve.ts";
 import { createSkeletonPose } from "../src/lib/motion/pose.ts";
+import { syntheticSwing } from "./syntheticSwing.ts";
 
 const anthro = {
   heightM: 1.85,
@@ -15,11 +16,17 @@ const anthro = {
 };
 const pose = createSkeletonPose();
 
-function run(label: string, player: string, stroke: "forehand" | "serve" | "backhand", t: number) {
-  const clip = requireMotionClip(player, stroke);
+function run(label: string, kind: "forehand" | "backhand" | "serve", t: number) {
+  const { clip } = reconstructClip(syntheticSwing(kind), {
+    playerId: "check",
+    stroke: kind,
+    handedness: "right",
+    oneHanded: kind === "backhand",
+  });
   solveMotionClip(sampleClip(clip, t), anthro, {
-    handedness: player === "nadal" ? "left" : "right",
-    stroke,
+    handedness: "right",
+    authoredHand: clip.authoredHand,
+    stroke: kind,
     pose,
   });
   const tip = pose.racketTip;
@@ -33,9 +40,8 @@ function run(label: string, player: string, stroke: "forehand" | "serve" | "back
   );
 }
 
-run("fh ready", "federer", "forehand", 0);
-run("fh contact", "federer", "forehand", 0.68);
-run("bh contact", "federer", "backhand", 0.68);
-run("serve trophy", "federer", "serve", 0.3);
-run("serve drop", "federer", "serve", 0.44);
-run("serve contact", "federer", "serve", 0.7);
+run("fh ready", "forehand", 0);
+run("fh contact", "forehand", 0.68);
+run("bh contact", "backhand", 0.68);
+run("serve trophy", "serve", 0.3);
+run("serve contact", "serve", 0.7);

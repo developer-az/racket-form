@@ -4,11 +4,13 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
+import { useStudyStore } from "@/store/studyStore";
 import {
   THEME_STORAGE_KEY,
   resolveInitialTheme,
@@ -40,6 +42,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const resolved = resolveInitialTheme();
     setThemeState(resolved);
     applyDomTheme(resolved);
+  }, []);
+
+  useEffect(() => {
+    void useStudyStore.getState().hydrate();
   }, []);
 
   const setTheme = useCallback((mode: ThemeMode) => {
