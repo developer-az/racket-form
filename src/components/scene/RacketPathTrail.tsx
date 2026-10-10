@@ -25,13 +25,22 @@ export function RacketPathTrail({
   tRef: RefObject<number>;
 }) {
   const points = useMemo(() => {
-    const pts: THREE.Vector3[] = [];
+    const raw: THREE.Vector3[] = [];
     const scratch = createSkeletonPose();
-    const steps = 48;
+    const steps = 36;
     for (let i = 0; i <= steps; i++) {
       const t = i / steps;
       const play = sampleMotion(clip, stroke, anthropometrics, t, undefined, scratch);
-      pts.push(play.pose.racketTip.clone());
+      raw.push(play.pose.racketTip.clone());
+    }
+    const pts = raw.map((p) => p.clone());
+    for (let i = 1; i < raw.length - 1; i++) {
+      pts[i].copy(raw[i - 1]).add(raw[i]).add(raw[i + 1]).multiplyScalar(1 / 3);
+    }
+    for (let i = 1; i < pts.length; i++) {
+      if (pts[i].distanceTo(pts[i - 1]) > 0.42) {
+        pts[i].copy(pts[i - 1]).lerp(raw[i], 0.28);
+      }
     }
     return pts;
   }, [clip, stroke, anthropometrics]);

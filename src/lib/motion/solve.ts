@@ -253,7 +253,7 @@ export function solveMotionClip(
     const world =
       opts.handedness !== authored ? mirrorWorldSample(sample.world as WorldSample) : (sample.world as WorldSample);
     applyWorldSample(world, posed);
-    retargetWorldPose(posed, anthro);
+    retargetWorldPose(posed, anthro, opts.stroke);
     applyRacketContinuity(posed, opts.continuity);
     return posed;
   }

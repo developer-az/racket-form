@@ -11,7 +11,7 @@ import {
 } from "@/lib/motion/types";
 import { createSkeletonPose, type SkeletonPose } from "@/lib/motion/pose";
 import { extractLocalQuats } from "@/lib/motion/solve";
-import { packWorldPose } from "@/lib/motion/worldJoints";
+import { packWorldPose, smoothPackedWorld } from "@/lib/motion/worldJoints";
 import {
   BLAZE,
   BLAZE_COUNT,
@@ -362,8 +362,20 @@ function poseFromFrame(
     const prevShaft = prev.racketTip.clone().sub(prev.hitHand);
     if (prevShaft.lengthSq() > 1e-6 && shaft.dot(prevShaft.normalize()) < -0.2) shaft.negate();
   }
+  if (shaft.y < -0.12) {
+    shaft.y = -0.12;
+    shaft.normalize();
+  }
   pose.hitHand.copy(wrist).addScaledVector(shaft, HAND_LEN);
   pose.racketTip.copy(pose.hitHand).addScaledVector(shaft, RACKET_LEN);
+  if (pose.racketTip.y < 0.32) {
+    pose.racketTip.y = 0.32;
+    const lifted = pose.racketTip.clone().sub(pose.hitHand);
+    if (lifted.lengthSq() > 1e-8) {
+      pose.racketTip.copy(pose.hitHand).addScaledVector(lifted.normalize(), RACKET_LEN);
+      if (pose.racketTip.y < 0.32) pose.racketTip.y = 0.32;
+    }
+  }
 
   if (!oneHanded) {
     const other = pose.nonHitWrist;
@@ -469,7 +481,7 @@ export function reconstructClip(
     frameCount: frames.length,
     root: roots,
     quats,
-    world,
+    world: smoothPackedWorld(world, frames.length),
     phases: estimatePhases(frames, opts.stroke, hitRight),
   };
 
