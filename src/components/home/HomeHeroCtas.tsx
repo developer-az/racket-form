@@ -23,8 +23,8 @@ export function HomeHeroCtas() {
           Open your court
         </Link>
       ) : (
-        <Link href="/gear" className="sf-btn sf-btn-primary sf-btn-glow">
-          Find my setup
+        <Link href="/gear?tab=rackets" className="sf-btn sf-btn-primary sf-btn-glow">
+          Explore rackets
         </Link>
       )}
       <Link href="/lab" className="sf-btn sf-btn-secondary">

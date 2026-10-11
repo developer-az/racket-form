@@ -32,17 +32,21 @@ export function AppHeader() {
       }}
     >
       <div className="mx-auto flex h-[var(--header-bar)] w-full max-w-[var(--page-max)] items-center justify-between gap-3 px-[max(1rem,env(safe-area-inset-left))] md:max-w-[var(--page-max-wide)] md:px-8">
-        <Link href="/" className="sf-nav-brand group flex min-w-0 items-center gap-3">
-          <span className="sf-nav-mark" aria-hidden>
-            RF
-          </span>
-          <span className="min-w-0">
-            <span className="block whitespace-nowrap text-[15px] font-semibold tracking-[-0.015em] text-[var(--foreground)]">
-              Racket Form
-            </span>
-            <span className="hidden font-[family-name:var(--font-mono)] text-[9.5px] tracking-[0.12em] text-[var(--muted)] uppercase sm:block">
-              Form · Gear · Court
-            </span>
+        <Link href="/" className="sf-nav-brand group flex min-w-0 items-center gap-2.5">
+          <svg className="sf-nav-mark" width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
+            <defs>
+              <clipPath id="rf-mark-head">
+                <ellipse cx="11" cy="8.5" rx="5.6" ry="6.8" />
+              </clipPath>
+            </defs>
+            <g clipPath="url(#rf-mark-head)" stroke="currentColor" strokeWidth="0.9" opacity="0.55">
+              <path d="M8.2 0v17M11 0v17M13.8 0v17M3 5.6h16M3 8.5h16M3 11.4h16" />
+            </g>
+            <ellipse cx="11" cy="8.5" rx="5.6" ry="6.8" stroke="currentColor" strokeWidth="1.5" />
+            <path d="M11 15.3V21" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+          <span className="whitespace-nowrap text-[15px] font-semibold tracking-[-0.02em] text-[var(--foreground)]">
+            Racket Form
           </span>
         </Link>
 

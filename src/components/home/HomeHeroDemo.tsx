@@ -163,18 +163,25 @@ export function HomeHeroDemo() {
             Every stroke is solved from real biomechanics, measured on the figure you see, and
             scrubbable to the frame.
           </p>
-          <dl className="mt-6 hidden gap-8 border-t border-[var(--line)] pt-4 sm:flex">
-            {[
-              ["Athletes", "06"],
-              ["Strokes", "05"],
-              ["Readouts", "Live"],
-            ].map(([k, v]) => (
-              <div key={k}>
-                <dt className="sf-spec-label">{k}</dt>
-                <dd className="sf-readout mt-1 text-lg">{v}</dd>
-              </div>
-            ))}
-          </dl>
+          <form action="/gear" method="get" role="search" className="mt-7 flex max-w-md items-center gap-2">
+            <input type="hidden" name="tab" value="rackets" />
+            <label className="relative min-w-0 flex-1">
+              <span className="sr-only">Search the racket database</span>
+              <svg className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[var(--muted)]" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+                <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M11 11l3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              <input
+                type="search"
+                name="q"
+                placeholder="Search 675 rackets"
+                className="sf-input !min-h-11 !pl-9 !text-[14px]"
+              />
+            </label>
+            <button type="submit" className="sf-btn sf-btn-secondary !min-h-11 !px-4">
+              Search
+            </button>
+          </form>
           <HomeHeroCtas />
         </div>
       </div>

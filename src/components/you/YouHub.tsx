@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import type { GripProfile, RacketProfile, StringProfile } from "@/types/equipment";
 import { usePlayerStore } from "@/store/playerStore";
 import { hasAnyGear, setupSummary, useGearStore } from "@/store/gearStore";
@@ -21,7 +20,6 @@ import { BagTab } from "./BagTab";
 import { AfterPlayTab } from "./AfterPlayTab";
 import { HistoryTab } from "./HistoryTab";
 import { WorkOnThis } from "./WorkOnThis";
-import { SetupFinder } from "@/components/gear/SetupFinder";
 import { CourtEmpty, CourtLoading } from "@/components/ui/CourtState";
 
 type HubTab = "today" | "bag" | "play" | "history";
@@ -40,7 +38,6 @@ export function YouHub({
   const setHydrated = usePlayerStore((s) => s.setHydrated);
   const setup = useGearStore((s) => s.setup);
 
-  const router = useRouter();
   const [tab, setTab] = useState<HubTab>("today");
   const [playerCardOpen, setPlayerCardOpen] = useState(false);
   const bagKey = `${setup.stringId ?? ""}|${setup.racketSlug ?? ""}|${setup.tensionLbs ?? ""}|${setup.gaugeMm ?? ""}|${JSON.stringify(setup.leadTape ?? null)}`;
@@ -203,23 +200,23 @@ export function YouHub({
       <div className="mt-8">
         {tab === "today" && needsBag && (
           <div className="space-y-4">
-            <SetupFinder
-              rackets={rackets}
-              strings={strings}
-              grips={grips}
-              onBrowse={() => router.push("/gear?tab=rackets")}
-            />
-            <p className="text-sm text-[var(--muted)]">
-              Just exploring?{" "}
-              <Link href="/lab" className="sf-text-link">
-                Watch tour strokes in the form lab
-              </Link>{" "}
-              or{" "}
-              <Link href="/gear?tab=rackets" className="sf-text-link">
-                browse every racket
-              </Link>
-              .
-            </p>
+            <div className="sf-panel flex flex-wrap items-center justify-between gap-4 px-5 py-5">
+              <div className="min-w-0">
+                <p className="sf-spec-label">Bag · Empty</p>
+                <p className="mt-1.5 text-[15px] font-semibold tracking-[-0.01em]">Add a frame to see how your setup plays</p>
+                <p className="mt-1 text-[13px] text-[var(--muted)]">
+                  {rackets.length} frames, {strings.length} strings and {grips.length} grips with measured specs.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <Link href="/gear?tab=rackets" className="sf-btn sf-btn-primary !min-h-10 !text-[13px]">
+                  Open racket database
+                </Link>
+                <Link href="/gear?tab=overview&finder=1" className="sf-text-link text-[13px]">
+                  Quick start
+                </Link>
+              </div>
+            </div>
           </div>
         )}
 

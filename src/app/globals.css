@@ -1122,30 +1122,19 @@ input[type="range"]::-webkit-slider-thumb {
 
 .sf-nav-mark {
   display: none;
-  height: 1.5rem;
-  width: 1.5rem;
   flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--foreground);
-  border-radius: 3px;
   color: var(--foreground);
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: transform 0.2s ease;
 }
 
 @media (min-width: 640px) {
   .sf-nav-mark {
-    display: inline-flex;
+    display: block;
   }
 }
 
 .sf-nav-brand:hover .sf-nav-mark {
-  background: var(--foreground);
-  color: var(--background);
+  transform: rotate(-12deg);
 }
 
 .sf-nav-link {
@@ -1365,4 +1354,325 @@ input[type="range"]::-webkit-slider-thumb {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+/* ── Gear explorer: database-style tool surfaces ───────────────────────── */
+
+.sf-page-wide {
+  max-width: var(--page-max-wide);
+}
+
+.sf-chip-row,
+.sf-aisle {
+  scrollbar-width: none;
+}
+
+.sf-chip-row::-webkit-scrollbar,
+.sf-aisle::-webkit-scrollbar {
+  display: none;
+}
+
+.sf-explorer {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .sf-explorer {
+    grid-template-columns: 13.5rem minmax(0, 1fr) 22rem;
+    gap: 1.75rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .sf-explorer {
+    grid-template-columns: 15rem minmax(0, 1fr) 26rem;
+    gap: 2rem;
+  }
+}
+
+.sf-explorer-filters,
+.sf-explorer-detail {
+  position: sticky;
+  top: calc(var(--header-h) + 1rem);
+  max-height: calc(100dvh - var(--header-h) - 2rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.sf-explorer-detail {
+  padding: 1.25rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.sf-explorer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Results table: grid rows so columns align without <table> layout cost */
+.sf-rtable {
+  container-type: inline-size;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.sf-rtable-head,
+.sf-rtable-row {
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr);
+  align-items: center;
+  column-gap: 0.75rem;
+  padding: 0 0.875rem;
+}
+
+.sf-rtable-head {
+  min-height: 2.25rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--bg-sunken);
+  border-bottom: 1px solid var(--line);
+}
+
+.sf-rtable-row {
+  position: relative;
+  min-height: 3.25rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--line);
+  transition: background 0.12s ease;
+}
+
+.sf-rtable-row:last-child {
+  border-bottom: 0;
+}
+
+.sf-rtable-row:hover {
+  background: var(--overlay-hover);
+}
+
+.sf-rtable-row[data-selected="true"] {
+  background: color-mix(in srgb, var(--accent) 6%, var(--panel));
+}
+
+.sf-rtable-row[data-selected="true"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+}
+
+.sf-rt-num {
+  display: none;
+}
+
+@container (min-width: 34rem) {
+  .sf-rtable-head,
+  .sf-rtable-row {
+    grid-template-columns: 1.25rem minmax(0, 1fr) 3.25rem 2.75rem 2.5rem 2.75rem 3rem 3.5rem;
+  }
+
+  .sf-rtable-head > :nth-child(n + 3) {
+    display: block;
+  }
+
+  .sf-rt-num {
+    display: block;
+  }
+
+  .sf-rt-inline {
+    display: none;
+  }
+}
+
+@container (max-width: 33.99rem) {
+  .sf-rtable-head > :nth-child(n + 3) {
+    display: none;
+  }
+}
+
+/* Segmented control */
+.sf-segmented {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  background: var(--bg-sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.sf-segmented > button {
+  min-height: 2rem;
+  padding: 0 0.7rem;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--muted);
+  border-radius: var(--radius-sm);
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.sf-segmented > button:hover {
+  color: var(--foreground);
+}
+
+.sf-segmented > button[aria-checked="true"] {
+  color: var(--foreground);
+  background: var(--panel);
+  box-shadow: 0 0 0 1px var(--line-strong), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+/* Toggle switch on a native checkbox */
+.sf-switch {
+  appearance: none;
+  position: relative;
+  width: 2rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+  cursor: pointer;
+  background: var(--line-strong);
+  border-radius: 999px;
+  transition: background 0.15s ease;
+}
+
+.sf-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(1.125rem - 4px);
+  height: calc(1.125rem - 4px);
+  background: var(--panel);
+  border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease;
+}
+
+.sf-switch:checked {
+  background: var(--accent);
+}
+
+.sf-switch:checked::after {
+  transform: translateX(0.875rem);
+}
+
+.sf-switch:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Dual-thumb range: two native inputs stacked, only the thumbs take pointer events.
+   The inputs overhang by half a thumb so thumb centres meet the 0–100% track ends. */
+.sf-range-input {
+  position: absolute;
+  top: 0;
+  left: -7px;
+  width: calc(100% + 14px);
+  height: 100%;
+  margin: 0;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  pointer-events: none;
+}
+
+.sf-range-input:focus {
+  outline: none;
+}
+
+.sf-range-input::-webkit-slider-runnable-track {
+  background: transparent;
+  height: 100%;
+}
+
+.sf-range-input::-moz-range-track {
+  background: transparent;
+}
+
+.sf-range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  background: var(--panel);
+  border: 1.5px solid var(--foreground);
+  border-radius: 999px;
+  cursor: grab;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.sf-range-input::-moz-range-thumb {
+  pointer-events: auto;
+  width: 14px;
+  height: 14px;
+  background: var(--panel);
+  border: 1.5px solid var(--foreground);
+  border-radius: 999px;
+  cursor: grab;
+}
+
+.sf-range-input:focus-visible::-webkit-slider-thumb {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.sf-range-input:focus-visible::-moz-range-thumb {
+  border-color: var(--accent);
+}
+
+/* Compare tray */
+.sf-compare-tray {
+  position: fixed;
+  z-index: 40;
+  left: 50%;
+  bottom: calc(var(--app-nav-h) + 1rem);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: min(40rem, calc(100vw - 2rem));
+  padding: 0.5rem 0.5rem 0.5rem 0.75rem;
+  background: var(--panel);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Chart typography (SVG) */
+.sf-chart-tick {
+  fill: var(--muted);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10px;
+}
+
+.sf-chart-axis {
+  fill: var(--muted);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+}
+
+.sf-chart-label {
+  fill: var(--foreground);
+  font-family: var(--font-sans), ui-sans-serif, sans-serif;
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+.sf-explorer-filters {
+  padding-inline: 0.5rem;
+  margin-inline: -0.5rem;
 }

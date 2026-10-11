@@ -1,11 +1,12 @@
 "use client";
 
-import { useDeferredValue, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import type { EquipmentTab, StringProfile } from "@/types/equipment";
 import {
   GAUGE_FILTER_OPTIONS,
+  findSimilarStrings,
   gaugeLabel,
-  matchesMaterialFilter,
+  isPolyFamily,
   materialLabel,
   parseGaugeFromQuery,
   parsePolyIntent,
@@ -13,726 +14,809 @@ import {
   stringHasGauge,
   tensionOutcome,
   tensionRangeOverlaps,
-  findSimilarStrings,
-  stringCategoryBlurb,
 } from "@/lib/equipment/strings";
-import { matchesEquipmentSearch } from "@/lib/equipment/search";
+import { matchesEquipmentSearch, searchMatchScore } from "@/lib/equipment/search";
 import { stringImageUrl } from "@/lib/equipment/media/urls";
-import { hasExternalPhoto, photoFirst } from "@/lib/equipment/media/externalImages";
-import { brandAccent } from "@/lib/equipment/media/brandColors";
-import { equipmentLabel, modelWithoutBrand } from "@/lib/equipment/labels";
+import { equipmentLabel } from "@/lib/equipment/labels";
+import { distribution, type Distribution } from "@/lib/equipment/catalogStats";
+import { analyzeString } from "@/lib/equipment/strokeformIntel";
 import { useGearStore } from "@/store/gearStore";
-import { SpinPotentialRing, TensionCurve } from "./StringVisuals";
-import { ScoreGrid, ScoreMeter } from "./ScoreMeter";
-import { EquipmentThumb } from "./EquipmentThumb";
-import { CompareToSetup, numericDelta, type CompareDeltaRow } from "./CompareToSetup";
-import { StringIntelligencePanel } from "./StringIntelligencePanel";
+import { RangeFilter } from "./explorer/RangeFilter";
+import { Bar } from "./explorer/RacketDetail";
+import { GearImg } from "./explorer/GearImg";
+import { TensionChart } from "./explorer/TensionChart";
+import { SpecCompareSheet } from "./explorer/SpecCompareSheet";
+import { Portal } from "./explorer/Portal";
 import {
-  AisleChip,
-  ActiveFilterChips,
-  CatalogAisle,
-  ChipRow,
-  MoreFilters,
-  ProductCard,
-  SearchField,
-} from "./CatalogShop";
-import {
-  FEEL_MIN,
-  STRING_BRAND_PIN,
-  STRING_FEELS,
-  STRING_MATERIAL_AISLES,
-  brandsByCount,
-  groupByBrand,
-  matchesFeel,
-  stringMaterialAisle,
-  stringMaterialShortLabel,
-  stringShapeShortLabel,
-  uniqueSortedBrands,
-  type FeelKey,
-  type StringMaterialAisle,
-} from "@/lib/equipment/shopAisles";
+  CheckList,
+  CompareTray,
+  DeltaTable,
+  DetailTabs,
+  InBagTag,
+  MobileSheet,
+  NumCell,
+  SearchBox,
+  Segmented,
+  SortControls,
+  SortHeader,
+  SpecList,
+  countBy,
+  toggleInSet,
+  type SortState,
+} from "./explorer/ExplorerParts";
 
-type TensionFilter = "all" | "soft" | "mid" | "firm" | "target";
+const MAX_COMPARE = 4;
 
-export function StringExplorer({ strings, onSelectTab }: { strings: StringProfile[]; onSelectTab?: (tab: EquipmentTab) => void; }) {
+type ScoreKey = "power" | "spin" | "control" | "comfort" | "durability" | "tensionMaintenance" | "recommendedTensionLbs";
+type SortKey = "relevance" | "name" | ScoreKey;
+type Ranges = Record<ScoreKey, [number, number]>;
+type ShapeBand = "all" | "round" | "shaped";
+
+const RANGES: { key: ScoreKey; label: string; unit?: string; step?: number }[] = [
+  { key: "power", label: "Power" },
+  { key: "spin", label: "Spin" },
+  { key: "control", label: "Control" },
+  { key: "comfort", label: "Comfort" },
+  { key: "durability", label: "Durability" },
+  { key: "tensionMaintenance", label: "Holds tension" },
+  { key: "recommendedTensionLbs", label: "Suggested tension", unit: "lbs", step: 0.5 },
+];
+
+const SORTS: { id: SortKey; label: string }[] = [
+  { id: "name", label: "Name" },
+  { id: "power", label: "Power" },
+  { id: "spin", label: "Spin" },
+  { id: "control", label: "Control" },
+  { id: "comfort", label: "Comfort" },
+  { id: "durability", label: "Durability" },
+  { id: "tensionMaintenance", label: "Holds tension" },
+  { id: "recommendedTensionLbs", label: "Suggested tension" },
+];
+
+const MATERIAL_SHORT: Record<StringProfile["material"], string> = {
+  polyester: "Poly",
+  "co-poly": "Co-poly",
+  multifilament: "Multi",
+  "synthetic-gut": "Syn gut",
+  "natural-gut": "Gut",
+  hybrid: "Hybrid",
+};
+
+export function StringExplorer({
+  strings,
+  onSelectTab,
+}: {
+  strings: StringProfile[];
+  onSelectTab?: (tab: EquipmentTab) => void;
+}) {
   void onSelectTab;
   const setup = useGearStore((s) => s.setup);
   const setString = useGearStore((s) => s.setString);
   const setTensionStore = useGearStore((s) => s.setTension);
   const setGaugeStore = useGearStore((s) => s.setGauge);
+  const bagId = setup.stringId;
+
+  const dists = useMemo(
+    () =>
+      Object.fromEntries(RANGES.map((r) => [r.key, distribution(strings.map((s) => s[r.key]), 20)])) as Record<
+        ScoreKey,
+        Distribution
+      >,
+    [strings],
+  );
+  const full = useMemo(
+    () => Object.fromEntries(RANGES.map((r) => [r.key, [dists[r.key].min, dists[r.key].max]])) as Ranges,
+    [dists],
+  );
 
   const [query, setQuery] = useState("");
-  const [brand, setBrand] = useState("all");
-  const [feel, setFeel] = useState<FeelKey | "all">("all");
-  const [materialAisle, setMaterialAisle] = useState<StringMaterialAisle | "all">("all");
-  const [shape, setShape] = useState("all");
+  const [brands, setBrands] = useState<Set<string>>(new Set());
+  const [materials, setMaterials] = useState<Set<string>>(new Set());
+  const [shape, setShape] = useState<ShapeBand>("all");
   const [gaugeFilter, setGaugeFilter] = useState("all");
-  const [tensionFilter, setTensionFilter] = useState<TensionFilter>("all");
-  const [targetTension, setTargetTension] = useState(setup.tensionLbs ?? 52);
-  const [selectedId, setSelectedId] = useState(
-    setup.stringId && strings.some((s) => s.id === setup.stringId)
-      ? setup.stringId
-      : (strings[0]?.id ?? ""),
-  );
-  const [compareId, setCompareId] = useState(
-    setup.stringId && strings.some((s) => s.id === setup.stringId)
-      ? setup.stringId
-      : (strings[1]?.id ?? strings[0]?.id ?? ""),
+  const [fitsMine, setFitsMine] = useState(false);
+  const [ranges, setRanges] = useState<Ranges>(full);
+  const [sort, setSort] = useState<SortState<SortKey>>({ key: "name", dir: 1 });
+  const [selectedId, setSelectedId] = useState<string | null>(
+    bagId && strings.some((s) => s.id === bagId) ? bagId : null,
   );
   const [tensionById, setTensionById] = useState<Record<string, number>>(() =>
-    setup.stringId && setup.tensionLbs != null
-      ? { [setup.stringId]: setup.tensionLbs }
-      : {},
+    bagId && setup.tensionLbs != null ? { [bagId]: setup.tensionLbs } : {},
   );
   const [gaugeById, setGaugeById] = useState<Record<string, number>>(() =>
-    setup.stringId && setup.gaugeMm != null ? { [setup.stringId]: setup.gaugeMm } : {},
+    bagId && setup.gaugeMm != null ? { [bagId]: setup.gaugeMm } : {},
   );
+  const [compare, setCompare] = useState<string[]>([]);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
   const deferredQuery = useDeferredValue(query);
+
+  const brandCounts = useMemo(() => countBy(strings, (s) => s.brand), [strings]);
+  const materialCounts = useMemo(() => countBy(strings, (s) => s.material), [strings]);
+  const myTension = setup.tensionLbs;
 
   const filtered = useMemo(() => {
     const q = deferredQuery.trim();
     const gaugeFromQuery = parseGaugeFromQuery(q);
     const polyFromQuery = parsePolyIntent(q);
-    const gaugeTarget =
-      gaugeFilter !== "all" ? parseFloat(gaugeFilter) : gaugeFromQuery;
-    // Strip gauge/poly tokens from text search so "poly 1.30" does not over-constrain name match
+    const gaugeTarget = gaugeFilter !== "all" ? parseFloat(gaugeFilter) : gaugeFromQuery;
+    // Gauge and "poly" tokens become filters, so they should not also have to match the name
     const textQuery = q
       .replace(/\b(1\.\d{1,2}|16g|17g|17l|15g|15l|18g)\b/gi, " ")
       .replace(/\b(poly|polyester|co-?poly|copoly)\b/gi, " ")
       .replace(/\s+/g, " ")
       .trim();
-
-    return strings
-      .filter((s) => {
-      if (brand !== "all" && s.brand !== brand) return false;
-      if (materialAisle !== "all" && stringMaterialAisle(s.material) !== materialAisle) return false;
-      if (!matchesFeel(s, feel)) return false;
-      const materialFilter = polyFromQuery ? "poly" : "all";
-      if (!matchesMaterialFilter(s, materialFilter)) return false;
-      if (shape !== "all" && s.shape !== shape) return false;
+    const list = strings.filter((s) => {
+      if (brands.size > 0 && !brands.has(s.brand)) return false;
+      if (materials.size > 0 && !materials.has(s.material)) return false;
+      if (polyFromQuery && !isPolyFamily(s.material)) return false;
+      if (shape === "round" && s.shape !== "round") return false;
+      if (shape === "shaped" && s.shape === "round") return false;
       if (gaugeTarget != null && !stringHasGauge(s, gaugeTarget)) return false;
-      if (tensionFilter === "soft" && s.recommendedTensionLbs > 50) return false;
-      if (tensionFilter === "mid" && (s.recommendedTensionLbs < 50 || s.recommendedTensionLbs > 54))
-        return false;
-      if (tensionFilter === "firm" && s.recommendedTensionLbs < 55) return false;
-      if (tensionFilter === "target" && !tensionRangeOverlaps(s, targetTension, 2)) return false;
+      if (fitsMine && myTension != null && !tensionRangeOverlaps(s, myTension, 2)) return false;
+      for (const r of RANGES) {
+        const [lo, hi] = ranges[r.key];
+        if (s[r.key] < lo || s[r.key] > hi) return false;
+      }
       if (!textQuery) return true;
-      return matchesEquipmentSearch(
-        textQuery,
-        s.brand,
-        s.name,
-        s.material,
-        s.shape,
-        s.gaugesMm.join(" "),
-        s.bestFor,
-        s.feel,
-      );
-    })
-      .sort((a, b) => photoFirst(hasExternalPhoto("string", a.id), hasExternalPhoto("string", b.id)));
-  }, [strings, deferredQuery, brand, feel, materialAisle, shape, gaugeFilter, tensionFilter, targetTension]);
+      return matchesEquipmentSearch(textQuery, s.brand, s.name, s.material, s.shape, s.bestFor, s.feel);
+    });
+    const key: SortKey = textQuery && sort.key === "name" ? "relevance" : sort.key;
+    return list.sort((a, b) => {
+      if (key === "relevance") {
+        return (
+          searchMatchScore(textQuery, b.brand, b.name, b.id) - searchMatchScore(textQuery, a.brand, a.name, a.id) ||
+          a.name.localeCompare(b.name)
+        );
+      }
+      if (key === "name") {
+        return (a.brand.localeCompare(b.brand) || a.name.localeCompare(b.name)) * sort.dir;
+      }
+      return (a[key] - b[key]) * sort.dir || a.brand.localeCompare(b.brand) || a.name.localeCompare(b.name);
+    });
+  }, [strings, deferredQuery, brands, materials, shape, gaugeFilter, fitsMine, myTension, ranges, sort]);
 
-  const selected = filtered.find((s) => s.id === selectedId) ?? filtered[0] ?? null;
-  const compare = strings.find((s) => s.id === compareId) ?? strings[0];
-  const tension = selected
-    ? (tensionById[selected.id] ?? selected.recommendedTensionLbs)
-    : 52;
-  const gauge = selected
-    ? (gaugeById[selected.id] ?? selected.gaugesMm[0] ?? 1.25)
-    : 1.25;
-  const [lo, hi] = selected ? selected.tensionRangeLbs : ([48, 58] as [number, number]);
-  const selectedOutcome = selected ? tensionOutcome(selected, tension, gauge) : null;
-  const compareGauge = compare
-    ? (gaugeById[compare.id] ??
-      (setup.stringId === compare.id && setup.gaugeMm != null
-        ? setup.gaugeMm
-        : null) ??
-      compare.gaugesMm[0] ??
-      1.25)
-    : 1.25;
-  const compareOutcome = compare
-    ? tensionOutcome(
-        compare,
-        Math.min(
-          compare.tensionRangeLbs[1],
-          Math.max(
-            compare.tensionRangeLbs[0],
-            setup.stringId === compare.id && setup.tensionLbs != null
-              ? setup.tensionLbs
-              : tension,
-          ),
-        ),
-        compareGauge,
-      )
-    : null;
-  const inSetup = selected != null && selected.id === setup.stringId;
-  const detailRef = useRef<HTMLDivElement>(null);
+  const byId = useMemo(() => new Map(strings.map((s) => [s.id, s])), [strings]);
+  const selected = (selectedId ? byId.get(selectedId) : null) ?? filtered[0] ?? null;
+  const bag = bagId ? (byId.get(bagId) ?? null) : null;
 
-  const saveStringRow = (s: StringProfile) => {
-    const t = tensionById[s.id] ?? s.recommendedTensionLbs;
-    const g = gaugeById[s.id] ?? s.gaugesMm[0] ?? 1.25;
-    const outcome = tensionOutcome(s, t, g);
+  const tensionFor = (s: StringProfile) => tensionById[s.id] ?? s.recommendedTensionLbs;
+  const gaugeFor = (s: StringProfile) => gaugeById[s.id] ?? s.gaugesMm[0] ?? 1.25;
+
+  const rangeActive = (k: ScoreKey) => ranges[k][0] > full[k][0] || ranges[k][1] < full[k][1];
+  const activeFilterCount =
+    brands.size +
+    materials.size +
+    (shape !== "all" ? 1 : 0) +
+    (gaugeFilter !== "all" ? 1 : 0) +
+    (fitsMine ? 1 : 0) +
+    RANGES.filter((r) => rangeActive(r.key)).length;
+
+  const resetFilters = () => {
+    setBrands(new Set());
+    setMaterials(new Set());
+    setShape("all");
+    setGaugeFilter("all");
+    setFitsMine(false);
+    setRanges(full);
+    setQuery("");
+  };
+
+  const save = (s: StringProfile) => {
+    const t = tensionFor(s);
+    const g = gaugeFor(s);
+    const o = tensionOutcome(s, t, g);
     setString(s.id, equipmentLabel(s.brand, s.name), {
       tensionLbs: t,
       gaugeMm: g,
-      power: outcome.power,
-      spin: outcome.spin,
-      control: outcome.control,
-      comfort: outcome.comfort,
+      power: o.power,
+      spin: o.spin,
+      control: o.control,
+      comfort: o.comfort,
     });
   };
 
-  const brands = useMemo(() => {
-    const all = uniqueSortedBrands(strings);
-    const pinned = STRING_BRAND_PIN.filter((b) => all.includes(b));
-    const pinSet = new Set(pinned);
-    return [...pinned, ...all.filter((b) => !pinSet.has(b))];
-  }, [strings]);
-  const aisleBrands = useMemo(() => brandsByCount(strings, 10, STRING_BRAND_PIN), [strings]);
-  const selectString = (id: string) => {
+  const toggleCompare = (id: string) =>
+    setCompare((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id].slice(-MAX_COMPARE)));
+
+  const select = (id: string) => {
     setSelectedId(id);
-    if (typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches) {
-      requestAnimationFrame(() =>
-        detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
-      );
-    }
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches) setDetailOpen(true);
   };
-  const showAisles =
-    brand === "all" &&
-    feel === "all" &&
-    materialAisle === "all" &&
-    shape === "all" &&
-    gaugeFilter === "all" &&
-    tensionFilter === "all" &&
-    !deferredQuery.trim();
 
-  const vsSetupRows: CompareDeltaRow[] =
-    selected && selectedOutcome
-      ? [
-          {
-            key: "spin",
-            label: "Spin",
-            value: selectedOutcome.spin,
-            baseline: setup.stringSpin,
-            delta: numericDelta(selectedOutcome.spin, setup.stringSpin),
-          },
-          {
-            key: "control",
-            label: "Control",
-            value: selectedOutcome.control,
-            baseline: setup.stringControl,
-            delta: numericDelta(selectedOutcome.control, setup.stringControl),
-          },
-          {
-            key: "power",
-            label: "Power",
-            value: selectedOutcome.power,
-            baseline: setup.stringPower,
-            delta: numericDelta(selectedOutcome.power, setup.stringPower),
-          },
-          {
-            key: "comfort",
-            label: "Comfort",
-            value: selectedOutcome.comfort,
-            baseline: setup.stringComfort,
-            delta: numericDelta(selectedOutcome.comfort, setup.stringComfort),
-          },
-        ]
-      : [];
+  const headerSort = (key: SortKey) =>
+    setSort((s) => (s.key === key ? { key, dir: (s.dir * -1) as 1 | -1 } : { key, dir: key === "name" ? 1 : -1 }));
 
-  return (
-    <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-6">
-      <div className="order-1 space-y-4">
-        <SearchField
-          value={query}
-          onChange={setQuery}
-          placeholder="Search ALU Power, RPM, poly 1.30…"
-          label="Search strings"
-        />
-        <ChipRow label="Brand">
-          <AisleChip label="All" active={brand === "all"} onClick={() => setBrand("all")} />
-          {brands.map((b) => (
-            <AisleChip key={b} label={b} active={brand === b} onClick={() => setBrand(b)} />
-          ))}
-        </ChipRow>
-        <ChipRow label="Type">
-          <AisleChip label="All types" active={materialAisle === "all"} onClick={() => setMaterialAisle("all")} />
-          {STRING_MATERIAL_AISLES.map((t) => (
-            <AisleChip
-              key={t.id}
-              label={t.label}
-              active={materialAisle === t.id}
-              onClick={() => setMaterialAisle(t.id)}
-            />
-          ))}
-        </ChipRow>
-        {materialAisle !== "all" || shape !== "all" || gaugeFilter !== "all" ? (
-          <p className="rounded-md border border-[var(--line)] bg-[var(--panel)] px-3 py-2 text-xs leading-relaxed text-[var(--muted)]">
-            {stringCategoryBlurb(
-              materialAisle === "all" ? "all" : materialAisle,
-              gaugeFilter === "all" ? null : Number(gaugeFilter),
-              shape,
-            )}
-          </p>
+  const filters = (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <p className="text-[13px] font-semibold">Filters</p>
+        {activeFilterCount > 0 ? (
+          <button
+            type="button"
+            onClick={resetFilters}
+            className="text-[12px] text-[var(--muted)] hover:text-[var(--foreground)]"
+          >
+            Reset ({activeFilterCount})
+          </button>
         ) : null}
-        <ChipRow label="Feel">
-          <AisleChip label="Any feel" active={feel === "all"} onClick={() => setFeel("all")} />
-          {STRING_FEELS.map((f) => (
-            <AisleChip
-              key={f.id}
-              label={f.label}
-              active={feel === f.id}
-              onClick={() => setFeel(f.id)}
-              color={f.color}
-            />
-          ))}
-        </ChipRow>
-        <ActiveFilterChips
-          chips={[
-            ...(brand !== "all" ? [{ id: "brand", label: brand, onRemove: () => setBrand("all") }] : []),
-            ...(materialAisle !== "all"
-              ? [
-                  {
-                    id: "type",
-                    label: STRING_MATERIAL_AISLES.find((t) => t.id === materialAisle)?.label ?? materialAisle,
-                    onRemove: () => setMaterialAisle("all"),
-                  },
-                ]
-              : []),
-            ...(feel !== "all" ? [{ id: "feel", label: feel, onRemove: () => setFeel("all") }] : []),
-            ...(shape !== "all" ? [{ id: "shape", label: shape, onRemove: () => setShape("all") }] : []),
-            ...(gaugeFilter !== "all"
-              ? [{ id: "gauge", label: `${gaugeFilter} mm`, onRemove: () => setGaugeFilter("all") }]
-              : []),
-            ...(tensionFilter !== "all"
-              ? [{ id: "tension", label: tensionFilter, onRemove: () => setTensionFilter("all") }]
-              : []),
-          ]}
-          onClear={() => {
-            setBrand("all");
-            setMaterialAisle("all");
-            setFeel("all");
-            setShape("all");
-            setGaugeFilter("all");
-            setTensionFilter("all");
-            setQuery("");
-          }}
-        />
-        <MoreFilters>
-            <select value={shape} onChange={(e) => setShape(e.target.value)} aria-label="Shape" className="sf-select w-full">
-              <option value="all">Any shape</option>
-              <option value="round">Round</option>
-              <option value="octagonal">Octagonal</option>
-              <option value="hexagonal">Hexagonal</option>
-              <option value="pentagonal">Pentagonal</option>
-              <option value="triangular">Triangular</option>
-              <option value="twisted">Twisted</option>
-              <option value="textured">Textured</option>
-            </select>
-            <select value={gaugeFilter} onChange={(e) => setGaugeFilter(e.target.value)} aria-label="Gauge" className="sf-select w-full">
-              <option value="all">Any gauge</option>
-              {GAUGE_FILTER_OPTIONS.map((g) => (
-                <option key={g} value={String(g)}>
-                  {g.toFixed(2)} mm ({gaugeLabel(g)})
-                </option>
-              ))}
-            </select>
-            <select value={tensionFilter} onChange={(e) => setTensionFilter(e.target.value as TensionFilter)} aria-label="Tension band" className="sf-select w-full">
-              <option value="all">Any tension</option>
-              <option value="soft">Softer rec. (≤50)</option>
-              <option value="mid">Mid rec. (50–54)</option>
-              <option value="firm">Firmer rec. (55+)</option>
-              <option value="target">Fits my tension…</option>
-            </select>
-            {tensionFilter === "target" ? (
-              <label className="col-span-2 flex items-center gap-2">
-                <input
-                  type="number"
-                  min={40}
-                  max={70}
-                  step={0.5}
-                  value={targetTension}
-                  onChange={(e) => setTargetTension(parseFloat(e.target.value) || 52)}
-                  className="sf-input"
-                  aria-label="Target tension in pounds"
-                />
-                <span className="shrink-0 text-xs text-[var(--muted)]">lbs</span>
-              </label>
-            ) : null}
-        </MoreFilters>
-        <p className="text-xs text-[var(--muted)]">
-          {filtered.length} string{filtered.length === 1 ? "" : "s"}
-          {feel !== "all" ? ` · ${feel} ${FEEL_MIN}+` : ""}
-        </p>
-        {showAisles ? (
-          <div className="space-y-6">
-            {groupByBrand(strings, STRING_BRAND_PIN)
-              .filter((g) => aisleBrands.includes(g.brand))
-              .map((g) => (
-                <CatalogAisle
-                  key={g.brand}
-                  title={g.brand}
-                  actionLabel={`See all ${g.brand}`}
-                  onAction={() => setBrand(g.brand)}
-                >
-                  {[...g.items]
-                    .sort((a, b) =>
-                      photoFirst(hasExternalPhoto("string", a.id), hasExternalPhoto("string", b.id)),
-                    )
-                    .slice(0, 8)
-                    .map((s) => (
-                    <StringCard
-                      key={s.id}
-                      string={s}
-                      compact
-                      selected={s.id === selected?.id}
-                      saved={s.id === setup.stringId}
-                      onSelect={() => selectString(s.id)}
-                      onSave={() => saveStringRow(s)}
-                    />
-                  ))}
-                </CatalogAisle>
-              ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {filtered.map((s) => (
-              <StringCard
-                key={s.id}
-                string={s}
-                selected={s.id === selected?.id}
-                saved={s.id === setup.stringId}
-                onSelect={() => selectString(s.id)}
-                onSave={() => saveStringRow(s)}
-              />
-            ))}
-            {filtered.length === 0 ? (
-              <p className="col-span-full py-8 text-sm text-[var(--muted)]">
-                No strings match. Try poly for spin, or multi if your arm talks.
-              </p>
-            ) : null}
-          </div>
-        )}
       </div>
 
-      {selected && selectedOutcome && (
-        <div
-          ref={detailRef} className="order-2 scroll-mt-16 space-y-6 lg:space-y-8"
-          key={selected.id}
-          style={{ animation: "rise 0.45s ease-out both" }}
+      <CheckList
+        label="Material"
+        items={materialCounts}
+        selected={materials}
+        onToggle={(m) => setMaterials((p) => toggleInSet(p, m))}
+        format={(m) => materialLabel(m as StringProfile["material"])}
+      />
+
+      <Segmented<ShapeBand>
+        label="Shape"
+        value={shape}
+        onChange={setShape}
+        options={[
+          ["all", "Any"],
+          ["round", "Round"],
+          ["shaped", "Shaped"],
+        ]}
+      />
+
+      <label className="block">
+        <span className="text-[13px] font-medium">Gauge</span>
+        <select
+          value={gaugeFilter}
+          onChange={(e) => setGaugeFilter(e.target.value)}
+          className="sf-select mt-2 !h-9 !min-h-9 w-full !text-[13px]"
         >
-          <header className="flex flex-wrap gap-5">
-            <EquipmentThumb
-              src={stringImageUrl(selected)}
-              alt={`${selected.brand} ${selected.name}`}
-              size="lg"
-            />
-            <div className="min-w-0 flex-1">
-              <p className="sf-kicker sf-kicker-sky">
-                {materialLabel(selected.material)} · {shapeLabel(selected.shape)}
-              </p>
-              <h3 className="mt-2 font-[family-name:var(--font-display)] text-3xl tracking-tight md:text-4xl">
-                {selected.brand} {selected.name}
-              </h3>
-              <p className="mt-2 text-sm text-[var(--muted)]">{selected.feel}</p>
-              <p className="mt-2 text-sm text-[var(--foreground)]/85">
-                Best for: {selected.bestFor}
-              </p>
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                <span className="sf-intel-chip sf-intel-chip-accent tabular-nums">
-                  Rec. {selected.recommendedTensionLbs} lbs
+          <option value="all">Any gauge</option>
+          {GAUGE_FILTER_OPTIONS.map((g) => (
+            <option key={g} value={String(g)}>
+              {g.toFixed(2)} mm · {gaugeLabel(g)}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      {myTension != null ? (
+        <label className="flex cursor-pointer items-center justify-between gap-3">
+          <span className="text-[13px] font-medium">Plays at my {myTension} lbs</span>
+          <input
+            type="checkbox"
+            className="sf-switch"
+            checked={fitsMine}
+            onChange={(e) => setFitsMine(e.target.checked)}
+          />
+        </label>
+      ) : null}
+
+      {RANGES.map((r) => (
+        <RangeFilter
+          key={r.key}
+          label={r.label}
+          unit={r.unit}
+          step={r.step}
+          dist={dists[r.key]}
+          value={ranges[r.key]}
+          onChange={(v) => setRanges((prev) => ({ ...prev, [r.key]: v }))}
+        />
+      ))}
+
+      <CheckList
+        label="Brand"
+        items={brandCounts}
+        selected={brands}
+        onToggle={(b) => setBrands((p) => toggleInSet(p, b))}
+      />
+    </div>
+  );
+
+  const detail = selected ? (
+    <StringDetail
+      key={selected.id}
+      string={selected}
+      catalog={strings}
+      bag={bag}
+      bagScores={{
+        power: setup.stringPower,
+        spin: setup.stringSpin,
+        control: setup.stringControl,
+        comfort: setup.stringComfort,
+        tension: setup.tensionLbs,
+        gauge: setup.gaugeMm,
+      }}
+      inBag={selected.id === bagId}
+      inCompare={compare.includes(selected.id)}
+      tension={tensionFor(selected)}
+      gauge={gaugeFor(selected)}
+      onTension={(v) => {
+        setTensionById((p) => ({ ...p, [selected.id]: v }));
+        if (selected.id === bagId) setTensionStore(v);
+      }}
+      onGauge={(g) => {
+        setGaugeById((p) => ({ ...p, [selected.id]: g }));
+        if (selected.id === bagId) setGaugeStore(g);
+      }}
+      onSave={() => save(selected)}
+      onToggleCompare={() => toggleCompare(selected.id)}
+      onSelect={(id) => setSelectedId(id)}
+    />
+  ) : null;
+
+  const compareStrings = compare.map((id) => byId.get(id)).filter((s): s is StringProfile => s != null);
+  const compareOutcomes = compareStrings.map((s) => tensionOutcome(s, tensionFor(s), gaugeFor(s)));
+
+  return (
+    <div className="sf-explorer">
+      <aside className="sf-explorer-filters hidden lg:block" aria-label="Filters">
+        {filters}
+      </aside>
+
+      <section className="min-w-0" aria-label="Strings">
+        <div className="sf-explorer-toolbar">
+          <SearchBox value={query} onChange={setQuery} placeholder="Search name, brand, poly 1.25" label="Search strings" />
+          <div className="lg:hidden">
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(true)}
+              className="sf-btn sf-btn-secondary !min-h-10 !px-3 !text-[13px]"
+            >
+              Filters{activeFilterCount ? ` (${activeFilterCount})` : ""}
+            </button>
+          </div>
+        </div>
+
+        <SortControls
+          count={filtered.length}
+          total={strings.length}
+          noun="strings"
+          sort={sort}
+          options={SORTS}
+          onChange={setSort}
+        />
+
+        <div className="sf-rtable mt-3" role="table" aria-label="String results">
+          <div className="sf-rtable-head" role="row">
+            <span role="columnheader" />
+            <SortHeader label="String" k="name" sort={sort} onSort={headerSort} align="left" />
+            <SortHeader label="Power" k="power" sort={sort} onSort={headerSort} />
+            <SortHeader label="Spin" k="spin" sort={sort} onSort={headerSort} />
+            <SortHeader label="Ctrl" k="control" sort={sort} onSort={headerSort} title="Control" />
+            <SortHeader label="Comf" k="comfort" sort={sort} onSort={headerSort} title="Comfort" />
+            <SortHeader label="Dur" k="durability" sort={sort} onSort={headerSort} title="Durability" />
+            <SortHeader label="Hold" k="tensionMaintenance" sort={sort} onSort={headerSort} title="Holds tension" />
+          </div>
+          {filtered.map((s) => {
+            const isSel = s.id === selected?.id;
+            return (
+              <div
+                key={s.id}
+                role="row"
+                aria-selected={isSel}
+                className="sf-rtable-row"
+                data-selected={isSel}
+                onClick={() => select(s.id)}
+              >
+                <span role="cell" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    className="sf-check !h-3.5 !w-3.5"
+                    checked={compare.includes(s.id)}
+                    onChange={() => toggleCompare(s.id)}
+                    aria-label={`Compare ${s.brand} ${s.name}`}
+                  />
                 </span>
-                <span className="sf-intel-chip tabular-nums">
-                  Range {lo}–{hi} lbs
+                <span role="cell" className="flex min-w-0 items-center gap-3">
+                  <GearImg src={stringImageUrl(s)} className="h-9 w-9 shrink-0 object-contain" />
+                  <span className="min-w-0">
+                    <span className="flex min-w-0 items-baseline text-[13.5px] font-medium">
+                      <span className="truncate">{s.name}</span>
+                      {s.id === bagId ? <InBagTag /> : null}
+                    </span>
+                    <span className="block truncate text-[12px] text-[var(--muted)]">
+                      {s.brand} · {MATERIAL_SHORT[s.material]}
+                      {s.shape !== "round" ? ` · ${shapeLabel(s.shape).toLowerCase()}` : ""}
+                    </span>
+                    <span className="sf-rt-inline block truncate text-[11.5px] text-[var(--muted)] tabular-nums">
+                      Power {s.power} · Spin {s.spin} · Control {s.control} · Comfort {s.comfort}
+                    </span>
+                  </span>
                 </span>
-                <span className="sf-intel-chip tabular-nums">
-                  Gauges {selected.gaugesMm.map((g) => `${g} (${gaugeLabel(g)})`).join(" · ")}
-                </span>
+                <NumCell v={s.power} />
+                <NumCell v={s.spin} />
+                <NumCell v={s.control} />
+                <NumCell v={s.comfort} />
+                <NumCell v={s.durability} />
+                <NumCell v={s.tensionMaintenance} />
               </div>
+            );
+          })}
+          {filtered.length === 0 ? (
+            <div className="px-4 py-12 text-center">
+              <p className="text-[14px] font-medium">No strings match</p>
+              <p className="mt-1 text-[13px] text-[var(--muted)]">Widen a range or clear a filter.</p>
               <button
                 type="button"
-                onClick={() => saveStringRow(selected)}
-                className={`sf-btn mt-4 w-full sm:w-auto ${inSetup ? "sf-btn-secondary" : "sf-btn-primary"}`}
+                onClick={resetFilters}
+                className="sf-btn sf-btn-secondary mt-4 !min-h-9 !text-[13px]"
               >
-                {inSetup ? "In your bag" : "Add to bag"}
+                Reset filters
               </button>
             </div>
-          </header>
-
-          <StringIntelligencePanel string={selected} />
-
-          <SpinPotentialRing value={selectedOutcome.spin} />
-
-          <ScoreGrid
-            scores={[
-              { label: "Spin @ setup", value: selectedOutcome.spin, accent: "var(--chart-spin)" },
-              { label: "Control @ setup", value: selectedOutcome.control },
-              { label: "Power @ setup", value: selectedOutcome.power, accent: "var(--chart-power)" },
-              { label: "Comfort @ setup", value: selectedOutcome.comfort, accent: "var(--chart-comfort)" },
-              { label: "Durability @ gauge", value: selectedOutcome.durability, accent: "var(--chart-power)" },
-              {
-                label: "Tension maintenance",
-                value: selected.tensionMaintenance,
-                accent: "var(--chart-comfort)",
-              },
-              { label: "Stiffness feel", value: selectedOutcome.stiffness, accent: "var(--muted)" },
-            ]}
-          />
-
-          {(() => {
-            const alts = findSimilarStrings(selected, strings, { limit: 4 });
-            if (alts.length === 0) return null;
-            return (
-              <section className="border-t border-[var(--line)] pt-5">
-                <p className="sf-kicker sf-kicker-sky">Similar feel — shop substitutes</p>
-                <p className="mt-1 text-xs text-[var(--muted)]">
-                  If this reel is hard to find or over budget, these play close. Copy the search
-                  and check a local shop or marketplace.
-                </p>
-                <ul className="mt-3 space-y-2">
-                  {alts.map((a) => (
-                    <li
-                      key={a.string.id}
-                      className="flex flex-wrap items-center justify-between gap-2 text-sm"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setSelectedId(a.string.id)}
-                        className="min-w-0 text-left transition hover:text-[var(--sky)]"
-                      >
-                        <span className="font-[family-name:var(--font-display)] tracking-tight">
-                          {a.string.brand} {a.string.name}
-                        </span>
-                        <span className="ml-2 text-[11px] tabular-nums text-[var(--sky)]">
-                          {a.score}%
-                        </span>
-                        <span className="mt-0.5 block text-[11px] text-[var(--muted)]">
-                          {a.why}
-                        </span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => void navigator.clipboard?.writeText(a.shopQuery)}
-                        className="sf-btn sf-btn-ghost shrink-0"
-                      >
-                        Copy search
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            );
-          })()}
-
-          {selected.gaugesMm.length > 0 && (
-            <div>
-              <p className="sf-label mb-2">Gauge — changes spin, power, durability</p>
-              <div className="flex flex-wrap gap-2">
-                {selected.gaugesMm.map((g) => {
-                  const active = g === gauge;
-                  return (
-                    <button
-                      key={g}
-                      type="button"
-                      aria-pressed={active}
-                      onClick={() => {
-                        setGaugeById((prev) => ({ ...prev, [selected.id]: g }));
-                        if (inSetup) setGaugeStore(g);
-                      }}
-                      className="sf-chip tabular-nums"
-                      data-active={active ? "true" : "false"}
-                    >
-                      {g} mm · {gaugeLabel(g)}
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">
-                {selectedOutcome.gaugeHint} Thinner gauges usually add bite and pocket; thicker
-                gauges last longer and feel firmer. Scores above update with your pick.
-              </p>
-            </div>
-          )}
-
-          <div>
-            <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
-              <label className="min-w-0 flex-1">
-                <span className="sf-label">
-                  Tension ({lo}–{hi} lbs) · recommended {selected.recommendedTensionLbs} — lower is more power, higher is more control
-                </span>
-                <input
-                  type="range"
-                  min={lo}
-                  max={hi}
-                  step={0.5}
-                  value={tension}
-                  onChange={(e) => {
-                    const v = parseFloat(e.target.value);
-                    setTensionById((prev) => ({
-                      ...prev,
-                      [selected.id]: v,
-                    }));
-                    if (inSetup) setTensionStore(v);
-                  }}
-                  className="mt-3 w-full accent-[var(--accent)]"
-                  aria-label="String tension slider"
-                />
-              </label>
-              <div className="flex items-center gap-1.5">
-                <input
-                  type="number"
-                  min={lo}
-                  max={hi}
-                  step={0.5}
-                  value={tension}
-                  onChange={(e) => {
-                    const v = parseFloat(e.target.value);
-                    if (!Number.isFinite(v)) return;
-                    const clamped = Math.max(lo, Math.min(hi, v));
-                    setTensionById((prev) => ({
-                      ...prev,
-                      [selected.id]: clamped,
-                    }));
-                    if (inSetup) setTensionStore(clamped);
-                  }}
-                  className="sf-num w-20 font-[family-name:var(--font-display)] text-xl"
-                  aria-label="String tension in pounds"
-                />
-                <span className="text-sm text-[var(--muted)]">lbs</span>
-              </div>
-            </div>
-            <TensionCurve string={selected} tension={tension} gaugeMm={gauge} />
-          </div>
-
-          <CompareToSetup
-            title={setup.stringLabel ? `Vs ${setup.stringLabel}` : "Vs my setup"}
-            subtitle="Deltas use your saved string scores at the tension/gauge you tested."
-            rows={vsSetupRows}
-            emptyHint="Save a string (with tension and gauge) to My setup to compare against what you have hit with."
-          />
-
-          <section className="border-t border-[var(--line)] pt-6">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h4 className="font-[family-name:var(--font-display)] text-lg tracking-tight">
-                  Compare at {tension} lbs
-                </h4>
-                <p className="mt-1 text-xs text-[var(--muted)]">
-                  Defaults to your saved string when available. Scores use each bed&apos;s gauge.
-                </p>
-              </div>
-              <select
-                value={compareId}
-                onChange={(e) => setCompareId(e.target.value)}
-                aria-label="Compare string"
-                className="sf-select"
-              >
-                {strings.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.brand} {s.name}
-                    {s.id === setup.stringId ? " (my setup)" : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {compare && compareOutcome && (
-              <div className="grid gap-4 sm:grid-cols-2">
-                <CompareColumn
-                  label={`${selected.name} · ${gauge} mm`}
-                  spin={selectedOutcome.spin}
-                  control={selectedOutcome.control}
-                  power={selectedOutcome.power}
-                  comfort={selectedOutcome.comfort}
-                  durability={selectedOutcome.durability}
-                  stiffness={selectedOutcome.stiffness}
-                  tensionMaint={selected.tensionMaintenance}
-                />
-                <CompareColumn
-                  label={`${compare.name} · ${compareGauge} mm`}
-                  spin={compareOutcome.spin}
-                  control={compareOutcome.control}
-                  power={compareOutcome.power}
-                  comfort={compareOutcome.comfort}
-                  durability={compareOutcome.durability}
-                  stiffness={compareOutcome.stiffness}
-                  tensionMaint={compare.tensionMaintenance}
-                />
-              </div>
-            )}
-            <p className="mt-4 text-sm leading-relaxed text-[var(--muted)]">{selected.notes}</p>
-          </section>
+          ) : null}
         </div>
-      )}
+        <p className="mt-2 text-[11.5px] text-[var(--muted)]">
+          Scores are 0 to 100 at the suggested tension and middle gauge. Pick a string to tune both.
+        </p>
+      </section>
+
+      <aside className="sf-explorer-detail hidden lg:block" aria-label="Selected string">
+        {detail ?? <p className="text-[13px] text-[var(--muted)]">Select a string to see its specs.</p>}
+      </aside>
+
+      <CompareTray
+        items={compareStrings.map((s) => ({ id: s.id, label: s.name }))}
+        onRemove={toggleCompare}
+        onOpen={() => setCompareOpen(true)}
+      />
+
+      {compareOpen && compareStrings.length >= 2 ? (
+        <Portal>
+          <SpecCompareSheet
+            noun="strings"
+            items={compareStrings.map((s) => ({
+              id: s.id,
+              kicker: s.brand,
+              title: s.name,
+              note: `at ${tensionFor(s)} lbs · ${gaugeFor(s).toFixed(2)} mm`,
+              image: stringImageUrl(s),
+              inBag: s.id === bagId,
+            }))}
+            groups={[
+              {
+                label: "At your tension and gauge",
+                rows: (["power", "spin", "control", "comfort", "durability"] as const).map((k) => ({
+                  label: k[0].toUpperCase() + k.slice(1),
+                  values: compareOutcomes.map((o) => o[k]),
+                  best: "high" as const,
+                  bar: true,
+                })),
+              },
+              {
+                label: "Specs",
+                rows: [
+                  {
+                    label: "Holds tension",
+                    values: compareStrings.map((s) => s.tensionMaintenance),
+                    best: "high",
+                    bar: true,
+                  },
+                  { label: "Stiffness", values: compareOutcomes.map((o) => o.stiffness), bar: true },
+                  { label: "Material", values: compareStrings.map((s) => materialLabel(s.material)) },
+                  { label: "Shape", values: compareStrings.map((s) => shapeLabel(s.shape)) },
+                  {
+                    label: "Gauges",
+                    values: compareStrings.map((s) => s.gaugesMm.map((g) => g.toFixed(2)).join(", ")),
+                  },
+                  {
+                    label: "Tension range",
+                    values: compareStrings.map((s) => `${s.tensionRangeLbs[0]}–${s.tensionRangeLbs[1]} lbs`),
+                  },
+                ],
+              },
+            ]}
+            onClose={() => setCompareOpen(false)}
+            onRemove={toggleCompare}
+            onSave={(id) => {
+              const s = byId.get(id);
+              if (s) save(s);
+            }}
+          />
+        </Portal>
+      ) : null}
+
+      {filtersOpen ? (
+        <MobileSheet
+          label="Filters"
+          onClose={() => setFiltersOpen(false)}
+          footer={
+            <button type="button" onClick={() => setFiltersOpen(false)} className="sf-btn sf-btn-primary w-full">
+              Show {filtered.length} strings
+            </button>
+          }
+        >
+          {filters}
+        </MobileSheet>
+      ) : null}
+
+      {detailOpen && detail ? (
+        <MobileSheet label="String details" onClose={() => setDetailOpen(false)}>
+          {detail}
+        </MobileSheet>
+      ) : null}
     </div>
   );
 }
 
-function CompareColumn({
-  label,
-  spin,
-  control,
-  power,
-  comfort,
-  durability,
-  stiffness,
-  tensionMaint,
-}: {
-  label: string;
-  spin: number;
-  control: number;
-  power: number;
-  comfort: number;
-  durability: number;
-  stiffness: number;
-  tensionMaint: number;
-}) {
-  return (
-    <div className="space-y-3 border-t border-[var(--line)] pt-3">
-      <p className="text-sm font-medium">{label}</p>
-      <ScoreMeter label="Spin" value={spin} accent="var(--chart-spin)" />
-      <ScoreMeter label="Control" value={control} />
-      <ScoreMeter label="Power" value={power} accent="var(--chart-power)" />
-      <ScoreMeter label="Comfort" value={comfort} accent="var(--chart-comfort)" />
-      <ScoreMeter label="Durability" value={durability} accent="var(--chart-power)" />
-      <ScoreMeter label="Stiffness" value={stiffness} accent="var(--muted)" />
-      <ScoreMeter label="Tension maint." value={tensionMaint} accent="var(--chart-comfort)" />
-    </div>
-  );
-}
+type DetailTab = "specs" | "tension" | "similar" | "bag";
 
-function StringCard({
-  string,
-  compact,
-  selected,
-  saved,
-  onSelect,
+function StringDetail({
+  string: s,
+  catalog,
+  bag,
+  bagScores,
+  inBag,
+  inCompare,
+  tension,
+  gauge,
+  onTension,
+  onGauge,
   onSave,
+  onToggleCompare,
+  onSelect,
 }: {
   string: StringProfile;
-  compact?: boolean;
-  selected: boolean;
-  saved: boolean;
-  onSelect: () => void;
+  catalog: StringProfile[];
+  bag: StringProfile | null;
+  bagScores: {
+    power: number | null;
+    spin: number | null;
+    control: number | null;
+    comfort: number | null;
+    tension: number | null;
+    gauge: number | null;
+  };
+  inBag: boolean;
+  inCompare: boolean;
+  tension: number;
+  gauge: number;
+  onTension: (v: number) => void;
+  onGauge: (g: number) => void;
   onSave: () => void;
+  onToggleCompare: () => void;
+  onSelect: (id: string) => void;
 }) {
+  const [tab, setTab] = useState<DetailTab>("specs");
+  const [copied, setCopied] = useState<string | null>(null);
+  const o = useMemo(() => tensionOutcome(s, tension, gauge), [s, tension, gauge]);
+  const intel = useMemo(() => analyzeString(s), [s]);
+  const similar = useMemo(() => findSimilarStrings(s, catalog, { limit: 6 }), [s, catalog]);
+  const bagO = useMemo(
+    () => (bag ? tensionOutcome(bag, bagScores.tension ?? bag.recommendedTensionLbs, bagScores.gauge ?? undefined) : null),
+    [bag, bagScores.tension, bagScores.gauge],
+  );
+  const [lo, hi] = s.tensionRangeLbs;
+  const showBag = bag != null && !inBag;
+  const tabs: { id: DetailTab; label: string }[] = [
+    { id: "specs", label: "Specs" },
+    { id: "tension", label: "Tension" },
+    { id: "similar", label: "Similar" },
+    ...(showBag ? [{ id: "bag" as const, label: "Vs your string" }] : []),
+  ];
+  const active = tabs.some((t) => t.id === tab) ? tab : "specs";
+  const setT = (v: number) => {
+    if (Number.isFinite(v)) onTension(Math.max(lo, Math.min(hi, Math.round(v * 2) / 2)));
+  };
+
   return (
-    <ProductCard
-      image={stringImageUrl(string)}
-      alt={equipmentLabel(string.brand, string.name)}
-      brand={string.brand}
-      name={modelWithoutBrand(string.brand, string.name)}
-      badge={stringMaterialShortLabel(string.material)}
-      meta={stringShapeShortLabel(string.shape)}
-      accent={brandAccent(string.brand)}
-      scores={[
-        { label: "Spin", value: string.spin, color: "var(--chart-spin)" },
-        { label: "Power", value: string.power, color: "var(--chart-power)" },
-        { label: "Control", value: string.control, color: "var(--chart-control)" },
-      ]}
-      saved={saved}
-      selected={selected}
-      onSelect={onSelect}
-      onSave={onSave}
-      compact={compact}
-    />
+    <article className="flex flex-col" aria-label={`${s.brand} ${s.name}`}>
+      <div className="flex gap-4">
+        <div className="sf-thumb-well flex h-28 w-28 shrink-0 items-center justify-center rounded-[var(--radius)]">
+          <GearImg src={stringImageUrl(s)} className="h-24 w-24 object-contain" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="sf-spec-label">
+            {s.brand} · {materialLabel(s.material)}
+          </p>
+          <h2 className="mt-1 text-[1.4rem] leading-tight font-semibold tracking-[-0.025em]">{s.name}</h2>
+          <p className="mt-1.5 text-[13px] text-[var(--muted)]">{s.feel}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={onSave}
+              className={`sf-btn !min-h-9 !px-3 !text-[13px] ${inBag ? "sf-btn-secondary" : "sf-btn-primary"}`}
+            >
+              {inBag ? "✓ In your bag" : "Add to bag"}
+            </button>
+            <button
+              type="button"
+              onClick={onToggleCompare}
+              aria-pressed={inCompare}
+              className="sf-btn sf-btn-secondary !min-h-9 !px-3 !text-[13px]"
+            >
+              {inCompare ? "✓ Comparing" : "Compare"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 space-y-3 rounded-[var(--radius)] border border-[var(--line)] bg-[var(--bg-sunken)] p-3">
+        {s.gaugesMm.length > 0 ? (
+          <div className="flex items-center justify-between gap-3">
+            <span className="sf-spec-label">Gauge</span>
+            <div className="sf-segmented" role="radiogroup" aria-label="Gauge">
+              {s.gaugesMm.map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  role="radio"
+                  aria-checked={g === gauge}
+                  onClick={() => onGauge(g)}
+                  className="sf-readout !px-2"
+                  title={gaugeLabel(g)}
+                >
+                  {g.toFixed(2)}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+        <div>
+          <div className="flex items-center justify-between gap-3">
+            <span className="sf-spec-label">Tension</span>
+            <span className="flex items-center gap-1.5">
+              <input
+                type="number"
+                min={lo}
+                max={hi}
+                step={0.5}
+                value={tension}
+                onChange={(e) => setT(parseFloat(e.target.value))}
+                className="sf-input sf-readout !h-8 !min-h-8 w-[4.5rem] !px-2 text-right !text-[13px]"
+                aria-label="Tension in pounds"
+              />
+              <span className="text-[12px] text-[var(--muted)]">lbs</span>
+            </span>
+          </div>
+          <input
+            type="range"
+            min={lo}
+            max={hi}
+            step={0.5}
+            value={tension}
+            onChange={(e) => setT(parseFloat(e.target.value))}
+            className="mt-2 w-full accent-[var(--accent)]"
+            aria-label="Tension slider"
+          />
+          <div className="flex justify-between font-[family-name:var(--font-mono)] text-[10.5px] text-[var(--muted)]">
+            <span>{lo}</span>
+            <span>suggested {s.recommendedTensionLbs}</span>
+            <span>{hi}</span>
+          </div>
+        </div>
+      </div>
+
+      <DetailTabs tabs={tabs} active={active} onChange={setTab} label="String details" />
+
+      <div className="pt-4" role="tabpanel">
+        {active === "specs" ? (
+          <div className="space-y-5">
+            <div>
+              <p className="sf-spec-label">
+                At {tension} lbs · {gauge.toFixed(2)} mm
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3">
+                <Bar label="Power" value={o.power} />
+                <Bar label="Spin" value={o.spin} />
+                <Bar label="Control" value={o.control} />
+                <Bar label="Comfort" value={o.comfort} />
+                <Bar label="Durability" value={o.durability} />
+                <Bar label="Holds tension" value={s.tensionMaintenance} />
+                <Bar label="Stiffness" value={o.stiffness} hint="Higher feels firmer and more direct" />
+              </div>
+            </div>
+            <SpecList
+              rows={[
+                ["Material", materialLabel(s.material)],
+                ["Shape", shapeLabel(s.shape)],
+                [
+                  "Gauges",
+                  <span key="g" className="sf-readout">
+                    {s.gaugesMm.map((g) => `${g.toFixed(2)} (${gaugeLabel(g)})`).join(", ")}
+                  </span>,
+                ],
+                [
+                  "Tension",
+                  <span key="t" className="sf-readout">
+                    {lo}–{hi} lbs · suggested {s.recommendedTensionLbs}
+                  </span>,
+                ],
+                ["Type", intel.familyRole],
+                ["Best for", s.bestFor],
+                ["Frame match", intel.bestFrameMatch],
+              ]}
+            />
+            {s.notes ? <p className="text-[13px] leading-relaxed text-[var(--muted)]">{s.notes}</p> : null}
+          </div>
+        ) : null}
+
+        {active === "tension" ? (
+          <div className="space-y-4">
+            <TensionChart string={s} tension={tension} gaugeMm={gauge} />
+            <p className="-mt-1 text-[11.5px] text-[var(--muted)]">
+              <span className="text-[var(--accent)]">Blue line</span>: your tension. Dotted: suggested. Drag the
+              slider above to move it.
+            </p>
+            <dl className="grid grid-cols-4 gap-px overflow-hidden rounded-[var(--radius)] border border-[var(--line)] bg-[var(--line)]">
+              {(
+                [
+                  ["Power", o.power],
+                  ["Spin", o.spin],
+                  ["Control", o.control],
+                  ["Comfort", o.comfort],
+                ] as const
+              ).map(([k, v]) => (
+                <div key={k} className="bg-[var(--panel)] px-2.5 py-2">
+                  <dt className="sf-spec-label">{k}</dt>
+                  <dd className="sf-readout mt-1 text-[15px]">{v}</dd>
+                </div>
+              ))}
+            </dl>
+            <ul className="space-y-1.5 text-[13px] leading-relaxed">
+              <li>{o.dwellHint}</li>
+              <li className="text-[var(--muted)]">{o.launchHint}</li>
+              <li className="text-[var(--muted)]">{o.gaugeHint}</li>
+            </ul>
+          </div>
+        ) : null}
+
+        {active === "similar" ? (
+          similar.length === 0 ? (
+            <p className="text-[13px] text-[var(--muted)]">Nothing in the catalog plays close to this one.</p>
+          ) : (
+            <ul className="divide-y divide-[var(--line)] border-y border-[var(--line)]">
+              {similar.map((a) => (
+                <li key={a.string.id} className="flex items-center gap-3 py-2">
+                  <button
+                    type="button"
+                    onClick={() => onSelect(a.string.id)}
+                    className="flex min-w-0 flex-1 items-center gap-3 text-left hover:text-[var(--accent)]"
+                  >
+                    <span className="sf-readout w-8 shrink-0 text-[13px]">{a.score}%</span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-[13.5px] font-medium">{a.string.name}</span>
+                      <span className="block truncate text-[12px] text-[var(--muted)]">
+                        {a.string.brand} · {a.why}
+                      </span>
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void navigator.clipboard?.writeText(a.shopQuery);
+                      setCopied(a.string.id);
+                    }}
+                    className="shrink-0 text-[12px] text-[var(--muted)] hover:text-[var(--foreground)]"
+                  >
+                    {copied === a.string.id ? "Copied" : "Copy name"}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )
+        ) : null}
+
+        {active === "bag" && bag ? (
+          <div className="space-y-2">
+            <p className="text-[12.5px] text-[var(--muted)]">
+              Against {bag.brand} {bag.name}
+              {bagScores.tension != null ? ` at ${bagScores.tension} lbs` : ""}.
+            </p>
+            <DeltaTable
+              rows={[
+                { label: "Power", yours: bagScores.power ?? bagO?.power ?? null, mine: o.power },
+                { label: "Spin", yours: bagScores.spin ?? bagO?.spin ?? null, mine: o.spin },
+                { label: "Control", yours: bagScores.control ?? bagO?.control ?? null, mine: o.control },
+                { label: "Comfort", yours: bagScores.comfort ?? bagO?.comfort ?? null, mine: o.comfort },
+                { label: "Durability", yours: bagO?.durability ?? null, mine: o.durability },
+                { label: "Holds tension", yours: bag.tensionMaintenance, mine: s.tensionMaintenance },
+                { label: "Tension", yours: bagScores.tension, mine: tension, unit: "lbs", digits: 1 },
+                { label: "Gauge", yours: bagScores.gauge, mine: gauge, unit: "mm", digits: 2 },
+              ]}
+            />
+          </div>
+        ) : null}
+      </div>
+    </article>
   );
 }

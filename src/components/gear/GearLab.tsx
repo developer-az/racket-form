@@ -14,36 +14,31 @@ import { LeadTapeLab } from "./LeadTapeLab";
 import { AccountabilityStrip } from "./AccountabilityStrip";
 import { SetupFinder } from "./SetupFinder";
 
-const TABS: { id: EquipmentTab; label: string; short: string; blurb: string }[] = [
+const TABS: { id: EquipmentTab; label: string; short: string }[] = [
   {
     id: "overview",
     label: "My setup",
     short: "Setup",
-    blurb: "How your racket, string and grip play together — and what to tweak.",
   },
   {
     id: "rackets",
     label: "Rackets",
     short: "Frames",
-    blurb: "675 current frames. Filter by feel, compare to your bag, add in one tap.",
   },
   {
     id: "strings",
     label: "Strings",
     short: "Strings",
-    blurb: "Poly, multifilament and gut. Tension and gauge sliders update the scores live.",
   },
   {
     id: "grips",
     label: "Grips",
     short: "Grips",
-    blurb: "Overgrips and replacement grips compared on tack, cushion and sweat.",
   },
   {
     id: "lead-tape",
     label: "Lead tape",
     short: "Tape",
-    blurb: "Add weight to your frame and see stability and swingweight change.",
   },
 ];
 
@@ -89,14 +84,11 @@ export function GearLab({
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
-  const activeBlurb = TABS.find((t) => t.id === tab)?.blurb;
   const finderParam = searchParams.get("finder") === "1";
-  const [finderOpen, setFinderOpen] = useState(false);
   const [resaved, setResaved] = useState(false);
-  // The setup tab already shows the finder when the bag is empty
-  const showFinder = (finderOpen || finderParam) && !(tab === "overview" && !hasSetup);
+  // Guided quick start is opt-in only (?finder=1); the tool itself is the default
+  const showFinder = finderParam;
   const closeFinder = () => {
-    setFinderOpen(false);
     setResaved(true);
     selectTab("overview", { finder: null });
     requestAnimationFrame(() =>
@@ -105,28 +97,17 @@ export function GearLab({
   };
 
   return (
-    <div className="sf-page">
-      <header className="mb-5 flex flex-wrap items-end justify-between gap-4 border-b border-[var(--line)] pb-5 md:mb-6">
-        <div>
-          <p className="sf-kicker">Gear lab</p>
-          <h1 className="sf-page-title mt-1">
-            Find gear that fits your game
-          </h1>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--muted)]">
-            Answer four questions for a complete starting bag, or browse every frame, string and
-            grip. Either way you see how the whole setup plays, calculated from real specs.
+    <div className="sf-page sf-page-wide">
+      <header className="mb-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 md:mb-5">
+        <div className="min-w-0">
+          <h1 className="sf-page-title">Gear</h1>
+          <p className="mt-1 text-[13px] text-[var(--muted)]">
+            <span className="sf-readout text-[var(--foreground)]">{rackets.length}</span> frames ·{" "}
+            <span className="sf-readout text-[var(--foreground)]">{strings.length}</span> strings ·{" "}
+            <span className="sf-readout text-[var(--foreground)]">{grips.length}</span> grips, with measured specs
           </p>
-          {hasSetup ? (
-            <button
-              type="button"
-              onClick={() => setFinderOpen(true)}
-              className="sf-btn sf-btn-secondary mt-4 text-xs"
-            >
-              Find my setup again
-            </button>
-          ) : null}
         </div>
-        <MySetupBar onSelectTab={selectTab} />
+        {hasSetup ? <MySetupBar onSelectTab={selectTab} /> : null}
       </header>
 
       <AccountabilityStrip />
@@ -139,7 +120,6 @@ export function GearLab({
             grips={grips}
             onSaved={closeFinder}
             onBrowse={() => {
-              setFinderOpen(false);
               selectTab("rackets", { finder: null });
             }}
           />
@@ -184,11 +164,6 @@ export function GearLab({
             );
           })}
         </div>
-        {activeBlurb ? (
-          <p className="max-w-3xl pb-3 pt-1 text-xs leading-relaxed text-[var(--muted)] md:pb-0">
-            {activeBlurb}
-          </p>
-        ) : null}
       </div>
 
       <div className="relative z-10 mt-4 md:mt-6">

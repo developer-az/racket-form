@@ -5,10 +5,10 @@ import type { FlightMetrics } from "@/lib/equipment/setupSynthesis";
 import { healthyBandsFor, type ScoreKey } from "@/lib/equipment/inBandImprove";
 
 const AXES: { key: ScoreKey; label: string; colorVar: string }[] = [
-  { key: "power", label: "Power", colorVar: "var(--chart-power)" },
-  { key: "spin", label: "Spin", colorVar: "var(--chart-spin)" },
-  { key: "control", label: "Control", colorVar: "var(--chart-control)" },
-  { key: "comfort", label: "Comfort", colorVar: "var(--chart-comfort)" },
+  { key: "power", label: "Power", colorVar: "var(--accent)" },
+  { key: "spin", label: "Spin", colorVar: "var(--accent)" },
+  { key: "control", label: "Control", colorVar: "var(--accent)" },
+  { key: "comfort", label: "Comfort", colorVar: "var(--accent)" },
 ];
 
 type ScoreBag = Record<ScoreKey, number | null>;
@@ -35,7 +35,7 @@ export function SetupStatsChart({
         Your numbers
       </h2>
       <p className="mt-1 max-w-xl text-xs text-[var(--muted)]">
-        Healthy band for {role || "this mold"} · needle = molded · tick = stock.
+        Healthy band for {role || "this setup"} · marker = your setup · tick = stock frame.
       </p>
 
       {!hasScores ? (
@@ -112,11 +112,11 @@ export function SetupStatsChart({
 
           <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1 text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">
             <span className="inline-flex items-center gap-1.5">
-              <span className="inline-block h-2 w-6 rounded-sm bg-[var(--chart-control)] opacity-40" />
+              <span className="inline-block h-2 w-6 rounded-sm bg-[var(--accent)] opacity-40" />
               Healthy band
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="inline-block h-3 w-1.5 rounded-sm bg-[var(--chart-control)]" />
+              <span className="inline-block h-3 w-1.5 rounded-sm bg-[var(--accent)]" />
               Molded
             </span>
             <span className="inline-flex items-center gap-1.5">
@@ -129,9 +129,9 @@ export function SetupStatsChart({
             <div className="grid grid-cols-2 gap-2 border-t border-[var(--line)] pt-4 sm:grid-cols-4">
               {(
                 [
-                  ["Plow", flight.plow, "var(--chart-comfort)"],
-                  ["Topspin", flight.topspin, "var(--chart-spin)"],
-                  ["Depth", flight.depth, "var(--chart-power)"],
+                  ["Stability", flight.plow, "var(--foreground)"],
+                  ["Topspin", flight.topspin, "var(--foreground)"],
+                  ["Depth", flight.depth, "var(--foreground)"],
                   ["Fly risk", flight.flyRisk, "var(--foreground)"],
                 ] as const
               ).map(([label, v, color]) => (

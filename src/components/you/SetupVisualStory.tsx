@@ -97,7 +97,7 @@ export function SetupVisualStory({
       {/* 0 — one readout for the whole story */}
       <section className="sf-panel p-4 md:p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <p className="sf-kicker">This mold at a glance</p>
+          <p className="sf-kicker">This setup at a glance</p>
           {previewing ? (
             <span className="sf-kicker sf-kicker-amber">
               Preview bed
@@ -106,7 +106,7 @@ export function SetupVisualStory({
         </div>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <Readout
-            label="Leave"
+            label="Launch"
             value={launchDeg != null ? `${launchDeg.toFixed(1)}°` : "—"}
             hint="off the strings"
           />
@@ -136,10 +136,10 @@ export function SetupVisualStory({
           <div className="mt-4 border-t border-[var(--line)] pt-3">
             <p className="sf-label">Mold contributions</p>
             <p className="mt-1.5 text-xs tabular-nums leading-relaxed text-[var(--muted)]">
-              Leave — string {fmtSigned(moldDeltas.stringLaunch)}° · grip{" "}
+              Launch: string {fmtSigned(moldDeltas.stringLaunch)}° · grip{" "}
               {fmtSigned(moldDeltas.gripLaunch)}° · tape {fmtSigned(moldDeltas.tapeLaunch)}°
               <br />
-              Path — string {fmtSigned(moldDeltas.stringPath)}° · tape {fmtSigned(moldDeltas.tapePath)}°
+              Path: string {fmtSigned(moldDeltas.stringPath)}° · tape {fmtSigned(moldDeltas.tapePath)}°
               {scoreDeltas ? (
                 <>
                   <br />
@@ -186,7 +186,7 @@ export function SetupVisualStory({
               <FaceAngleAtContactVisual advice={forehand} compact />
             ) : (
               <p className="text-sm text-[var(--muted)]">
-                Save a frame to unlock face-angle coaching for this mold.
+                Save a frame to unlock face-angle coaching for this setup.
               </p>
             )}
           </div>
@@ -199,7 +199,7 @@ export function SetupVisualStory({
           <SectionHead
             step="02"
             title="Flight"
-            blurb="Same numbers as above: leave angle from the strings, clearance over a 3.0 ft net — includes lead tape mass."
+            blurb="Same numbers as above: launch angle from the strings, clearance over a 3.0 ft net — includes lead tape mass."
           />
           <div className="mt-4 space-y-4">
             <SetupFlightCanvas
@@ -211,9 +211,9 @@ export function SetupVisualStory({
               faceClosedDeg={closed}
             />
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <MetricChip label="Plow" value={flight.plow} color="var(--chart-comfort)" />
-              <MetricChip label="Topspin" value={flight.topspin} color="var(--chart-spin)" />
-              <MetricChip label="Depth" value={flight.depth} color="var(--chart-power)" />
+              <MetricChip label="Stability" value={flight.plow} color="var(--foreground)" />
+              <MetricChip label="Topspin" value={flight.topspin} color="var(--foreground)" />
+              <MetricChip label="Depth" value={flight.depth} color="var(--foreground)" />
               <MetricChip label="Fly risk" value={flight.flyRisk} color="var(--foreground)" />
             </div>
             <LaunchAngleVisual
