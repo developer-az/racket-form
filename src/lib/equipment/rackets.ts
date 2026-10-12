@@ -1,5 +1,6 @@
 import type { RacketProfile, RacketCatalogMeta } from "@/types/equipment";
 import snapshot from "@/data/equipment/rackets.snapshot.json";
+import { externalRacketImage } from "@/lib/equipment/media/externalImages";
 import { applySpecPhysics, computeFrameSpecPhysics, parseExpertScores } from "@/lib/equipment/playability";
 
 const RACQIX_URL = "https://www.racqix.com/api/racquets?mode=minimal";
@@ -76,9 +77,25 @@ export function resolveDisplayModel(slug: string, model: string): string {
   const slugRicher = slugCompact.length >= modelCompact.length + 3;
 
   if (!cleaned || lineOnly || slugRicher) {
-    return fromSlug || cleaned || slug;
+    return tidyModelName(fromSlug || cleaned || slug);
   }
-  return cleaned;
+  return tidyModelName(cleaned);
+}
+
+const UPPER_TOKENS = new Set(["ul", "uls", "atp", "iii", "ii", "ps", "rf", "sl", "lt", "rs", "cs", "vs", "tf", "fs", "nt", "sw", "xx", "mp", "ls", "os"]);
+
+/**
+ * Undo slug-style casing the catalog ingest leaves behind:
+ * "Blade 98 V9 0" → "Blade 98 V9.0", "100ul" → "100UL", "Uls" → "ULS".
+ * Weights like "300g" keep their lower-case unit.
+ */
+export function tidyModelName(model: string): string {
+  return model
+    .replace(/\b([Vv])(\d+) (\d)\b/g, "V$2.$3")
+    .replace(/\b(\d+)([a-z]{1,3})\b/g, (m, n: string, suf: string) => (suf === "g" ? m : n + suf.toUpperCase()))
+    .split(" ")
+    .map((w) => (UPPER_TOKENS.has(w.toLowerCase()) ? w.toUpperCase() : w))
+    .join(" ");
 }
 
 function yearOf(r: RacqixRow): number {
@@ -153,7 +170,18 @@ export function snapshotRackets(): { rackets: RacketProfile[]; meta: RacketCatal
   };
 }
 
+function withPhotoFlag(r: RacketProfile): RacketProfile {
+  return { ...r, hasPhoto: externalRacketImage(r.slug) != null };
+}
+
 export async function loadRackets(opts?: {
+  signal?: AbortSignal;
+}): Promise<{ rackets: RacketProfile[]; meta: RacketCatalogMeta }> {
+  const out = await loadRacketsRaw(opts);
+  return { ...out, rackets: out.rackets.map(withPhotoFlag) };
+}
+
+async function loadRacketsRaw(opts?: {
   signal?: AbortSignal;
 }): Promise<{ rackets: RacketProfile[]; meta: RacketCatalogMeta }> {
   try {

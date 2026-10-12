@@ -1,6 +1,8 @@
 "use client";
 
-/** Product photo via media API (TW redirect) or SVG portrait. */
+import { GearImg } from "@/components/gear/explorer/GearImg";
+
+/** Product photo via media API (TW redirect), or a neutral well when there is none. */
 export function EquipmentThumb({
   src,
   alt,
@@ -23,24 +25,7 @@ export function EquipmentThumb({
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,color-mix(in_srgb,var(--foreground)_8%,transparent),transparent_58%)]"
         aria-hidden
       />
-      {/* eslint-disable-next-line @next/next/no-img-element -- mixed TW JPEG redirects + SVG */}
-      <img
-        src={src}
-        alt={alt}
-        width={size === "lg" ? 144 : size === "md" ? 80 : 56}
-        height={size === "lg" ? 192 : size === "md" ? 112 : 72}
-        loading="lazy"
-        decoding="async"
-        className={`relative z-[1] ${dim} object-contain object-center`}
-        onError={(e) => {
-          const img = e.currentTarget;
-          if (img.dataset.fallback === "1") return;
-          if (src.includes("/api/equipment/") && !src.includes("format=svg")) {
-            img.dataset.fallback = "1";
-            img.src = `${src}${src.includes("?") ? "&" : "?"}format=svg`;
-          }
-        }}
-      />
+      <GearImg src={src} alt={alt} className={`relative z-[1] ${dim} object-contain object-center`} />
     </span>
   );
 }

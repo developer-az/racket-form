@@ -1,6 +1,7 @@
 "use client";
 
 import { useDeferredValue, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type { EquipmentTab, GripProfile } from "@/types/equipment";
 import { matchesEquipmentSearch, searchMatchScore } from "@/lib/equipment/search";
 import { gripImageUrl } from "@/lib/equipment/media/urls";
@@ -93,15 +94,25 @@ export function GripExplorer({
     [dists],
   );
 
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [brands, setBrands] = useState<Set<string>>(new Set());
   const [textures, setTextures] = useState<Set<string>>(new Set());
   const [kind, setKind] = useState<Kind>("all");
   const [ranges, setRanges] = useState<Ranges>(full);
   const [sort, setSort] = useState<SortState<SortKey>>({ key: "name", dir: 1 });
-  const [selectedId, setSelectedId] = useState<string | null>(
-    () => layers[layers.length - 1]?.id ?? setup.gripId ?? null,
-  );
+  const [selectedId, setSelectedId] = useState<string | null>(() => {
+    const linked = searchParams.get("item");
+    if (linked && grips.some((g) => g.id === linked)) return linked;
+    return layers[layers.length - 1]?.id ?? setup.gripId ?? null;
+  });
+  // Follow ?item= deep links (search palette) when the URL changes after mount
+  const itemParam = searchParams.get("item");
+  const [lastItemParam, setLastItemParam] = useState(itemParam);
+  if (lastItemParam !== itemParam) {
+    setLastItemParam(itemParam);
+    if (itemParam && grips.some((x) => x.id === itemParam)) setSelectedId(itemParam);
+  }
   const [compare, setCompare] = useState<string[]>([]);
   const [compareOpen, setCompareOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);

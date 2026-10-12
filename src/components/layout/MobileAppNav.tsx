@@ -4,9 +4,10 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PRIMARY_NAV } from "@/lib/nav";
+import { NavIcon } from "./NavIcons";
 
 function showOnPath(pathname: string): boolean {
-  return PRIMARY_NAV.some((l) => l.match(pathname));
+  return pathname === "/" || PRIMARY_NAV.some((l) => l.match(pathname));
 }
 
 export function MobileAppNav() {
@@ -33,7 +34,8 @@ export function MobileAppNav() {
             aria-current={active ? "page" : undefined}
             className="sf-app-nav-link"
           >
-            {link.label}
+            <NavIcon name={link.icon} className="h-5 w-5" />
+            <span>{link.shortLabel}</span>
           </Link>
         );
       })}

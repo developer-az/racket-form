@@ -139,8 +139,32 @@ export interface PendingLeverChange {
   lockedUntilLogged: boolean;
 }
 
+export type PlayStyle =
+  | "baseliner"
+  | "aggressive-baseliner"
+  | "counterpuncher"
+  | "all-court"
+  | "serve-volley";
+
+/** Who you are on court. Every field is optional; older saved profiles have none of it. */
+export interface PlayerIdentity {
+  dominantHand: "right" | "left" | null;
+  heightCm: number | null;
+  /** NTRP rating, 1.5–7.0 in 0.5 steps */
+  ntrp: number | null;
+  playStyle: PlayStyle | null;
+  playingSince: number | null;
+  /** Pro whose game you model yours on — links to their Form Lab model */
+  modelPlayerId: string | null;
+}
+
+export function emptyIdentity(): PlayerIdentity {
+  return { dominantHand: null, heightCm: null, ntrp: null, playStyle: null, playingSince: null, modelPlayerId: null };
+}
+
 export interface PlayerProfile {
   displayName: string;
+  identity?: PlayerIdentity;
   grips: PlayerGrips;
   constraints: BodyConstraint[];
   preferences: PlayerPreferences;

@@ -13,20 +13,28 @@ const ACCESSORY_CODE = /(BG|GROM|BUMP|OGRIP)$/i;
 
 /** Ids whose TW cache title is known wrong — prefer SVG portrait. */
 const STRING_PHOTO_BLOCKLIST = new Set([
-  "prince-synthetic-gut-with-duraflex", // ProBlend, not Syn Gut Duraflex
-  "wilson-synthetic-gut-power-16", // Duo Power hybrid pack
   "grapplesnake-tour-malin-125", // Tour Mako, not Tour Malin
-  "babolat-pro-hurricane-tour-125", // RPM Hurricane, not Pro Hurricane Tour
-  "solinco-confidential-125", // Confidential Soft variant
 ]);
 
 const GRIP_PHOTO_BLOCKLIST = new Set([
-  "yonex-super-grap", // Dry Super Grap photo keyed onto Super Grap
   "wilson-pro-hybrid-replacement", // Shock Shield, not Pro Hybrid
   "tecnifibre-contact-replacement", // X-Tra Feel, not Contact
   "volkl-velo", // Pro Perf, not Velo
-  "gamma-honeycomb", // Leather, not Honeycomb
 ]);
+
+/**
+ * Racket slugs whose cached photo shows a different line (not just a different
+ * year of the same frame). A spec tile is more honest than the wrong racket.
+ */
+const RACKET_PHOTO_BLOCKLIST = [
+  /^prince-phantom-(?!100x)/, // all keyed to the Phantom 100X
+  /^prince-phantom-o3-/,
+  /^prince-textreme-beast/, // keyed to Textreme Tour 100
+  /^prince-textreme-o3-/,
+  /^yonex-vcore-pro-97/, // keyed to VCORE 100L
+  /^babolat-boost-(?!aero|a-)/, // Boost D / S keyed to Boost Aero
+  /^wilson-kpro-open/, // Clash 100 US Open photo
+];
 
 /** Reject TW accessory pages that were mis-keyed onto racket slugs. */
 function isRacketPhoto(entry: CacheEntry | undefined): entry is CacheEntry {
@@ -45,6 +53,7 @@ function hasPhoto(entry: CacheEntry | undefined): entry is CacheEntry {
 
 /** Tennis Warehouse (or curated) product photo when matched. */
 export function externalRacketImage(slug: string): string | null {
+  if (RACKET_PHOTO_BLOCKLIST.some((re) => re.test(slug))) return null;
   const entry = rackets[slug];
   return isRacketPhoto(entry) ? entry.imageUrl : null;
 }

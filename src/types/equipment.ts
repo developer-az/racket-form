@@ -34,6 +34,8 @@ export interface RacketProfile {
   style: RacketStyle;
   /** Optional curated photo; falls back to `/api/equipment/rackets/[slug]/image`. */
   imageUrl?: string | null;
+  /** False when no product photo is known; the UI shows a neutral well instead. */
+  hasPhoto?: boolean;
 }
 
 export type StringMaterial =

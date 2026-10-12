@@ -136,7 +136,7 @@ export function RacketExplorer({
     key: "newest",
     dir: -1,
   });
-  const [view, setView] = useState<"list" | "map">("list");
+  const [view, setView] = useState<"grid" | "list" | "map">("grid");
   const [axes, setAxes] = useState<{ x: AxisKey; y: AxisKey }>({
     x: "weightG",
     y: "balanceMm",
@@ -217,6 +217,8 @@ export function RacketExplorer({
         return Number.isNaN(va) ? 1 : -1;
       return (
         (va - vb) * sort.dir ||
+        // Ties: frames with a product photo first
+        Number(b.hasPhoto !== false) - Number(a.hasPhoto !== false) ||
         a.brand.localeCompare(b.brand) ||
         a.model.localeCompare(b.model)
       );
@@ -475,18 +477,27 @@ export function RacketExplorer({
               Filters{activeFilterCount ? ` (${activeFilterCount})` : ""}
             </button>
           </div>
+          <div className="hidden sm:block">
           <div
-            className="sf-segmented hidden sm:inline-flex"
+            className="sf-segmented"
             role="radiogroup"
             aria-label="View"
           >
             <button
               type="button"
               role="radio"
+              aria-checked={view === "grid"}
+              onClick={() => setView("grid")}
+            >
+              Cards
+            </button>
+            <button
+              type="button"
+              role="radio"
               aria-checked={view === "list"}
               onClick={() => setView("list")}
             >
-              List
+              Table
             </button>
             <button
               type="button"
@@ -496,6 +507,7 @@ export function RacketExplorer({
             >
               Map
             </button>
+          </div>
           </div>
         </div>
 
@@ -585,6 +597,65 @@ export function RacketExplorer({
               compareSlugs={compare}
               onSelect={select}
             />
+          </div>
+        ) : view === "grid" ? (
+          <div className="sf-rgrid mt-3" role="list" aria-label="Racket results">
+            {filtered.slice(0, limit).map((r) => {
+              const isSel = r.slug === selected?.slug;
+              const inCmp = compare.includes(r.slug);
+              const chips = [
+                r.weightG != null ? `${r.weightG} g` : null,
+                r.headSizeSqIn != null ? `${r.headSizeSqIn} in²` : null,
+                r.stringPattern ? r.stringPattern.replace("x", "×") : null,
+                r.stiffnessRa != null ? `${r.stiffnessRa} RA` : null,
+              ].filter(Boolean);
+              return (
+                <div key={r.slug} role="listitem" className="sf-rcard" data-selected={isSel}>
+                  <button
+                    type="button"
+                    className="sf-rcard-hit"
+                    onClick={() => select(r.slug)}
+                    aria-label={`${r.brand} ${r.model}, ${r.year}`}
+                  />
+                  <div className="sf-rcard-photo">
+                    <RacketImg racket={r} className="h-full w-full object-contain" />
+                  </div>
+                  <div className="sf-rcard-body">
+                    <p className="sf-spec-label truncate">
+                      {r.brand} · {r.year}
+                    </p>
+                    <p className="mt-1 line-clamp-2 text-[14px] leading-snug font-medium">{r.model}</p>
+                    <p className="sf-readout mt-1.5 truncate text-[12px] text-[var(--muted)]">
+                      {extraCol ? `${SORTS.find((x) => x.id === extraCol)?.label} ${sortValue(r, extraCol)} · ` : ""}
+                      {chips.join(" · ")}
+                    </p>
+                  </div>
+                  {r.slug === bagSlug ? <span className="sf-rcard-badge">In bag</span> : null}
+                  <label className="sf-rcard-compare" title="Compare">
+                    <input
+                      type="checkbox"
+                      className="sf-check !h-3.5 !w-3.5"
+                      checked={inCmp}
+                      onChange={() => toggleCompare(r.slug)}
+                      aria-label={`Compare ${r.brand} ${r.model}`}
+                    />
+                  </label>
+                </div>
+              );
+            })}
+            {filtered.length === 0 ? (
+              <div className="col-span-full px-4 py-12 text-center">
+                <p className="text-[14px] font-medium">No frames match</p>
+                <p className="mt-1 text-[13px] text-[var(--muted)]">Widen a range or clear a filter.</p>
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="sf-btn sf-btn-secondary mt-4 !min-h-9 !text-[13px]"
+                >
+                  Reset filters
+                </button>
+              </div>
+            ) : null}
           </div>
         ) : (
           <div
@@ -722,7 +793,7 @@ export function RacketExplorer({
           </div>
         )}
 
-        {view === "list" && limit < filtered.length ? (
+        {view !== "map" && limit < filtered.length ? (
           <button
             type="button"
             onClick={() => setLimit((l) => l + PAGE)}
