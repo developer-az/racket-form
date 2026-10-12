@@ -4,6 +4,7 @@ import { externalRacketImage } from "@/lib/equipment/media/externalImages";
 import { applySpecPhysics, computeFrameSpecPhysics, parseExpertScores } from "@/lib/equipment/playability";
 
 const RACQIX_URL = "https://www.racqix.com/api/racquets?mode=minimal";
+const RACQIX_TIMEOUT_MS = 8000;
 
 type RacqixRow = {
   slug: string;
@@ -185,8 +186,11 @@ async function loadRacketsRaw(opts?: {
   signal?: AbortSignal;
 }): Promise<{ rackets: RacketProfile[]; meta: RacketCatalogMeta }> {
   try {
+    // A slow or hung Racqix response must not stall prerendering (the build
+    // times out a page after 60s); fall back to the bundled snapshot instead.
+    const timeout = AbortSignal.timeout(RACQIX_TIMEOUT_MS);
     const res = await fetch(RACQIX_URL, {
-      signal: opts?.signal,
+      signal: opts?.signal ? AbortSignal.any([opts.signal, timeout]) : timeout,
       next: { revalidate: 60 * 60 * 24 },
       headers: { Accept: "application/json" },
     });
