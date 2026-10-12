@@ -82,6 +82,76 @@ export interface StrokeProfile {
   oneHanded: boolean;
   metrics: StrokeMetrics;
   keyframes: PhaseKeyframe[];
+  /** Per-athlete technique parameters fed into the motion solver. */
+  style?: MotionStyle;
+  /** Published numbers for this athlete and stroke, each with provenance. */
+  published?: PublishedStat[];
+  /** Observable technique traits, tied to the phase where they show. */
+  quirks?: Quirk[];
+}
+
+/**
+ * Where a number comes from.
+ *  measured — ball tracking, radar or high-speed video, with a citation
+ *  reported — an official listing or credible secondary source (profile height, stringing)
+ *  modeled  — our estimate; no published value exists
+ */
+export type Provenance = "measured" | "reported" | "modeled";
+
+export interface Sourced<T = number> {
+  value: T;
+  status: Provenance;
+  /** Short citation shown on hover. */
+  source?: string;
+  note?: string;
+}
+
+export interface PublishedStat {
+  id: string;
+  label: string;
+  value: number;
+  unit: string;
+  status: Provenance;
+  source?: string;
+  /** Context, e.g. "Tour average 2,708 rpm" */
+  note?: string;
+}
+
+export interface Quirk {
+  text: string;
+  /** Phase where the quirk is visible in the animation. */
+  phase?: StrokePhase;
+  source?: string;
+}
+
+/**
+ * Technique parameters that change the solved motion. All optional; the
+ * archetype default is used when absent.
+ */
+export interface MotionStyle {
+  /** Groundstroke footwork at contact. */
+  stance?: "open" | "semiOpen" | "neutral";
+  /** Backswing size multiplier: 0.7 compact … 1.25 long. */
+  takeback?: number;
+  /** Groundstroke finish shape. */
+  finish?: "wrap" | "wiper" | "reverse" | "extend" | "high";
+  /** 0–1 extra leg load before the forward swing (pelvis drop), released as drive. */
+  legLoad?: number;
+  /** Serve: knee bend at the trophy, 0–1 (0.5 = archetype). */
+  trophyLoad?: number;
+}
+
+export interface AthleteSpec {
+  height: Sourced<number>;
+  mass: Sourced<number>;
+  /** Fingertip-to-fingertip arm span (m). */
+  armSpan: Sourced<number>;
+  racket: Sourced<string>;
+  strings?: Sourced<string>;
+  /** Grip per stroke, in plain words. */
+  grips: Partial<Record<StrokeType, Sourced<string>>>;
+  /** Extra facts that shape the motion (e.g. plays left, writes right). */
+  notes?: Sourced<string>[];
 }
 
 export interface Anthropometrics {
@@ -108,6 +178,7 @@ export interface PlayerProfile {
   color: string;
   accent: string;
   anthropometrics: Anthropometrics;
+  spec: AthleteSpec;
   strokes: Record<StrokeType, StrokeProfile>;
   biography: string;
 }

@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState, type RefObject } from "react";
+import { useRef, useState, type CSSProperties, type RefObject } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Line, Text } from "@react-three/drei";
+import { Html, Line } from "@react-three/drei";
 import * as THREE from "three";
 import type { SkeletonDriver } from "./BiomechanicalSkeleton";
 
@@ -109,17 +109,18 @@ export function AngleOverlays({
             depthTest={false}
           />
           {o.label && (
-            <Text
-              position={o.labelPos}
-              fontSize={0.06}
-              color={accent}
-              anchorX="center"
-              anchorY="bottom"
-              outlineWidth={0.008}
-              outlineColor="#0a0b0d"
-            >
-              {o.label}
-            </Text>
+            // Screen-space DOM label: always upright and readable from any
+            // camera, never mirrored for the left-handed pose, and uses the
+            // site's mono font (no runtime font fetch from a CDN)
+            <Html position={o.labelPos} center zIndexRange={[15, 0]} style={{ pointerEvents: "none" }}>
+              <span
+                className="sf-angle-label"
+                style={{ "--angle-accent": accent } as CSSProperties}
+                data-angle={o.id}
+              >
+                {o.label}
+              </span>
+            </Html>
           )}
         </group>
       ))}

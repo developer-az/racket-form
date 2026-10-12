@@ -16,7 +16,7 @@ function kf(
 }
 
 /**
- * Federer FH — unit turn → loop → lag → kinetic chain → contact out front → high finish.
+ * Federer FH, unit turn → loop → lag → kinetic chain → contact out front → high finish.
  */
 export const federerForehand: StrokeProfile = {
   type: "forehand",
@@ -42,12 +42,12 @@ export const federerForehand: StrokeProfile = {
       contactHeightCv: 4.1,
       timingSdMs: 12,
       pathReproducibility: 94,
-      signatureQuirk: "Late wrist lag with early hip clearance — creates whip without forced forearm",
+      signatureQuirk: "Late wrist lag with early hip clearance, creates whip without forced forearm",
     },
     researchNotes: [
       "Peak racket speed ~28 m/s at contact aligns with elite FH lab means (Elliott et al.).",
       "Lower spin than Nadal; flatter launch for penetrating depth on hard courts.",
-      "X-factor ~40–45° with minimal wasted vertical force — efficiency over raw RPM.",
+      "X-factor ~40–45° with minimal wasted vertical force, efficiency over raw RPM.",
       "Wrist stays laid back (extended) until late acceleration, then flexes through contact (lag → snap).",
     ],
     sources: [
@@ -64,14 +64,14 @@ export const federerForehand: StrokeProfile = {
       220,
       4.5,
       0,
-      "Unit turn: hips coil first — athletic load on the trail leg, not a sit",),
+      "Unit turn: hips coil first, athletic load on the trail leg, not a sit",),
     kf(
       "backswing",
       0.28,
       260,
       6.2,
       0,
-      "Loop backswing on the FH wing — tip up, wrist fully laid back (loaded)",),
+      "Loop backswing on the FH wing, tip up, wrist fully laid back (loaded)",),
     kf(
       "acceleration",
       0.48,
@@ -85,14 +85,14 @@ export const federerForehand: StrokeProfile = {
       40,
       28.4,
       2700,
-      "Contact out in front on the FH side — wrist releases through the ball",),
+      "Contact out in front on the FH side, wrist releases through the ball",),
     kf(
       "followThrough",
       0.82,
       280,
       14.0,
       2700,
-      "High finish over the opposite shoulder — face stays closed on the path",),
+      "High finish over the opposite shoulder, face stays closed on the path",),
     kf(
       "recovery",
       1,
@@ -103,7 +103,7 @@ export const federerForehand: StrokeProfile = {
   ],
 };
 
-/** Nadal FH — lefty mirror of heavy topspin pattern (western, steep path, wipe) */
+/** Nadal FH, lefty mirror of heavy topspin pattern (western, steep path, wipe) */
 export const nadalForehand: StrokeProfile = {
   type: "forehand",
   label: "Forehand (Heavy Topspin)",
@@ -113,11 +113,11 @@ export const nadalForehand: StrokeProfile = {
     peakRacketSpeedMs: 31.2,
     contactHeightM: 1.28,
     contactDepthM: 0.35,
-    avgSpinRpm: 3800,
+    avgSpinRpm: 3200,
     launchAngleDeg: 14.2,
     swingPathDeg: 48,
     impactDurationMs: 4.8,
-    grip: "western",
+    grip: "semiWestern",
     kineticChain: {
       sequence: ["legs", "hips", "trunk", "shoulder", "forearm", "wrist", "racket"],
       proximalDistalLagMs: 32,
@@ -128,59 +128,59 @@ export const nadalForehand: StrokeProfile = {
       contactHeightCv: 5.8,
       timingSdMs: 15,
       pathReproducibility: 91,
-      signatureQuirk: "Extreme low-to-high path with windshield-wiper forearm pronation after contact",
+      signatureQuirk: "Extreme low-to-high path, often finishing in a reverse (over the hitting shoulder) follow-through",
     },
     researchNotes: [
-      "Match-tracked FH spin commonly 3200–4000+ rpm — among highest on tour.",
-      "Western grip raises contact height and steepens swing plane vs eastern grips.",
-      "Prep tip climbs beside the skull via elevation (~85–95°) with elbow tucked (~55–70° abd) — compact, not wing-flared.",
+      "High-speed video analysis: about 3,200 rpm average, roughly 20% more than Federer (Yandell).",
+      "Strong semi-western grip held at the butt cap raises contact height and steepens the swing plane.",
+      "Prep tip climbs beside the skull via elevation (~85–95°) with elbow tucked (~55–70° abd), compact, not wing-flared.",
       "Greater vertical racket velocity component (~40–50% of resultant) vs Federer.",
       "Wrist lag is exaggerated: deep extension in the slot, then ulnar-deviation wipe after contact.",
     ],
     sources: [
-      "Choppin et al. / Hawk-Eye spin analyses (ATP).",
-      "Elliott & Reid — grip effects on swing plane.",
-      "ITF Advanced Coaching — topspin mechanics.",
-      "Reid et al. — FH shoulder kinematics (prep abd typically mid-range, not horizontal).",
+      "J. Yandell high-speed video spin analysis (Inside Tennis).",
+      "Elliott & Reid, grip effects on swing plane.",
+      "ITF Advanced Coaching, topspin mechanics.",
+      "Reid et al., FH shoulder kinematics (prep abd typically mid-range, not horizontal).",
     ],
   },
   keyframes: [
-    kf("ready", 0, 180, 2.0, 0, "Wide base — western grip, tip already lively above the wrists"),
+    kf("ready", 0, 180, 2.0, 0, "Wide base, western grip, tip already lively above the wrists"),
     kf(
       "unitTurn",
       0.1,
       200,
       4.0,
       0,
-      "Unit turn — tip rising beside the head, elbow tucked (tour ~55–70° abd)",),
+      "Unit turn, tip rising beside the head, elbow tucked (tour ~55–70° abd)",),
     kf(
       "backswing",
       0.26,
       280,
       5.5,
       0,
-      "Racket tip at the head — western height with a compact elbow, full wrist lag",),
+      "Racket tip at the head, western height with a compact elbow, full wrist lag",),
     kf(
       "acceleration",
       0.48,
       150,
       24.5,
       0,
-      "Explosive uncoil — hips fire while shoulders and wrist stay lagged",),
+      "Explosive uncoil, hips fire while shoulders and wrist stay lagged",),
     kf(
       "contact",
       0.6,
       45,
       31.2,
       3800,
-      "Steep ascending brush — high contact, face closed for RPM",),
+      "Steep ascending brush, high contact, face closed for RPM",),
     kf(
       "followThrough",
       0.8,
       300,
       16.0,
       3800,
-      "Windshield-wiper finish — face stays closed through the wipe",),
+      "Reverse finish: the racket whips up over the hitting shoulder, face closed",),
     kf(
       "recovery",
       1,
@@ -192,7 +192,7 @@ export const nadalForehand: StrokeProfile = {
 };
 
 /**
- * Alcaraz FH — explosive righty: deep athletic load, high loop (not head-wrap),
+ * Alcaraz FH, explosive righty: deep athletic load, high loop (not head-wrap),
  * steep brush, disguise-ready unit turn. Distinct from Nadal wipe and Sinner compact.
  */
 export const alcarazForehand: StrokeProfile = {
@@ -204,7 +204,7 @@ export const alcarazForehand: StrokeProfile = {
     peakRacketSpeedMs: 30.8,
     contactHeightM: 1.22,
     contactDepthM: 0.38,
-    avgSpinRpm: 3400,
+    avgSpinRpm: 3208,
     launchAngleDeg: 12.0,
     swingPathDeg: 42,
     impactDurationMs: 4.5,
@@ -219,18 +219,18 @@ export const alcarazForehand: StrokeProfile = {
       contactHeightCv: 5.2,
       timingSdMs: 14,
       pathReproducibility: 89,
-      signatureQuirk: "Drop-shot disguise from same unit turn as heavy FH — elite deception",
+      signatureQuirk: "Drop-shot disguise from same unit turn as heavy FH, elite deception",
     },
     researchNotes: [
       "Modern semi-western with extreme athleticism and shared unit-turn disguise.",
       "High RPM + net clearance; loop is high but tip does not wrap the skull like Nadal.",
-      "Prep stays compact laterally (~58–68° abd) — tip height from elev/flex, not flared wings.",
+      "Prep stays compact laterally (~58–68° abd), tip height from elev/flex, not flared wings.",
       "Leg drive / GRF among the highest on tour for a FH mold.",
     ],
     sources: [
-      "ATP / Hawk-Eye spin composites — modern heavy FH.",
-      "ITF Advanced Coaching — semi-western progressions.",
-      "Reid et al. — FH shoulder kinematics (prep abd mid-range).",
+      "ATP Tour, Alcaraz 2024 insights (Tennis Data Innovations): 3,208 rpm forehand.",
+      "ITF Advanced Coaching, semi-western progressions.",
+      "Reid et al., FH shoulder kinematics (prep abd mid-range).",
     ],
   },
   keyframes: [
@@ -240,54 +240,54 @@ export const alcarazForehand: StrokeProfile = {
       160,
       2.2,
       0,
-      "Wide athletic base — coiled to explode or disguise",),
+      "Wide athletic base, coiled to explode or disguise",),
     kf(
       "unitTurn",
       0.11,
       200,
       4.2,
       0,
-      "Shared unit turn — compact coil, same shape for drop or drive",),
+      "Shared unit turn, compact coil, same shape for drop or drive",),
     kf(
       "backswing",
       0.27,
       250,
       5.8,
       0,
-      "High athletic loop — tip up, elbow compact (~62°), legs spring-loaded",),
+      "High athletic loop, tip up, elbow compact (~62°), legs spring-loaded",),
     kf(
       "acceleration",
       0.47,
       140,
       25.0,
       0,
-      "Legs fire hard — trunk still separated; racket drops into the slot",),
+      "Legs fire hard, trunk still separated; racket drops into the slot",),
     kf(
       "contact",
       0.61,
       42,
       30.8,
       3400,
-      "Contact out front with a steep brush — RPM without full western wipe",),
+      "Contact out front with a steep brush, RPM without full western wipe",),
     kf(
       "followThrough",
       0.81,
       280,
       15.0,
       3400,
-      "High finish — face closed on the path; less wipe than western",),
+      "Windshield-wiper finish beside the left hip, face staying closed over the ball",),
     kf(
       "recovery",
       1,
       200,
       3.0,
       0,
-      "Split-step — already looking for the next ball",),
+      "Split-step, already looking for the next ball",),
   ],
 };
 
 /**
- * Sinner FH — compact early-contact drive: shorter takeback, flatter path,
+ * Sinner FH, compact early-contact drive: shorter takeback, flatter path,
  * less lag/wipe than Alcaraz or Nadal. Timing and depth over extreme RPM.
  */
 export const sinnerForehand: StrokeProfile = {
@@ -299,7 +299,7 @@ export const sinnerForehand: StrokeProfile = {
     peakRacketSpeedMs: 31.2,
     contactHeightM: 1.18,
     contactDepthM: 0.42,
-    avgSpinRpm: 3100,
+    avgSpinRpm: 3049,
     launchAngleDeg: 10.5,
     swingPathDeg: 34,
     impactDurationMs: 4.3,
@@ -314,18 +314,18 @@ export const sinnerForehand: StrokeProfile = {
       contactHeightCv: 4.6,
       timingSdMs: 12,
       pathReproducibility: 92,
-      signatureQuirk: "Early contact + linear drive — Speed Pro takeback, less extreme wiper",
+      signatureQuirk: "Early contact + linear drive, Speed Pro takeback, less extreme wiper",
     },
     researchNotes: [
       "Semi-western with a compact loop; prioritizes timing and depth.",
       "Flatter leave than clay-spin archetypes while still clearing the tape.",
-      "Takeback stays shorter and lower than Alcaraz/Nadal — tip near hand/shoulder height (~30–40° elev), never wraps the head.",
+      "Takeback stays shorter and lower than Alcaraz/Nadal, tip near hand/shoulder height (~30–40° elev), never wraps the head.",
       "Contrasts Djokovic’s upright tip-above-hands prep: Sinner flips from a side/low slot with early lag release.",
     ],
     sources: [
-      "ATP shot-quality tracking — early-contact FH patterns.",
-      "ITF Coaching — compact drive progressions.",
-      "Tour FH takeback contrasts — upright (Djokovic) vs compact/side (Sinner).",
+      "ATP Tour, Sinner 2024 insights (Tennis Data Innovations): 3,049 rpm forehand.",
+      "ITF Coaching, compact drive progressions.",
+      "Tour FH takeback contrasts, upright (Djokovic) vs compact/side (Sinner).",
     ],
   },
   keyframes: [
@@ -335,54 +335,54 @@ export const sinnerForehand: StrokeProfile = {
       150,
       2.0,
       0,
-      "Compact base — quiet tip, early unit turn ready",),
+      "Compact base, quiet tip, early unit turn ready",),
     kf(
       "unitTurn",
       0.12,
       180,
       4.0,
       0,
-      "Early unit turn — low tip beside the hip, compact coil",),
+      "Early unit turn, low tip beside the hip, compact coil",),
     kf(
       "backswing",
       0.28,
       200,
       5.2,
       0,
-      "Compact side takeback — tip near hand height, ready to flip/lag",),
+      "Compact side takeback, tip near hand height, ready to flip/lag",),
     kf(
       "acceleration",
       0.46,
       120,
       24.0,
       0,
-      "Linear drive — hips and racket accelerate together, less lag hang",),
+      "Linear drive, hips and racket accelerate together, less lag hang",),
     kf(
       "contact",
       0.58,
       38,
       31.2,
       3100,
-      "Early contact out in front — flatter path, drive through the ball",),
+      "Early contact out in front, flatter path, drive through the ball",),
     kf(
       "followThrough",
       0.8,
       260,
       13.5,
       3100,
-      "Through-the-shot finish — face closed, modest ulnar",),
+      "Through-the-shot finish, face closed, modest ulnar",),
     kf(
       "recovery",
       1,
       180,
       2.8,
       0,
-      "Recover to center — already on balance for the next ball",),
+      "Recover to center, already on balance for the next ball",),
   ],
 };
 
 /**
- * Djokovic FH — upright tip-above-hands takeback, hands more inside, longer
+ * Djokovic FH, upright tip-above-hands takeback, hands more inside, longer
  * loop with a gravity drop into the slot. Contrasts Sinner’s low/side compact flip.
  * Semi-western; research lag ~40–45 ms proximal–distal; prep abd ~55–65°.
  */
@@ -395,7 +395,7 @@ export const djokovicForehand: StrokeProfile = {
     peakRacketSpeedMs: 27.5,
     contactHeightM: 1.15,
     contactDepthM: 0.38,
-    avgSpinRpm: 2900,
+    avgSpinRpm: 2800,
     launchAngleDeg: 9.0,
     swingPathDeg: 30,
     impactDurationMs: 4.3,
@@ -410,18 +410,18 @@ export const djokovicForehand: StrokeProfile = {
       contactHeightCv: 3.9,
       timingSdMs: 11,
       pathReproducibility: 95,
-      signatureQuirk: "Upright tip-above-hands prep + gravity drop — late contact without breakdown",
+      signatureQuirk: "Upright tip-above-hands prep + gravity drop, late contact without breakdown",
     },
     researchNotes: [
       "Semi-western grip; elite on-the-rise FH timing and balance.",
       "Takeback: tip points more upright above the hands; hands stay inside (~55–65° abd) vs wide western flares.",
-      "Longer loop with a gravity drop into the slot — contrasts Sinner’s shorter/lower side takeback.",
+      "Longer loop with a gravity drop into the slot, contrasts Sinner’s shorter/lower side takeback.",
       "Proximal–distal lag ~40–45 ms supports the upright tip hang before the drop.",
     ],
     sources: [
       "Elliott, B. (2006). Biomechanics and tennis. Br J Sports Med.",
-      "Reid, M. et al. — FH posture and shoulder kinematics.",
-      "Tour FH takeback contrasts — upright (Djokovic) vs compact/side (Sinner).",
+      "Reid, M. et al., FH posture and shoulder kinematics.",
+      "Tour FH takeback contrasts, upright (Djokovic) vs compact/side (Sinner).",
     ],
   },
   keyframes: [
@@ -431,54 +431,54 @@ export const djokovicForehand: StrokeProfile = {
       170,
       2.0,
       0,
-      "Balanced athletic base — tip quiet, ready for a long upright load",),
+      "Balanced athletic base, tip quiet, ready for a long upright load",),
     kf(
       "unitTurn",
       0.11,
       230,
       4.2,
       0,
-      "Unit turn — tip rising upright above the hands, elbows tucked inside",),
+      "Unit turn, tip rising upright above the hands, elbows tucked inside",),
     kf(
       "backswing",
       0.3,
       280,
       5.8,
       0,
-      "Upright takeback — tip above the hands, ready for the gravity drop",),
+      "Upright takeback, tip above the hands, ready for the gravity drop",),
     kf(
       "acceleration",
       0.5,
       150,
       22.0,
       0,
-      "Gravity drop into the slot — hips open while tip and wrist stay lagged",),
+      "Gravity drop into the slot, hips open while tip and wrist stay lagged",),
     kf(
       "contact",
       0.63,
       42,
       27.5,
       2900,
-      "Contact out front — flexible timing, face closed for controlled RPM",),
+      "Contact out front, flexible timing, face closed for controlled RPM",),
     kf(
       "followThrough",
       0.82,
       280,
       13.5,
       2900,
-      "High finish over the opposite shoulder — balance already set for recovery",),
+      "High finish over the opposite shoulder, balance already set for recovery",),
     kf(
       "recovery",
       1,
       200,
       2.8,
       0,
-      "Recover — elite balance back to the middle",),
+      "Recover, elite balance back to the middle",),
   ],
 };
 
 /**
- * Djokovic 2HBH — true backhand wing (negative abduction = across body).
+ * Djokovic 2HBH, true backhand wing (negative abduction = across body).
  * Not a mirrored forehand. Hands stay stacked on the grip; tip loops on the
  * BH wing → contact beside the front hip → finish over the opposite shoulder.
  */
@@ -491,7 +491,7 @@ export const djokovicBackhand: StrokeProfile = {
     peakRacketSpeedMs: 26.8,
     contactHeightM: 1.05,
     contactDepthM: 0.5,
-    avgSpinRpm: 2400,
+    avgSpinRpm: 1900,
     launchAngleDeg: 7.8,
     swingPathDeg: 22,
     impactDurationMs: 4.0,
@@ -509,14 +509,14 @@ export const djokovicBackhand: StrokeProfile = {
       signatureQuirk: "Extreme thoracic rotation with rock-solid head stability through contact",
     },
     researchNotes: [
-      "Among highest BH rally win % historically — kinematics favor early unit turn onto the backhand wing.",
+      "Among highest BH rally win % historically, kinematics favor early unit turn onto the backhand wing.",
       "Two-handed grip increases effective mass at impact; slightly lower peak speed than 1HBH.",
-      "Contact zone is beside/front of the lead hip — not the forehand slot out to the side.",
+      "Contact zone is beside/front of the lead hip, not the forehand slot out to the side.",
       "Both arms drive together; hands stay stacked on the grip through the entire stroke.",
     ],
     sources: [
-      "Reid & Elliott — two-handed BH biomechanics.",
-      "ATP shot quality tracking — BH depth/speed composites.",
+      "Reid & Elliott, two-handed BH biomechanics.",
+      "ATP shot quality tracking, BH depth/speed composites.",
     ],
   },
   keyframes: [
@@ -526,53 +526,105 @@ export const djokovicBackhand: StrokeProfile = {
       160,
       2.0,
       0,
-      "Hands stacked on the throat — compact ready on the backhand grip",),
+      "Hands stacked on the throat, compact ready on the backhand grip",),
     kf(
       "unitTurn",
       0.12,
       220,
       3.8,
       0,
-      "Full unit turn onto the BH wing — athletic load, both hands coil together",),
+      "Full unit turn onto the BH wing, athletic load, both hands coil together",),
     kf(
       "backswing",
       0.28,
       240,
       5.0,
       0,
-      "Compact BH take-back — tip up on the BH wing, both arms ER-loaded",),
+      "Compact BH take-back, tip up on the BH wing, both arms ER-loaded",),
     kf(
       "acceleration",
       0.48,
       140,
       21.0,
       0,
-      "Hips open first — tip drops into the front slot; both arms drive together",),
+      "Hips open first, tip drops into the front slot; both arms drive together",),
     kf(
       "contact",
       0.62,
       42,
       26.8,
       2400,
-      "Contact beside the front hip on the BH side — both hands firm, face closed",),
+      "Contact beside the front hip on the BH side, both hands firm, face closed",),
     kf(
       "followThrough",
       0.82,
       260,
       12.5,
       2400,
-      "Extension through the ball — hands finish high over the right shoulder",),
+      "Extension through the ball, hands finish high over the right shoulder",),
     kf(
       "recovery",
       1,
       200,
       2.8,
       0,
-      "Recover to center — hands still together on the grip",),
+      "Recover to center, hands still together on the grip",),
   ],
 };
 
-/** Federer 1HBH — long lever, free off-arm, statue finish */
+/**
+ * Nadal 2HBH: left-handed, but the top hand is his natural right hand, so the
+ * stroke is driven like a right-handed forehand. Open stance when stretched,
+ * a little later contact than Djokovic, hands wrap low around the neck.
+ */
+export const nadalBackhand: StrokeProfile = {
+  type: "backhand",
+  label: "Two-Handed Backhand (left-handed)",
+  handedness: "left",
+  oneHanded: false,
+  metrics: {
+    peakRacketSpeedMs: 25.5,
+    contactHeightM: 1.1,
+    contactDepthM: 0.4,
+    avgSpinRpm: 2000,
+    launchAngleDeg: 9.0,
+    swingPathDeg: 26,
+    impactDurationMs: 4.2,
+    grip: "twoHanded",
+    kineticChain: {
+      sequence: ["legs", "hips", "trunk", "topArm", "hands", "racket"],
+      proximalDistalLagMs: 34,
+      xFactorDeg: 40,
+      peakGrfN: 1450,
+    },
+    consistency: {
+      contactHeightCv: 4.6,
+      timingSdMs: 12,
+      pathReproducibility: 91,
+      signatureQuirk: "Top (right) hand drives the swing like a forehand; hands wrap low at the finish",
+    },
+    researchNotes: [
+      "Nadal writes right-handed; on the two-hander his natural hand is on top and supplies most of the push.",
+      "Contact a little closer to the body than Djokovic, with the hands wrapping low instead of finishing tall.",
+      "Spin and speed here are modeled: no published Hawk-Eye backhand average was found for Nadal.",
+    ],
+    sources: [
+      "Dr T. Bennett (Leeds Beckett) via beIN Sports; Toni Nadal via Tennis Majors.",
+      "Reid & Elliott: two-handed backhand biomechanics.",
+    ],
+  },
+  keyframes: [
+    kf("ready", 0, 160, 2.0, 0, "Hands together on the grip, weight on the balls of the feet"),
+    kf("unitTurn", 0.12, 220, 3.8, 0, "Shoulders turn first; right (top) hand already in charge of the racket"),
+    kf("backswing", 0.28, 250, 5.2, 0, "Racket tip up on the backhand side, back leg loaded"),
+    kf("acceleration", 0.48, 140, 20.5, 0, "Legs and hips fire; the top hand pushes like a right-handed forehand"),
+    kf("contact", 0.61, 42, 25.5, 2000, "Contact beside the front hip, face slightly closed"),
+    kf("followThrough", 0.82, 260, 12.0, 2000, "Hands wrap low around the neck"),
+    kf("recovery", 1, 200, 2.8, 0, "Recover behind the baseline"),
+  ],
+};
+
+/** Federer 1HBH, long lever, free off-arm, statue finish */
 export const federerOneHandedBackhand: StrokeProfile = {
   type: "backhand",
   label: "One-Handed Backhand",
@@ -600,14 +652,14 @@ export const federerOneHandedBackhand: StrokeProfile = {
       signatureQuirk: "Long lever 1HBH with delayed forearm pronation for shape",
     },
     researchNotes: [
-      "Classic eastern 1HBH — contact slightly further in front than 2HBH.",
+      "Classic eastern 1HBH, contact slightly further in front than 2HBH.",
       "Non-hitting arm pulls back for balance/X-factor; hitting arm is a long lever.",
       "Finish is high and extended (statue pose), not a two-hand wrap.",
       "Face stays near vertical / slightly closed through contact for topspin drive.",
     ],
     sources: [
-      "Elliott — one-handed BH biomechanics.",
-      "ITF Advanced Coaching — 1HBH progressions.",
+      "Elliott, one-handed BH biomechanics.",
+      "ITF Advanced Coaching, 1HBH progressions.",
     ],
   },
   keyframes: [
@@ -617,42 +669,42 @@ export const federerOneHandedBackhand: StrokeProfile = {
       160,
       2.0,
       0,
-      "Eastern BH grip, athletic base — tip quiet in front",),
+      "Eastern BH grip, athletic base, tip quiet in front",),
     kf(
       "unitTurn",
       0.12,
       230,
       3.5,
       0,
-      "Unit turn to the BH side — off arm begins to pull back",),
+      "Unit turn to the BH side, off arm begins to pull back",),
     kf(
       "backswing",
       0.28,
       240,
       4.8,
       0,
-      "High take-back on the BH wing — hitting arm long, off arm counter-balances",),
+      "High take-back on the BH wing, hitting arm long, off arm counter-balances",),
     kf(
       "acceleration",
       0.48,
       145,
       19.5,
       0,
-      "Hips open first — shoulders and wrist stay lagged on the long lever",),
+      "Hips open first, shoulders and wrist stay lagged on the long lever",),
     kf(
       "contact",
       0.62,
       42,
       24.5,
       2100,
-      "Contact well out in front — arm nearly straight, face stable and closed",),
+      "Contact well out in front, arm nearly straight, face stable and closed",),
     kf(
       "followThrough",
       0.82,
       270,
       11.0,
       2100,
-      "Statue finish — tip high on the BH wing, arm extended over the shoulder",),
+      "Statue finish, tip high on the BH wing, arm extended over the shoulder",),
     kf(
       "recovery",
       1,
@@ -664,7 +716,7 @@ export const federerOneHandedBackhand: StrokeProfile = {
 };
 
 /**
- * Serena serve — trophy → racket drop → leg drive → high contact → pronation → across-body finish.
+ * Serena serve, trophy → racket drop → leg drive → high contact → pronation → across-body finish.
  */
 export const serenaServe: StrokeProfile = {
   type: "serve",
@@ -699,9 +751,9 @@ export const serenaServe: StrokeProfile = {
       "Pronation (IR) of the forearm/shoulder presents the face and decelerates safely after contact.",
     ],
     sources: [
-      "Elliott, Marshall, Noffal — serve kinetic chain.",
-      "Fleisig et al. — tennis serve kinematics.",
-      "Bahamonde — angular momentum in the serve.",
+      "Elliott, Marshall, Noffal, serve kinetic chain.",
+      "Fleisig et al., tennis serve kinematics.",
+      "Bahamonde, angular momentum in the serve.",
     ],
   },
   keyframes: [
@@ -725,28 +777,28 @@ export const serenaServe: StrokeProfile = {
       280,
       4.5,
       0,
-      "Trophy — loaded legs (not a squat), tip up, toss arm tall, ER cocking",),
+      "Trophy, loaded legs (not a squat), tip up, toss arm tall, ER cocking",),
     kf(
       "backswing",
       0.48,
       120,
       12.0,
       0,
-      "Racket drop (scratch the back) — max ER while legs start to drive",),
+      "Racket drop (scratch the back), max ER while legs start to drive",),
     kf(
       "acceleration",
       0.6,
       100,
       35.0,
       0,
-      "Upward drive — legs extend, shoulder IR accelerates the racket up",),
+      "Upward drive, legs extend, shoulder IR accelerates the racket up",),
     kf(
       "contact",
       0.7,
       35,
       42.5,
       2200,
-      "Full extension contact — forearm pronation presents the face",),
+      "Full extension contact, forearm pronation presents the face",),
     kf(
       "followThrough",
       0.88,
@@ -759,7 +811,7 @@ export const serenaServe: StrokeProfile = {
 };
 
 /**
- * Federer 1HBH slice — high prep on BH wing → high-to-low carve, open face.
+ * Federer 1HBH slice, high prep on BH wing → high-to-low carve, open face.
  */
 export const federerSlice: StrokeProfile = {
   type: "slice",
@@ -790,12 +842,12 @@ export const federerSlice: StrokeProfile = {
     researchNotes: [
       "Negative spin (backspin) ~1500–2000 rpm keeps ball low after bounce.",
       "Continental grip presents an open face through contact for underspin.",
-      "Swing path is high-to-low but contact stays near waist/chest — not a chop into the court.",
+      "Swing path is high-to-low but contact stays near waist/chest, not a chop into the court.",
       "Follow-through continues forward/through the line of the shot with the face open.",
     ],
     sources: [
-      "Elliott — slice BH mechanics.",
-      "ITF Coaching — defensive/neutral slice patterns.",
+      "Elliott, slice BH mechanics.",
+      "ITF Coaching, defensive/neutral slice patterns.",
     ],
   },
   keyframes: [
@@ -812,35 +864,35 @@ export const federerSlice: StrokeProfile = {
       220,
       3.5,
       0,
-      "High take-back on the BH side — racket head above the shoulder",),
+      "High take-back on the BH side, racket head above the shoulder",),
     kf(
       "backswing",
       0.32,
       200,
       4.2,
       0,
-      "Racket face opens; long lever prepared HIGH — not dropped",),
+      "Racket face opens; long lever prepared HIGH, not dropped",),
     kf(
       "acceleration",
       0.52,
       150,
       14.0,
       0,
-      "Carve high-to-low — descending path with the face staying open",),
+      "Carve high-to-low, descending path with the face staying open",),
     kf(
       "contact",
       0.62,
       50,
       18.5,
       -1800,
-      "Open-face contact at waist height — brush under and through the ball",),
+      "Open-face contact at waist height, brush under and through the ball",),
     kf(
       "followThrough",
       0.85,
       280,
       8.0,
       -1800,
-      "Long extension toward the target — hold the open face; tip does not dump",),
+      "Long extension toward the target, hold the open face; tip does not dump",),
     kf(
       "recovery",
       1,
@@ -852,7 +904,7 @@ export const federerSlice: StrokeProfile = {
 };
 
 /**
- * Alcaraz FH volley — compact punch, firm wrist, tip up, contact out front.
+ * Alcaraz FH volley, compact punch, firm wrist, tip up, contact out front.
  */
 export const alcarazVolley: StrokeProfile = {
   type: "volley",
@@ -884,11 +936,11 @@ export const alcarazVolley: StrokeProfile = {
       "Volleys prioritize racket face stability over swing speed.",
       "Continental grip enables rapid FH/BH transitions at net.",
       "Ground force used for balance transfer rather than generating spin.",
-      "Backswing is abbreviated — punch/block from in front of the body with a firm wrist.",
+      "Backswing is abbreviated, punch/block from in front of the body with a firm wrist.",
     ],
     sources: [
-      "ITF — net play biomechanics.",
-      "Elliott — volley impact characteristics.",
+      "ITF, net play biomechanics.",
+      "Elliott, volley impact characteristics.",
     ],
   },
   keyframes: [
@@ -898,35 +950,35 @@ export const alcarazVolley: StrokeProfile = {
       100,
       1.5,
       0,
-      "Split-step loaded — racket head up in front of the body",),
+      "Split-step loaded, racket head up in front of the body",),
     kf(
       "unitTurn",
       0.22,
       80,
       3.0,
       0,
-      "Short unit turn — soft knees, lead arm balances, no big backswing",),
+      "Short unit turn, soft knees, lead arm balances, no big backswing",),
     kf(
       "acceleration",
       0.42,
       70,
       11.0,
       0,
-      "Punch forward from the shoulder — firm wrist, compact path",),
+      "Punch forward from the shoulder, firm wrist, compact path",),
     kf(
       "contact",
       0.55,
       30,
       14.2,
       400,
-      "Firm wrist, contact out in front — block/punch the face through the ball",),
+      "Firm wrist, contact out in front, block/punch the face through the ball",),
     kf(
       "followThrough",
       0.78,
       120,
       6.0,
       400,
-      "Short follow-through toward the target — tip stays up, no long wrap",),
+      "Short follow-through toward the target, tip stays up, no long wrap",),
     kf(
       "recovery",
       1,
@@ -937,7 +989,7 @@ export const alcarazVolley: StrokeProfile = {
   ],
 };
 
-/** Generic profiles remapped per player — used as fillers for strokes not uniquely featured */
+/** Generic profiles remapped per player, used as fillers for strokes not uniquely featured */
 export function cloneStroke(
   base: StrokeProfile,
   overrides: Partial<StrokeProfile> & { metrics?: Partial<StrokeProfile["metrics"]> },

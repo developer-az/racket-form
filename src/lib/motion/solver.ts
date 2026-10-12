@@ -98,7 +98,8 @@ function add3(a: V3, d: V3): V3 {
  *   contact height → hand height at contact (string-bed centre on the target)
  *   contact depth  → how far in front the hand meets the ball
  *   X-factor       → trunk–pelvis separation at the top of the backswing
- *   swing path + grip (FH) → loop height, slot depth, wiper vs wrap finish
+ *   swing path + grip (FH) → loop height, slot depth
+ *   style (per athlete)   → stance, takeback size, finish shape, leg load
  */
 function styleKeys(keys: MotionKey[], stroke: StrokeProfile, scale: number): MotionKey[] {
   const m = stroke.metrics;
@@ -111,7 +112,7 @@ function styleKeys(keys: MotionKey[], stroke: StrokeProfile, scale: number): Mot
     const shaft = norm3(c.shaft);
     const headY = c.hand[1] + shaft[1] * HEAD_CENTER_FROM_HAND;
     const target = m.contactHeightM / scale;
-    const dy = clamp(target - headY, isServe ? -0.3 : -0.28, isServe ? 0.12 : 0.3);
+    const dy = clamp(target - headY, isServe ? -0.3 : -0.28, isServe ? 0.16 : 0.3);
     const depth = isServe ? 0 : clamp((m.contactDepthM - 0.45) * 0.5, -0.1, 0.1);
     c.hand = add3(c.hand, [0, dy, depth]);
     for (const n of [contactIdx - 1, contactIdx + 1]) {
@@ -130,10 +131,15 @@ function styleKeys(keys: MotionKey[], stroke: StrokeProfile, scale: number): Mot
     }
   }
 
+  const style = stroke.style ?? {};
+  const archetype = archetypeFor(stroke);
+  const groundstroke = archetype === "forehand" || archetype === "backhand1h" || archetype === "backhand2h";
+
   if (stroke.type === "forehand") {
     const grip = m.grip === "western" ? 0.55 : m.grip === "semiWestern" ? 0.2 : 0;
     const loop = clamp((m.swingPathDeg - 28) / 16 + grip, -0.4, 1.2);
-    const wiper = clamp(loop, 0, 1);
+    // Without an explicit finish the swing path decides how much wiper there is
+    const wiper = style.finish ? (style.finish === "wiper" ? 1 : 0) : clamp(loop, 0, 1);
     for (const k of out) {
       if (k.phase === "backswing" && !k.u) {
         k.hand = add3(k.hand, [-0.03 * loop, 0.08 * loop, 0.03 * loop]);
@@ -147,12 +153,95 @@ function styleKeys(keys: MotionKey[], stroke: StrokeProfile, scale: number): Mot
         // Steeper low-to-high path: face slightly more closed, tip below the wrist less
         k.face = lerp3(k.face, [-0.1, -0.2, 0.97], clamp(loop, 0, 1) * 0.5);
       } else if (k.phase === "followThrough") {
-        // Windshield-wiper: racket finishes beside the non-hitting hip, tip up
-        k.hand = lerp3(k.hand, [-0.4, 1.12, 0.32], wiper);
-        k.shaft = lerp3(k.shaft, [-0.35, 0.65, -0.65], wiper);
-        k.face = lerp3(k.face, [-0.85, -0.45, 0.2], wiper);
-        k.elbowPole = lerp3(k.elbowPole, [0.4, -0.6, 0.6], wiper);
+        if (style.finish === "reverse") {
+          // Reverse ("buggy-whip") finish: hand rises above the hitting
+          // shoulder, elbow points forward, racket head ends behind the head
+          k.hand = [0.2, 1.74, 0.16];
+          k.shaft = [-0.35, 0.35, -0.87];
+          k.face = [-0.9, -0.25, 0.35];
+          k.elbowPole = [0.3, 0.1, 1];
+        } else if (style.finish === "extend") {
+          // Drive through the line of the ball before the arm folds
+          k.hand = [-0.14, 1.34, 0.56];
+          k.shaft = [-0.55, 0.5, -0.67];
+          k.face = [-0.8, -0.35, 0.48];
+          k.elbowPole = [0.3, -0.7, 0.6];
+        } else if (wiper > 0) {
+          // Windshield-wiper: racket finishes beside the non-hitting hip, tip up
+          k.hand = lerp3(k.hand, [-0.4, 1.12, 0.32], wiper);
+          k.shaft = lerp3(k.shaft, [-0.35, 0.65, -0.65], wiper);
+          k.face = lerp3(k.face, [-0.85, -0.45, 0.2], wiper);
+          k.elbowPole = lerp3(k.elbowPole, [0.4, -0.6, 0.6], wiper);
+        }
       }
+    }
+  }
+
+  if (archetype === "backhand2h") {
+    const f = out.find((k) => k.phase === "followThrough");
+    if (f && style.finish === "extend") {
+      f.hand = [0.16, 1.42, 0.52];
+      f.shaft = [0.5, 0.5, -0.71];
+      f.face = [0.85, -0.3, 0.43];
+      f.elbowPole = [0.2, -0.6, 0.8];
+    } else if (f && style.finish === "wrap") {
+      // Hands wrap low around the neck
+      f.hand = [0.38, 1.3, 0.14];
+      f.shaft = [0.35, -0.05, -0.94];
+      f.face = [0.9, -0.35, 0.2];
+      f.elbowPole = [0.3, -0.2, 1];
+    }
+  }
+
+  if (groundstroke) {
+    // Footwork: move the front (non-hitting-side) foot. Forehand front foot is
+    // the left; on the backhand side it is the right.
+    const fh = archetype === "forehand";
+    const stance = style.stance;
+    const frontFoot: V3 | null =
+      stance === "open"
+        ? fh
+          ? [-0.36, 0.0, 0]
+          : [0.32, 0.02, 0]
+        : stance === "neutral"
+          ? fh
+            ? [-0.1, 0.34, 0]
+            : [0.04, 0.32, 0]
+          : null;
+    // Open stance lets the hips rotate further toward the net at contact
+    const hipOpen = stance === "open" ? 10 : stance === "neutral" ? -8 : 0;
+    // Exaggerate slightly so a 15–20% difference in takeback reads on screen
+    const tb = clamp(1 + ((style.takeback ?? 1) - 1) * 1.5, 0.55, 1.4);
+    const load = clamp(style.legLoad ?? 0, 0, 1);
+    for (const k of out) {
+      if (k.phase === "ready" || k.phase === "recovery") continue;
+      if (frontFoot) {
+        if (fh) k.leftFoot = [frontFoot[0], frontFoot[1], k.leftFoot[2]];
+        else k.rightFoot = [frontFoot[0], frontFoot[1], k.rightFoot[2]];
+      }
+      if (k.phase === "contact" || k.phase === "followThrough") {
+        k.pelvisYaw += (fh ? 1 : -1) * hipOpen;
+      }
+      if (k.phase === "unitTurn" || k.phase === "backswing") {
+        // Takeback size: how far behind the hips the hands travel
+        const dz = k.hand[2] - k.pelvis[2];
+        if (dz < 0) k.hand = [k.hand[0], k.hand[1], k.pelvis[2] + dz * tb];
+        // Leg load: sit into the trail leg before the forward swing
+        k.pelvis = [k.pelvis[0], k.pelvis[1] - 0.07 * load, k.pelvis[2]];
+      } else if (k.phase === "acceleration") {
+        k.pelvis = [k.pelvis[0], k.pelvis[1] - 0.04 * load, k.pelvis[2]];
+      } else if (k.phase === "contact") {
+        // Drive up through the ball
+        k.pelvis = [k.pelvis[0], k.pelvis[1] + 0.02 * load, k.pelvis[2]];
+      }
+    }
+  }
+
+  if (isServe && style.trophyLoad != null) {
+    const d = clamp(style.trophyLoad, 0, 1) - 0.5;
+    for (const k of out) {
+      if (k.phase === "trophy") k.pelvis = [k.pelvis[0], k.pelvis[1] - 0.14 * d, k.pelvis[2]];
+      if (k.phase === "backswing") k.pelvis = [k.pelvis[0], k.pelvis[1] - 0.06 * d, k.pelvis[2]];
     }
   }
 

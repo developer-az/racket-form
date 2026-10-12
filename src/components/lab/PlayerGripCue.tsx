@@ -41,7 +41,7 @@ export function PlayerGripCue() {
       {mold && (
         <p className="leading-relaxed text-[var(--muted)]">
           ~{mold.face.closedDeg}° closed in the {mold.prefersHeight} window
-          {stroke === "backhand" ? " — BH inherits this face family." : "."}
+          {stroke === "backhand" ? " The backhand inherits this face family." : "."}
           {hasTape ? " Mold includes your lead tape." : ""}
         </p>
       )}

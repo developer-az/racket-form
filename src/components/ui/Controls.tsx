@@ -1,10 +1,9 @@
 "use client";
 
 import { PLAYERS, STROKE_LABELS } from "@/data/players";
-import { HScroll } from "@/components/gear/CatalogShop";
 import { useCoachStore } from "@/store/coachStore";
 import type { StrokeType } from "@/types/biomechanics";
-import { PHASE_LABELS, sampleStroke } from "@/lib/kinematics";
+import { PHASE_LABELS, phaseAt, sampleStroke, totalStrokeDurationMs } from "@/lib/kinematics";
 
 const STROKES = Object.keys(STROKE_LABELS) as StrokeType[];
 
@@ -28,9 +27,11 @@ export function PlayerStrokePicker() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <p className="sf-label mb-2">Athlete</p>
-        <HScroll className="sf-chip-row lg:flex-wrap lg:overflow-visible">
+      <div role="group" aria-labelledby="lab-athlete-label">
+        <p id="lab-athlete-label" className="sf-spec-label mb-2">
+          Athlete
+        </p>
+        <div className="sf-lab-athletes">
           {PLAYERS.map((p) => {
             const active = p.id === playerId;
             return (
@@ -40,19 +41,24 @@ export function PlayerStrokePicker() {
                 onClick={() => setPlayer(p.id)}
                 aria-pressed={active}
                 data-active={active}
-                className="sf-chip cursor-pointer flex-col !items-start justify-center text-left"
+                className="sf-lab-athlete"
               >
-                <span className="block font-medium leading-tight">{p.shortName}</span>
-                <span className="block font-[family-name:var(--font-mono)] text-[9.5px] tracking-[0.08em] uppercase opacity-60">{p.nationality}</span>
+                <span className="block truncate text-[13px] font-medium leading-tight">{p.shortName}</span>
+                <span className="sf-lab-athlete-meta">
+                  {p.dominantHand === "left" ? "L" : "R"} · {p.backhandStyle === "oneHanded" ? "1H" : "2H"} ·{" "}
+                  {p.spec.height.value.toFixed(2)} m
+                </span>
               </button>
             );
           })}
-        </HScroll>
+        </div>
       </div>
 
-      <div>
-        <p className="sf-label mb-2">Stroke</p>
-        <HScroll className="sf-chip-row lg:flex-wrap lg:overflow-visible">
+      <div role="group" aria-labelledby="lab-stroke-label">
+        <p id="lab-stroke-label" className="sf-spec-label mb-2">
+          Stroke
+        </p>
+        <div className="sf-lab-seg" data-count={STROKES.length}>
           {STROKES.map((s) => {
             const active = s === stroke;
             const label = player.strokes[s]?.label ?? STROKE_LABELS[s];
@@ -63,20 +69,19 @@ export function PlayerStrokePicker() {
                 onClick={() => setStroke(s)}
                 aria-pressed={active}
                 title={label}
-                className="sf-chip"
                 data-active={active ? "true" : "false"}
               >
                 {STROKE_LABELS[s]}
               </button>
             );
           })}
-        </HScroll>
-        <p className="mt-2 text-xs text-[var(--accent)]">
-          {player.strokes[stroke]?.label ?? STROKE_LABELS[stroke]}
+        </div>
+        <p className="mt-2 text-xs text-[var(--muted)]">
+          <span className="text-[var(--foreground)]">{player.strokes[stroke]?.label ?? STROKE_LABELS[stroke]}</span>
+          {" · "}
+          {player.playingStyle}
         </p>
       </div>
-
-      <p className="hidden text-sm leading-relaxed text-[var(--muted)] lg:block">{player.playingStyle}</p>
     </div>
   );
 }
@@ -137,6 +142,8 @@ export function PlaybackDock() {
   );
 }
 
+const SPEEDS = [0.15, 0.35, 0.6, 1] as const;
+
 export function PlaybackControls() {
   const t = useCoachStore((s) => s.t);
   const playing = useCoachStore((s) => s.playing);
@@ -151,108 +158,104 @@ export function PlaybackControls() {
   const player = PLAYERS.find((p) => p.id === playerId) ?? PLAYERS[0];
   const stroke = player.strokes[strokeType];
   const pose = sampleStroke(stroke, t);
-  const contactT = stroke.keyframes.find((k) => k.phase === "contact")?.t ?? 0.72;
+  const current = phaseAt(stroke, t);
+  const totalMs = totalStrokeDurationMs(stroke);
+
+  const seek = (v: number) => {
+    setPlaying(false);
+    setT(v);
+  };
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between gap-3">
+    <div className="space-y-4" role="group" aria-labelledby="lab-playback-label">
+      <div className="flex items-baseline justify-between gap-2">
+        <p id="lab-playback-label" className="sf-spec-label">
+          Playback
+        </p>
+        <p className="sf-readout text-[11px] text-[var(--muted)]">
+          {Math.round(t * totalMs)} / {totalMs} ms
+        </p>
+      </div>
+
+      <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={togglePlaying}
-          className="flex h-11 w-11 items-center justify-center rounded-[var(--radius)] bg-[var(--ink)] text-[var(--ink-fg)]"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius)] bg-[var(--ink)] text-[var(--ink-fg)]"
           aria-label={playing ? "Pause" : "Play"}
         >
           {playing ? (
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden>
               <rect x="2" y="2" width="3.5" height="10" rx="0.5" />
               <rect x="8.5" y="2" width="3.5" height="10" rx="0.5" />
             </svg>
           ) : (
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden>
               <path d="M3 2.5v9l9-4.5-9-4.5z" />
             </svg>
           )}
         </button>
         <div className="min-w-0 flex-1">
-          <div className="flex justify-between text-[11px] text-[var(--muted)]">
-            <span>{PHASE_LABELS[pose.phase]}</span>
-            <span>{Math.round(t * 100)}%</span>
-          </div>
-          <div className="relative mt-1">
-            <input
-              type="range"
-              min={0}
-              max={1}
-              step={0.001}
-              value={t}
-              onChange={(e) => {
-                setPlaying(false);
-                setT(Number(e.target.value));
-              }}
-              className="relative z-10 w-full accent-[var(--accent)]"
-              aria-label="Scrub stroke phase"
-            />
-            <div
-              className="pointer-events-none absolute inset-x-0 top-1/2 h-0 -translate-y-1/2"
-              aria-hidden
-            >
-              {stroke.keyframes.map((kf) => (
-                <span
-                  key={`${kf.phase}-${kf.t}`}
-                  className="absolute h-1.5 w-px -translate-x-1/2 bg-[var(--line-strong)]"
-                  style={{ left: `${kf.t * 100}%` }}
-                  title={PHASE_LABELS[kf.phase]}
-                />
-              ))}
-            </div>
-          </div>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              onClick={() => {
-                setPlaying(false);
-                setT(contactT);
-              }}
-              className="sf-chip"
-            >
-              Jump to contact
-            </button>
-            {(["ready", "acceleration", "followThrough"] as const).map((phase) => {
-              const frame = stroke.keyframes.find((k) => k.phase === phase);
-              if (!frame) return null;
-              return (
-                <button
-                  key={phase}
-                  type="button"
-                  onClick={() => {
-                    setPlaying(false);
-                    setT(frame.t);
-                  }}
-                  className="sf-chip"
-                >
-                  {PHASE_LABELS[phase]}
-                </button>
-              );
-            })}
-          </div>
+          <p className="truncate text-sm font-medium leading-tight">{PHASE_LABELS[pose.phase]}</p>
+          <p className="sf-readout text-[11px] text-[var(--muted)]">{Math.round(t * 100)}% of the stroke</p>
         </div>
       </div>
-      <div className="flex items-center gap-3 text-sm">
-        <span className="text-[var(--muted)]">Speed</span>
-        {[0.15, 0.35, 0.6, 1].map((v) => (
-          <button
-            key={v}
-            type="button"
-            onClick={() => setSpeed(v)}
-            aria-pressed={speed === v}
-            className="sf-chip"
-            data-active={speed === v ? "true" : "false"}
-          >
-            {v === 1 ? "1×" : `${v}×`}
-          </button>
-        ))}
+
+      <div className="sf-scrubber">
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.001}
+          value={t}
+          onChange={(e) => seek(Number(e.target.value))}
+          className="sf-scrubber-input"
+          aria-label="Scrub stroke phase"
+          aria-valuetext={`${PHASE_LABELS[pose.phase]}, ${Math.round(t * 100)}%`}
+        />
+        <div className="sf-scrubber-track" aria-hidden>
+          <span className="sf-scrubber-fill" style={{ width: `${t * 100}%` }} />
+          {stroke.keyframes.map((kf) => (
+            <span key={`${kf.phase}-${kf.t}`} className="sf-scrubber-tick" style={{ left: `${kf.t * 100}%` }} />
+          ))}
+        </div>
       </div>
-      <p className="text-sm leading-snug text-[var(--foreground)]/90">{pose.coachingCue}</p>
+
+      <div className="sf-phase-list" role="group" aria-label="Jump to phase">
+        {stroke.keyframes
+          .filter((kf) => kf.phase !== "recovery")
+          .map((kf) => {
+            const active = kf.phase === current.phase;
+            return (
+              <button
+                key={`${kf.phase}-${kf.t}`}
+                type="button"
+                onClick={() => seek(kf.t)}
+                data-active={active ? "true" : "false"}
+                className="sf-phase-btn"
+              >
+                {PHASE_LABELS[kf.phase]}
+              </button>
+            );
+          })}
+      </div>
+
+      <div className="flex items-center justify-between gap-3">
+        <p className="sf-spec-label">Speed</p>
+        <div className="sf-lab-seg sf-lab-seg-sm" data-count={SPEEDS.length}>
+          {SPEEDS.map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setSpeed(v)}
+              aria-pressed={speed === v}
+              data-active={speed === v ? "true" : "false"}
+            >
+              {v === 1 ? "1×" : `${v}×`}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -285,11 +288,11 @@ export function ViewToggles() {
 
   return (
     <details className="space-y-3">
-      <summary className="sf-label cursor-pointer">
-        View
+      <summary className="sf-spec-label cursor-pointer">
+        View options
       </summary>
       <div className="mt-3 space-y-3">
-      <p className="sf-label">Visualization</p>
+      <p className="sf-label">Overlays</p>
       <div className="flex flex-wrap gap-2">
         {toggle("Joint angles", showAngles, setShowAngles)}
         {toggle("Racket path", showRacketPath, setShowRacketPath)}
@@ -305,14 +308,14 @@ export function ViewToggles() {
             aria-pressed={cameraMode === m}
             title={
               m === "orbit"
-                ? "Free orbit — drag to rotate"
+                ? "Free orbit, drag to rotate"
                 : m === "side"
                   ? "Side-on coaching angle"
                   : m === "behind"
                     ? "Behind the athlete looking to the net"
                     : m === "front"
                       ? "From the net looking back at the athlete"
-                      : "Over the hitting shoulder — map hand and face angle"
+                      : "Over the hitting shoulder: map hand and face angle"
             }
             className="sf-chip"
             data-active={cameraMode === m ? "true" : "false"}
