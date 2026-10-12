@@ -1,4 +1,5 @@
-import type { PlayerProfile, StrokeType } from "@/types/biomechanics";
+import type { PlayerProfile, StrokeProfile, StrokeType } from "@/types/biomechanics";
+import { ATHLETES, anthropometricsFromHeight } from "./athletes";
 import {
   alcarazForehand,
   alcarazVolley,
@@ -8,6 +9,7 @@ import {
   federerForehand,
   federerOneHandedBackhand,
   federerSlice,
+  nadalBackhand,
   nadalForehand,
   serenaServe,
   sinnerForehand,
@@ -65,7 +67,7 @@ const federerDefaults: StrokeLibrary = {
         contactHeightCv: 5.0,
         timingSdMs: 7,
         pathReproducibility: 95,
-        signatureQuirk: "Soft hands with continental face control — classic serve-and-volley DNA",
+        signatureQuirk: "Soft hands with continental face control, classic serve-and-volley DNA",
       },
       researchNotes: alcarazVolley.metrics.researchNotes,
       sources: alcarazVolley.metrics.sources,
@@ -84,32 +86,7 @@ const federerDefaults: StrokeLibrary = {
 const nadalDefaults: StrokeLibrary = fillStrokes(
   {
     forehand: nadalForehand,
-    backhand: cloneStroke(djokovicBackhand, {
-      handedness: "left",
-      label: "Two-Handed Backhand (Lefty)",
-      metrics: {
-        peakRacketSpeedMs: 25.2,
-        avgSpinRpm: 2600,
-        consistency: {
-          contactHeightCv: 4.2,
-          timingSdMs: 12,
-          pathReproducibility: 92,
-          signatureQuirk: "Lefty cross-court BH shape with heavy shape over the high part of the net",
-        },
-        researchNotes: [
-          "2HBH provides stability against high-bouncing clay balls.",
-          "Slightly more topspin than average tour BH to match FH pattern.",
-        ],
-        sources: djokovicBackhand.metrics.sources,
-        kineticChain: djokovicBackhand.metrics.kineticChain,
-        contactHeightM: 1.1,
-        contactDepthM: 0.45,
-        launchAngleDeg: 9.0,
-        swingPathDeg: 28,
-        impactDurationMs: 4.2,
-        grip: "twoHanded",
-      },
-    }),
+    backhand: nadalBackhand,
     serve: cloneStroke(serenaServe, {
       handedness: "left",
       label: "Lefty Serve",
@@ -120,7 +97,7 @@ const nadalDefaults: StrokeLibrary = fillStrokes(
           contactHeightCv: 3.2,
           timingSdMs: 15,
           pathReproducibility: 90,
-          signatureQuirk: "Lefty slice wide on ad court — kicks opponents off the court",
+          signatureQuirk: "Lefty slice wide on ad court, kicks opponents off the court",
         },
         researchNotes: [
           "Left-handed serve geometry creates unique wide angles on ad side.",
@@ -184,7 +161,7 @@ const djokovicDefaults: StrokeLibrary = fillStrokes(
           contactHeightCv: 2.8,
           timingSdMs: 12,
           pathReproducibility: 93,
-          signatureQuirk: "Precise placement down the T under pressure — timing over max velocity",
+          signatureQuirk: "Precise placement down the T under pressure, timing over max velocity",
         },
         researchNotes: [
           "Serve used as setup for +1 FH; accuracy prioritized in clutch moments.",
@@ -256,6 +233,8 @@ const serenaDefaults: StrokeLibrary = fillStrokes(
       metrics: {
         ...djokovicBackhand.metrics,
         peakRacketSpeedMs: 25.8,
+        avgSpinRpm: 1700,
+        contactDepthM: 0.55,
         consistency: {
           contactHeightCv: 4.0,
           timingSdMs: 12,
@@ -273,7 +252,7 @@ const serenaDefaults: StrokeLibrary = fillStrokes(
           contactHeightCv: 5.5,
           timingSdMs: 9,
           pathReproducibility: 90,
-          signatureQuirk: "Aggressive first volley after serve — punch through the court",
+          signatureQuirk: "Aggressive first volley after serve, punch through the court",
         },
       },
     }),
@@ -288,7 +267,7 @@ const alcarazDefaults: StrokeLibrary = fillStrokes(
       metrics: {
         ...djokovicBackhand.metrics,
         peakRacketSpeedMs: 26.0,
-        avgSpinRpm: 2550,
+        avgSpinRpm: 2005,
         consistency: {
           contactHeightCv: 4.4,
           timingSdMs: 12,
@@ -306,7 +285,7 @@ const alcarazDefaults: StrokeLibrary = fillStrokes(
           contactHeightCv: 3.0,
           timingSdMs: 13,
           pathReproducibility: 91,
-          signatureQuirk: "Athletic leg drive with modern trophy — power into the court",
+          signatureQuirk: "Athletic leg drive with modern trophy, power into the court",
         },
         researchNotes: serenaServe.metrics.researchNotes,
         sources: serenaServe.metrics.sources,
@@ -339,7 +318,7 @@ const alcarazDefaults: StrokeLibrary = fillStrokes(
   federerDefaults,
 );
 
-/** Compact early-contact mold — flatter drive than Alcaraz, still modern RPM. */
+/** Compact early-contact mold, flatter drive than Alcaraz, still modern RPM. */
 const sinnerDefaults: StrokeLibrary = fillStrokes(
   {
     forehand: sinnerForehand,
@@ -347,12 +326,12 @@ const sinnerDefaults: StrokeLibrary = fillStrokes(
       metrics: {
         ...djokovicBackhand.metrics,
         peakRacketSpeedMs: 26.5,
-        avgSpinRpm: 2400,
+        avgSpinRpm: 2235,
         consistency: {
           contactHeightCv: 4.0,
           timingSdMs: 11,
           pathReproducibility: 93,
-          signatureQuirk: "Two-hand wall — redirects pace early",
+          signatureQuirk: "Two-hand wall, redirects pace early",
         },
       },
     }),
@@ -365,7 +344,7 @@ const sinnerDefaults: StrokeLibrary = fillStrokes(
           contactHeightCv: 2.8,
           timingSdMs: 12,
           pathReproducibility: 92,
-          signatureQuirk: "High trophy, clean slot — first-serve priority",
+          signatureQuirk: "High trophy, clean slot, first-serve priority",
         },
         researchNotes: serenaServe.metrics.researchNotes,
         sources: serenaServe.metrics.sources,
@@ -398,6 +377,51 @@ const sinnerDefaults: StrokeLibrary = fillStrokes(
   federerDefaults,
 );
 
+/** Segment lengths from each athlete's own listed height and mass. */
+const ANTHRO = Object.fromEntries(
+  Object.entries(ATHLETES).map(([id, a]) => [id, anthropometricsFromHeight(a.spec.height.value, a.spec.mass.value)]),
+) as Record<keyof typeof ATHLETES, ReturnType<typeof anthropometricsFromHeight>>;
+
+/**
+ * Serve impact height ≈ 1.47 × standing height: racket
+ * centre at full reach plus a small jump, as solved by our skeleton. Modeled.
+ */
+const SERVE_IMPACT_PER_HEIGHT = 1.47;
+
+/**
+ * Attach the athlete's style / published numbers / quirks to each stroke and
+ * keep the keyframe spin and speed readouts consistent with the metrics.
+ */
+function withAthlete(id: string, lib: StrokeLibrary): StrokeLibrary {
+  const athlete = ATHLETES[id];
+  const out = {} as StrokeLibrary;
+  for (const type of Object.keys(lib) as StrokeType[]) {
+    const base = lib[type];
+    const extra = athlete?.strokes[type] ?? {};
+    const metrics = { ...base.metrics };
+    if (type === "serve") {
+      metrics.contactHeightM =
+        Math.round(athlete.spec.height.value * SERVE_IMPACT_PER_HEIGHT * 100) / 100;
+    }
+    const measuredSpin = extra.published?.find((p) => p.id === "fhSpin" || p.id === "bhSpin");
+    if (measuredSpin) metrics.avgSpinRpm = measuredSpin.value;
+    const stroke: StrokeProfile = {
+      ...base,
+      metrics,
+      style: extra.style ?? base.style,
+      published: extra.published ?? [],
+      quirks: extra.quirks ?? [],
+      keyframes: base.keyframes.map((k) => ({
+        ...k,
+        spinRpm: k.phase === "contact" || k.phase === "followThrough" ? metrics.avgSpinRpm : 0,
+        racketSpeedMs: k.phase === "contact" ? metrics.peakRacketSpeedMs : k.racketSpeedMs,
+      })),
+    };
+    out[type] = stroke;
+  }
+  return out;
+}
+
 export const PLAYERS: PlayerProfile[] = [
   {
     id: "federer",
@@ -405,24 +429,16 @@ export const PLAYERS: PlayerProfile[] = [
     shortName: "Federer",
     nationality: "Switzerland",
     era: "2003–2022",
-    playingStyle: "All-court classic — efficiency, timing, disguise",
+    playingStyle: "All-court classic, efficiency, timing, disguise",
     dominantHand: "right",
     backhandStyle: "oneHanded",
     color: "#1B4F72",
     accent: "#F4D03F",
-    anthropometrics: {
-      heightM: 1.85,
-      wingspanM: 1.88,
-      massKg: 85,
-      torsoRatio: 0.3,
-      upperArmRatio: 0.186,
-      forearmRatio: 0.146,
-      thighRatio: 0.245,
-      shankRatio: 0.246,
-    },
-    strokes: federerDefaults,
+    anthropometrics: ANTHRO.federer,
+    spec: ATHLETES.federer.spec,
+    strokes: withAthlete("federer", federerDefaults),
     biography:
-      "Model of kinetic-chain efficiency. Lab and match analyses show high racket-path reproducibility with moderate spin and elite timing windows — form that looks effortless because proximal segments do the work.",
+      "Model of kinetic-chain efficiency. Lab and match analyses show high racket-path reproducibility with moderate spin and elite timing windows, form that looks effortless because proximal segments do the work.",
   },
   {
     id: "nadal",
@@ -430,24 +446,16 @@ export const PLAYERS: PlayerProfile[] = [
     shortName: "Nadal",
     nationality: "Spain",
     era: "2001–2024",
-    playingStyle: "Lefty baseliner — extreme topspin, grit, geometry",
+    playingStyle: "Lefty baseliner, extreme topspin, grit, geometry",
     dominantHand: "left",
     backhandStyle: "twoHanded",
     color: "#1D8348",
     accent: "#E74C3C",
-    anthropometrics: {
-      heightM: 1.85,
-      wingspanM: 1.9,
-      massKg: 85,
-      torsoRatio: 0.3,
-      upperArmRatio: 0.186,
-      forearmRatio: 0.146,
-      thighRatio: 0.245,
-      shankRatio: 0.246,
-    },
-    strokes: nadalDefaults,
+    anthropometrics: ANTHRO.nadal,
+    spec: ATHLETES.nadal.spec,
+    strokes: withAthlete("nadal", nadalDefaults),
     biography:
-      "Defines the modern heavy-topspin forehand. Western grip, steep swing plane, and windshield-wiper follow-through produce unmatched RPM and net clearance — quirks that are biomechanically intentional.",
+      "Defined the modern heavy-topspin forehand: strong semi-western grip at the butt cap, steep swing plane and a reverse finish over the hitting shoulder. About 3,200 rpm on average in high-speed video, roughly 20% more than Federer.",
   },
   {
     id: "djokovic",
@@ -455,24 +463,16 @@ export const PLAYERS: PlayerProfile[] = [
     shortName: "Djokovic",
     nationality: "Serbia",
     era: "2003–present",
-    playingStyle: "Defensive-aggressive — flexibility, balance, BH wall",
+    playingStyle: "Defensive-aggressive, flexibility, balance, BH wall",
     dominantHand: "right",
     backhandStyle: "twoHanded",
     color: "#5D6D7E",
     accent: "#5DADE2",
-    anthropometrics: {
-      heightM: 1.88,
-      wingspanM: 1.95,
-      massKg: 77,
-      torsoRatio: 0.3,
-      upperArmRatio: 0.186,
-      forearmRatio: 0.146,
-      thighRatio: 0.245,
-      shankRatio: 0.246,
-    },
-    strokes: djokovicDefaults,
+    anthropometrics: ANTHRO.djokovic,
+    spec: ATHLETES.djokovic.spec,
+    strokes: withAthlete("djokovic", djokovicDefaults),
     biography:
-      "Exceptional hip and thoracic ROM expand the viable contact zone. Two-handed backhand kinematics prioritize early preparation and head stability — consistency encoded in joint timing, not just talent.",
+      "Exceptional hip and thoracic ROM expand the viable contact zone. Two-handed backhand kinematics prioritize early preparation and head stability, consistency encoded in joint timing, not just talent.",
   },
   {
     id: "serena",
@@ -480,22 +480,14 @@ export const PLAYERS: PlayerProfile[] = [
     shortName: "Serena",
     nationality: "USA",
     era: "1995–2022",
-    playingStyle: "First-strike power — serve + FH dominance",
+    playingStyle: "First-strike power, serve + FH dominance",
     dominantHand: "right",
     backhandStyle: "twoHanded",
     color: "#6C3483",
     accent: "#F5B041",
-    anthropometrics: {
-      heightM: 1.75,
-      wingspanM: 1.8,
-      massKg: 72,
-      torsoRatio: 0.3,
-      upperArmRatio: 0.186,
-      forearmRatio: 0.146,
-      thighRatio: 0.245,
-      shankRatio: 0.246,
-    },
-    strokes: serenaDefaults,
+    anthropometrics: ANTHRO.serena,
+    spec: ATHLETES.serena.spec,
+    strokes: withAthlete("serena", serenaDefaults),
     biography:
       "Serve kinetic chain is a textbook of proximal-to-distal sequencing: leg drive, trunk rotation, shoulder internal rotation, and wrist. Power with repeatable contact height under championship pressure.",
   },
@@ -505,24 +497,16 @@ export const PLAYERS: PlayerProfile[] = [
     shortName: "Alcaraz",
     nationality: "Spain",
     era: "2021–present",
-    playingStyle: "Modern explosive all-courter — RPM, drop shot, athleticism",
+    playingStyle: "Modern explosive all-courter, RPM, drop shot, athleticism",
     dominantHand: "right",
     backhandStyle: "twoHanded",
     color: "#0E6655",
     accent: "#F39C12",
-    anthropometrics: {
-      heightM: 1.83,
-      wingspanM: 1.88,
-      massKg: 74,
-      torsoRatio: 0.3,
-      upperArmRatio: 0.186,
-      forearmRatio: 0.146,
-      thighRatio: 0.245,
-      shankRatio: 0.246,
-    },
-    strokes: alcarazDefaults,
+    anthropometrics: ANTHRO.alcaraz,
+    spec: ATHLETES.alcaraz.spec,
+    strokes: withAthlete("alcaraz", alcarazDefaults),
     biography:
-      "Combines Nadal-like spin geometry with Federer-like all-court creativity. Biomechanically: high peak GRF, short proximal-distal lag, and disguise — same unit turn for FH drive or drop shot.",
+      "Combines Nadal-like spin geometry with Federer-like all-court creativity. Biomechanically: high peak GRF, short proximal-distal lag, and disguise, same unit turn for FH drive or drop shot.",
   },
   {
     id: "sinner",
@@ -530,24 +514,16 @@ export const PLAYERS: PlayerProfile[] = [
     shortName: "Sinner",
     nationality: "Italy",
     era: "2019–present",
-    playingStyle: "Flat-to-heavy first strike — clean takeback, early contact, Speed Pro mold",
+    playingStyle: "Flat-to-heavy first strike, clean takeback, early contact, Speed Pro mold",
     dominantHand: "right",
     backhandStyle: "twoHanded",
     color: "#1A5276",
     accent: "#E74C3C",
-    anthropometrics: {
-      heightM: 1.88,
-      wingspanM: 1.93,
-      massKg: 76,
-      torsoRatio: 0.3,
-      upperArmRatio: 0.186,
-      forearmRatio: 0.146,
-      thighRatio: 0.245,
-      shankRatio: 0.246,
-    },
-    strokes: sinnerDefaults,
+    anthropometrics: ANTHRO.sinner,
+    spec: ATHLETES.sinner.spec,
+    strokes: withAthlete("sinner", sinnerDefaults),
     biography:
-      "Compact unit turn, early contact, and a linear drive through the ball. Less windshield-wiper than clay archetypes — more of a Speed-frame mold with height and clean timing.",
+      "Compact unit turn, early contact, and a linear drive through the ball. Less windshield-wiper than clay archetypes, more of a Speed-frame mold with height and clean timing.",
   },
 ];
 

@@ -114,32 +114,30 @@ export function RacketDetail({
 
   return (
     <article className="flex flex-col" aria-label={`${racket.brand} ${racket.model}`}>
-      <div className="flex gap-4">
-        <div className="sf-thumb-well flex h-36 w-28 shrink-0 items-center justify-center rounded-[var(--radius)]">
-          <RacketImg racket={racket} className="h-32 w-24 object-contain" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="sf-spec-label">
-            {racket.brand} · {racket.year}
-          </p>
-          <h2 className="mt-1 text-[1.4rem] leading-tight font-semibold tracking-[-0.025em]">{racket.model}</h2>
-          <p className="mt-1.5 text-[13px] text-[var(--muted)]">{fit.courtRole}</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button type="button" onClick={onSave} className={`sf-btn !min-h-9 !px-3 !text-[13px] ${inBag ? "sf-btn-secondary" : "sf-btn-primary"}`}>
-              {inBag ? "✓ In your bag" : "Add to bag"}
-            </button>
-            <button
-              type="button"
-              onClick={onToggleCompare}
-              aria-pressed={inCompare}
-              className="sf-btn sf-btn-secondary !min-h-9 !px-3 !text-[13px]"
-            >
-              {inCompare ? "✓ Comparing" : "Compare"}
-            </button>
-            <button type="button" onClick={onTune} className="sf-btn sf-btn-ghost !min-h-9 !px-2 !text-[13px]">
-              Tune with lead
-            </button>
-          </div>
+      <div className="sf-detail-photo">
+        <RacketImg racket={racket} className="h-full w-full object-contain" />
+      </div>
+      <div className="mt-4 min-w-0">
+        <p className="sf-spec-label">
+          {racket.brand} · {racket.year}
+        </p>
+        <h2 className="mt-1 text-[1.4rem] leading-tight font-semibold tracking-[-0.025em]">{racket.model}</h2>
+        <p className="mt-1.5 text-[13px] text-[var(--muted)]">{fit.courtRole}</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button type="button" onClick={onSave} className={`sf-btn !min-h-9 !px-3 !text-[13px] ${inBag ? "sf-btn-secondary" : "sf-btn-primary"}`}>
+            {inBag ? "✓ In your bag" : "Add to bag"}
+          </button>
+          <button
+            type="button"
+            onClick={onToggleCompare}
+            aria-pressed={inCompare}
+            className="sf-btn sf-btn-secondary !min-h-9 !px-3 !text-[13px]"
+          >
+            {inCompare ? "✓ Comparing" : "Compare"}
+          </button>
+          <button type="button" onClick={onTune} className="sf-btn sf-btn-ghost !min-h-9 !px-2 !text-[13px]">
+            Tune with lead
+          </button>
         </div>
       </div>
 

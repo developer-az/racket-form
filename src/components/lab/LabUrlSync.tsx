@@ -53,6 +53,12 @@ export function LabUrlSync() {
   // Mirror store → URL only after mount hydrate
   useEffect(() => {
     if (!readyToMirror.current) return;
+    // The URL hydrate above runs in the same commit as this effect, so on the
+    // first pass these values are the store defaults. Mirroring them would
+    // overwrite a deep link (e.g. ?stroke=backhand → forehand). Wait for the
+    // render that carries the hydrated state.
+    const live = useCoachStore.getState();
+    if (live.playerId !== playerId || live.stroke !== stroke) return;
     const params = new URLSearchParams(window.location.search);
     if (params.get("player") === playerId && params.get("stroke") === stroke) return;
     params.set("player", playerId);

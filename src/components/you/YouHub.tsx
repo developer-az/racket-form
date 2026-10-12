@@ -8,11 +8,9 @@ import { hasAnyGear, setupSummary, useGearStore } from "@/store/gearStore";
 import { derivePatterns, recentBodyTrend } from "@/lib/player/patterns";
 import { synthesizeCombinedSetup, previewSetupWithString } from "@/lib/equipment/setupSynthesis";
 import { prefersArmFriendlySetup } from "@/lib/player/constraints";
-import { fhGripLabel, gripPreviewLine } from "@/lib/player/onboarding";
 import { PlayerCardSheet } from "@/components/you/PlayerCardSheet";
 import { InBandImproveSection } from "@/components/gear/InBandImproveSection";
 import { CourtReadyVerdict } from "@/components/gear/CourtReadyVerdict";
-import { SyncStatusPill } from "@/components/auth/SyncStatusPill";
 import { strikeZoneForFrame } from "@/components/gear/RacketVisuals";
 import { SetupVisualStory } from "./SetupVisualStory";
 import { YouStringCompare } from "./YouStringCompare";
@@ -20,6 +18,7 @@ import { BagTab } from "./BagTab";
 import { AfterPlayTab } from "./AfterPlayTab";
 import { HistoryTab } from "./HistoryTab";
 import { WorkOnThis } from "./WorkOnThis";
+import { YouIdentity, type ProBuild } from "./YouIdentity";
 import { CourtEmpty, CourtLoading } from "@/components/ui/CourtState";
 
 type HubTab = "today" | "bag" | "play" | "history";
@@ -28,10 +27,12 @@ export function YouHub({
   rackets,
   strings,
   grips,
+  pros,
 }: {
   rackets: RacketProfile[];
   strings: StringProfile[];
   grips: GripProfile[];
+  pros: ProBuild[];
 }) {
   const profile = usePlayerStore((s) => s.profile);
   const hydrated = usePlayerStore((s) => s.hydrated);
@@ -141,36 +142,16 @@ export function YouHub({
   const pending = profile.decisions.filter((d) => d.result === "pending");
   const needsGrip = !profile.grips.forehand;
   const needsBag = !hasAnyGear(setup);
-  const playerCardLabel = needsGrip || needsBag || !profile.displayName.trim()
-    ? "Add your game"
-    : "Edit player card";
 
   if (!hydrated) {
     return <CourtLoading label="Loading your court…" />;
   }
 
-  const name = profile.displayName.trim() || "You";
-  const gripPreview = gripPreviewLine(profile.grips.forehand);
 
   return (
     <div className="sf-page">
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--line)] pb-5">
-        <div>
-          <p className="sf-kicker">Your court</p>
-          <h1 className="sf-page-title mt-2">
-            {name}
-          </h1>
-        </div>
-        <div className="flex flex-col items-end gap-2">
-          <SyncStatusPill />
-          <button
-            type="button"
-            onClick={() => setPlayerCardOpen(true)}
-            className="sf-btn sf-btn-ghost text-xs tracking-[0.06em]"
-          >
-            {playerCardLabel}
-          </button>
-        </div>
+      <div className="mb-6">
+        <YouIdentity profile={profile} setup={setup} pros={pros} onEdit={() => setPlayerCardOpen(true)} />
       </div>
 
       <div className="sf-sticky-tabs">
@@ -234,25 +215,6 @@ export function YouHub({
 
             <WorkOnThis insight={displayInsight} />
 
-            <div className="flex flex-wrap items-center gap-2">
-              {profile.grips.forehand && (
-                <span className="sf-intel-chip sf-intel-chip-accent">
-                  FH {fhGripLabel(profile.grips.forehand)}
-                </span>
-              )}
-              {profile.grips.backhand && (
-                <span className="sf-intel-chip">BH set</span>
-              )}
-              {profile.constraints.filter((c) => c.active).map((c) => (
-                <span key={c.id} className="sf-intel-chip" style={{ color: "var(--amber)" }}>
-                  {c.label}
-                </span>
-              ))}
-              <p className="text-xs text-[var(--muted)]">
-                Coaching models · logged feel outweighs spec math
-              </p>
-            </div>
-            {gripPreview ? <p className="text-sm text-[var(--muted)]">{gripPreview}</p> : null}
 
             {displayInsight.hasAny ? (
               <CourtReadyVerdict playability={displayInsight.playability} compact />
@@ -368,6 +330,7 @@ export function YouHub({
           rackets={rackets}
           strings={strings}
           grips={grips}
+          pros={pros}
           onClose={() => setPlayerCardOpen(false)}
         />
       ) : null}

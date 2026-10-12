@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import type { ForehandGripKind } from "@/lib/equipment/forehandMold";
-import type { BackhandGripKind } from "@/types/playerProfile";
+import { emptyIdentity, type BackhandGripKind, type PlayStyle } from "@/types/playerProfile";
+import { PLAY_STYLE_LABEL, type ProBuild } from "./YouIdentity";
 import type { GripProfile, RacketProfile, StringProfile } from "@/types/equipment";
 import { usePlayerStore } from "@/store/playerStore";
 import { hasAnyGear, setupSummary, useGearStore } from "@/store/gearStore";
@@ -27,11 +28,13 @@ export function PlayerCardSheet({
   rackets,
   strings,
   grips,
+  pros = [],
   onClose,
 }: {
   rackets: RacketProfile[];
   strings: StringProfile[];
   grips: GripProfile[];
+  pros?: ProBuild[];
   onClose: () => void;
 }) {
   const complete = usePlayerStore((s) => s.completeOnboarding);
@@ -39,6 +42,19 @@ export function PlayerCardSheet({
   const profile = usePlayerStore((s) => s.profile);
   const setDisplayName = usePlayerStore((s) => s.setDisplayName);
   const setGrips = usePlayerStore((s) => s.setGrips);
+  const setIdentity = usePlayerStore((s) => s.setIdentity);
+  const identity = { ...emptyIdentity(), ...profile.identity };
+  const [heightDraft, setHeightDraft] = useState(identity.heightCm != null ? String(identity.heightCm) : "");
+  const [sinceDraft, setSinceDraft] = useState(identity.playingSince != null ? String(identity.playingSince) : "");
+  const thisYear = new Date().getFullYear();
+  const commitHeight = () => {
+    const n = Math.round(Number(heightDraft));
+    setIdentity({ heightCm: heightDraft.trim() && n >= 120 && n <= 230 ? n : null });
+  };
+  const commitSince = () => {
+    const n = Math.round(Number(sinceDraft));
+    setIdentity({ playingSince: sinceDraft.trim() && n >= 1940 && n <= thisYear ? n : null });
+  };
   const setPreferences = usePlayerStore((s) => s.setPreferences);
   const upsertConstraint = usePlayerStore((s) => s.upsertConstraint);
   const removeConstraint = usePlayerStore((s) => s.removeConstraint);
@@ -62,6 +78,8 @@ export function PlayerCardSheet({
 
   const done = () => {
     setDisplayName(nameDraft);
+    commitHeight();
+    commitSince();
     complete();
     onClose();
   };
@@ -82,9 +100,9 @@ export function PlayerCardSheet({
       >
         <div className="flex items-center justify-between gap-3 border-b border-[var(--line)] px-5 py-4">
           <div>
-            <p className="sf-kicker">Optional</p>
+            <p className="sf-kicker">Player card</p>
             <h2 id="player-card-title" className="sf-section-title text-xl">
-              Your game
+              About you
             </h2>
           </div>
           <button type="button" onClick={done} className="sf-btn sf-btn-ghost">
@@ -94,8 +112,8 @@ export function PlayerCardSheet({
 
         <div className="min-h-0 flex-1 space-y-8 overflow-y-auto px-5 py-6">
           <p className="text-sm leading-relaxed text-[var(--muted)]">
-            Skip anything. Add a grip or a bag only when you want Lab and practice to follow your
-            game.
+            Every field is optional. Hand and height let the Form Lab mirror and scale strokes to you;
+            grips set the racket-face angle.
           </p>
 
           <section>
@@ -108,6 +126,107 @@ export function PlayerCardSheet({
               className="sf-input"
             />
           </section>
+
+          <section className="grid gap-5 sm:grid-cols-2">
+            <div>
+              <p className="sf-label mb-2">Hitting hand</p>
+              <div className="sf-segmented w-full [&>button]:flex-1" role="radiogroup" aria-label="Hitting hand">
+                {(["right", "left"] as const).map((h) => (
+                  <button
+                    key={h}
+                    type="button"
+                    role="radio"
+                    aria-checked={identity.dominantHand === h}
+                    onClick={() => setIdentity({ dominantHand: identity.dominantHand === h ? null : h })}
+                  >
+                    {h === "right" ? "Right" : "Left"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="sf-label mb-2 block" htmlFor="pc-height">
+                Height (cm)
+              </label>
+              <input
+                id="pc-height"
+                inputMode="numeric"
+                value={heightDraft}
+                onChange={(e) => setHeightDraft(e.target.value.replace(/[^0-9]/g, "").slice(0, 3))}
+                onBlur={commitHeight}
+                placeholder="e.g. 183"
+                className="sf-input"
+              />
+            </div>
+            <div>
+              <label className="sf-label mb-2 block" htmlFor="pc-ntrp">
+                Level (NTRP)
+              </label>
+              <select
+                id="pc-ntrp"
+                className="sf-input"
+                value={identity.ntrp ?? ""}
+                onChange={(e) => setIdentity({ ntrp: e.target.value ? Number(e.target.value) : null })}
+              >
+                <option value="">Not set</option>
+                {[2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7].map((n) => (
+                  <option key={n} value={n}>
+                    {n.toFixed(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="sf-label mb-2 block" htmlFor="pc-since">
+                Playing since
+              </label>
+              <input
+                id="pc-since"
+                inputMode="numeric"
+                value={sinceDraft}
+                onChange={(e) => setSinceDraft(e.target.value.replace(/[^0-9]/g, "").slice(0, 4))}
+                onBlur={commitSince}
+                placeholder={String(thisYear - 5)}
+                className="sf-input"
+              />
+            </div>
+          </section>
+
+          <section>
+            <p className="sf-label mb-2">Style</p>
+            <div className="flex flex-wrap gap-2">
+              {(Object.keys(PLAY_STYLE_LABEL) as PlayStyle[]).map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  className="sf-chip-toggle"
+                  aria-pressed={identity.playStyle === k}
+                  onClick={() => setIdentity({ playStyle: identity.playStyle === k ? null : k })}
+                >
+                  {PLAY_STYLE_LABEL[k]}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {pros.length > 0 ? (
+            <section>
+              <p className="sf-label mb-2">Pro you model your game on</p>
+              <div className="flex flex-wrap gap-2">
+                {pros.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className="sf-chip-toggle"
+                    aria-pressed={identity.modelPlayerId === p.id}
+                    onClick={() => setIdentity({ modelPlayerId: identity.modelPlayerId === p.id ? null : p.id })}
+                  >
+                    {p.name}
+                  </button>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           <section>
             <p className="sf-label mb-2">Forehand grip</p>

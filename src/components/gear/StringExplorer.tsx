@@ -1,6 +1,7 @@
 "use client";
 
 import { useDeferredValue, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type { EquipmentTab, StringProfile } from "@/types/equipment";
 import {
   GAUGE_FILTER_OPTIONS,
@@ -109,6 +110,7 @@ export function StringExplorer({
     [dists],
   );
 
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [brands, setBrands] = useState<Set<string>>(new Set());
   const [materials, setMaterials] = useState<Set<string>>(new Set());
@@ -117,9 +119,18 @@ export function StringExplorer({
   const [fitsMine, setFitsMine] = useState(false);
   const [ranges, setRanges] = useState<Ranges>(full);
   const [sort, setSort] = useState<SortState<SortKey>>({ key: "name", dir: 1 });
-  const [selectedId, setSelectedId] = useState<string | null>(
-    bagId && strings.some((s) => s.id === bagId) ? bagId : null,
-  );
+  const [selectedId, setSelectedId] = useState<string | null>(() => {
+    const linked = searchParams.get("item");
+    if (linked && strings.some((s) => s.id === linked)) return linked;
+    return bagId && strings.some((s) => s.id === bagId) ? bagId : null;
+  });
+  // Follow ?item= deep links (search palette) when the URL changes after mount
+  const itemParam = searchParams.get("item");
+  const [lastItemParam, setLastItemParam] = useState(itemParam);
+  if (lastItemParam !== itemParam) {
+    setLastItemParam(itemParam);
+    if (itemParam && strings.some((x) => x.id === itemParam)) setSelectedId(itemParam);
+  }
   const [tensionById, setTensionById] = useState<Record<string, number>>(() =>
     bagId && setup.tensionLbs != null ? { [bagId]: setup.tensionLbs } : {},
   );

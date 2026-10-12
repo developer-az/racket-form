@@ -11,6 +11,7 @@ import {
   type MatchedPair,
   type PendingLeverChange,
   type PlayerGrips,
+  type PlayerIdentity,
   type PlayerPreferences,
   type PlayerProfile,
   type PlayStroke,
@@ -18,6 +19,7 @@ import {
   type SessionEntry,
   type SessionFeel,
   type StringBedHours,
+  emptyIdentity,
   emptyProfile,
   exampleCoachingProfile,
 } from "@/types/playerProfile";
@@ -43,6 +45,7 @@ interface PlayerState {
   adoptExampleProfile: () => void;
   resetProfile: () => void;
   setDisplayName: (name: string) => void;
+  setIdentity: (patch: Partial<PlayerIdentity>) => void;
   setGrips: (patch: Partial<PlayerGrips>) => void;
   setPreferences: (patch: Partial<PlayerPreferences>) => void;
   setBodyFeedbackNotes: (notes: string) => void;
@@ -120,6 +123,13 @@ export const usePlayerStore = create<PlayerState>()(
         }),
       setDisplayName: (name) =>
         set((s) => ({ profile: touch({ ...s.profile, displayName: name }) })),
+      setIdentity: (patch) =>
+        set((s) => ({
+          profile: touch({
+            ...s.profile,
+            identity: { ...emptyIdentity(), ...s.profile.identity, ...patch },
+          }),
+        })),
       setGrips: (patch) =>
         set((s) => ({
           profile: touch({ ...s.profile, grips: { ...s.profile.grips, ...patch } }),

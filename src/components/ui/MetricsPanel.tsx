@@ -9,7 +9,7 @@ import { synthesizeCombinedSetup } from "@/lib/equipment/setupSynthesis";
 import { sampleStroke } from "@/lib/kinematics";
 import { measureStroke } from "@/lib/motion/solver";
 
-function Metric({
+function Readout({
   label,
   value,
   unit,
@@ -21,131 +21,92 @@ function Metric({
   hint?: string;
 }) {
   return (
-    <div className="border-t border-[var(--line)] pt-3">
-      <p className="sf-label">{label}</p>
-      <p className="mt-1 sf-readout text-[1.375rem]">
+    <div className="sf-readout-cell">
+      <p className="sf-spec-label">{label}</p>
+      <p className="mt-1 sf-readout text-[1.3rem] leading-none">
         {value}
-        {unit ? <span className="ml-1 text-sm font-sans text-[var(--muted)]">{unit}</span> : null}
+        {unit ? (
+          <span className={`${unit === "°" ? "ml-0.5" : "ml-1"} font-sans text-xs font-normal text-[var(--muted)]`}>
+            {unit}
+          </span>
+        ) : null}
       </p>
-      {hint ? <p className="mt-0.5 text-xs text-[var(--muted)]">{hint}</p> : null}
+      {hint ? <p className="mt-1 text-[11px] leading-snug text-[var(--muted)]">{hint}</p> : null}
     </div>
   );
 }
+
+const nf = new Intl.NumberFormat("en-US");
 
 export function MetricsPanel() {
   const playerId = useCoachStore((s) => s.playerId);
   const strokeType = useCoachStore((s) => s.stroke);
   const t = useCoachStore((s) => s.t);
 
-  const player = PLAYERS.find((p) => p.id === playerId)!;
+  const player = PLAYERS.find((p) => p.id === playerId) ?? PLAYERS[0];
   const stroke = player.strokes[strokeType];
   const m = stroke.metrics;
   const pose = sampleStroke(stroke, t);
   const angles = measureStroke(stroke, player.anthropometrics, t);
+  // Spin exists only once the ball has been struck: show it in the same
+  // phases the phase label calls contact and follow-through
+  const ballInFlight = pose.phase === "contact" || pose.phase === "followThrough";
+  const spinKind = m.avgSpinRpm < 0 ? "backspin" : strokeType === "serve" ? "spin" : "topspin";
+  const spinSource = stroke.published?.find((p) => p.id === "fhSpin" || p.id === "bhSpin");
 
   return (
-    <div className="space-y-1">
-      <SetupBridge
-        athleteLaunch={m.launchAngleDeg}
-        athleteSwingPath={m.swingPathDeg}
-        athleteLabel={player.shortName}
-      />
+    <section aria-labelledby="live-h">
+      <p className="sf-kicker sf-kicker-muted">Live readout</p>
+      <h2 id="live-h" className="mt-1.5 text-lg font-semibold leading-snug tracking-tight">
+        {player.shortName} · {stroke.label}
+      </h2>
 
-      <div className="mb-4 mt-6">
-        <p className="sf-kicker sf-kicker-muted">Live biomechanics</p>
-        <h2 className="mt-1 font-[family-name:var(--font-display)] text-xl tracking-tight">
-          {player.shortName} · {stroke.label}
-        </h2>
+      <div className="sf-readout-grid mt-4">
+        <Readout
+          label="Racket speed"
+          value={pose.racketSpeedMs.toFixed(1)}
+          unit="m/s"
+          hint={`Peak ${m.peakRacketSpeedMs.toFixed(1)} (modeled)`}
+        />
+        <Readout
+          label="Ball spin"
+          value={ballInFlight ? nf.format(Math.abs(m.avgSpinRpm)) : "–"}
+          unit={ballInFlight ? "rpm" : undefined}
+          hint={
+            ballInFlight
+              ? `${spinKind}${spinSource ? ", measured average" : ", modeled"}`
+              : `Before contact. Typical ${nf.format(Math.abs(m.avgSpinRpm))} rpm ${spinKind}`
+          }
+        />
+        <Readout label="Elbow bend" value={String(Math.round(angles.elbowFlexion))} unit="°" hint="0° is a straight arm" />
+        <Readout label="Front knee bend" value={String(Math.round(angles.frontKneeFlexion))} unit="°" hint="0° is a straight leg" />
+        <Readout
+          label="Shoulder turn"
+          value={String(Math.round(Math.abs(angles.trunkRotation)))}
+          unit="°"
+          hint="Shoulder line vs baseline"
+        />
+        <Readout
+          label="Hip–shoulder gap"
+          value={String(Math.round(Math.abs(angles.separation)))}
+          unit="°"
+          hint={`X-factor, peak ≈ ${m.kineticChain.xFactorDeg}°`}
+        />
       </div>
-
-      <Metric
-        label="Racket head speed"
-        value={pose.racketSpeedMs.toFixed(1)}
-        unit="m/s"
-        hint={`Peak ${m.peakRacketSpeedMs.toFixed(1)} m/s`}
-      />
-      <Metric
-        label="Spin at / after contact"
-        value={Math.abs(pose.spinRpm).toLocaleString()}
-        unit="rpm"
-        hint={m.avgSpinRpm < 0 ? "Backspin (slice)" : "Topspin"}
-      />
-      <Metric
-        label="Elbow flexion"
-        value={String(Math.round(angles.elbowFlexion))}
-        unit="°"
-        hint="0° = straight arm"
-      />
-      <Metric
-        label="Front knee flexion"
-        value={String(Math.round(angles.frontKneeFlexion))}
-        unit="°"
-      />
-      <Metric
-        label="Shoulder turn"
-        value={String(Math.round(Math.abs(angles.trunkRotation)))}
-        unit="°"
-        hint="Shoulder line vs. baseline"
-      />
-      <Metric
-        label="Hip–shoulder separation"
-        value={String(Math.round(Math.abs(angles.separation)))}
-        unit="°"
-        hint={`X-factor peak ≈ ${m.kineticChain.xFactorDeg}°`}
-      />
-
-      <div className="mt-4 border-t border-[var(--line)] pt-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
-          Stroke lab means
-        </p>
-        <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-3 text-sm">
-          <div>
-            <dt className="text-[var(--muted)]">Contact height</dt>
-            <dd>{m.contactHeightM.toFixed(2)} m</dd>
-          </div>
-          <div>
-            <dt className="text-[var(--muted)]">Launch angle</dt>
-            <dd>{m.launchAngleDeg.toFixed(1)}°</dd>
-          </div>
-          <div>
-            <dt className="text-[var(--muted)]">X-factor</dt>
-            <dd>{m.kineticChain.xFactorDeg}°</dd>
-          </div>
-          <div>
-            <dt className="text-[var(--muted)]">Prox–distal lag</dt>
-            <dd>{m.kineticChain.proximalDistalLagMs} ms</dd>
-          </div>
-          <div>
-            <dt className="text-[var(--muted)]">Peak GRF</dt>
-            <dd>{m.kineticChain.peakGrfN} N</dd>
-          </div>
-          <div>
-            <dt className="text-[var(--muted)]">Path reproducibility</dt>
-            <dd>{m.consistency.pathReproducibility}%</dd>
-          </div>
-          <div>
-            <dt className="text-[var(--muted)]">Timing SD</dt>
-            <dd>±{m.consistency.timingSdMs} ms</dd>
-          </div>
-          <div>
-            <dt className="text-[var(--muted)]">Grip</dt>
-            <dd className="capitalize">{m.grip.replace(/([A-Z])/g, " $1")}</dd>
-          </div>
-        </dl>
-      </div>
-    </div>
+      <p className="mt-2 text-[11px] leading-snug text-[var(--muted)]">
+        Angles are measured live from the solved skeleton, so they match what you see.
+      </p>
+    </section>
   );
 }
 
-function SetupBridge({
-  athleteLaunch,
-  athleteSwingPath,
-  athleteLabel,
-}: {
-  athleteLaunch: number;
-  athleteSwingPath: number;
-  athleteLabel: string;
-}) {
+export function SetupBridge() {
+  const playerId = useCoachStore((s) => s.playerId);
+  const strokeType = useCoachStore((s) => s.stroke);
+  const player = PLAYERS.find((p) => p.id === playerId) ?? PLAYERS[0];
+  const athleteLaunch = player.strokes[strokeType].metrics.launchAngleDeg;
+  const athleteSwingPath = player.strokes[strokeType].metrics.swingPathDeg;
+  const athleteLabel = player.shortName;
   const setup = useGearStore((s) => s.setup);
   const insight = useMemo(
     () => synthesizeCombinedSetup(setup, null, null, null),
@@ -195,62 +156,79 @@ function SetupBridge({
 export function SciencePanel() {
   const playerId = useCoachStore((s) => s.playerId);
   const strokeType = useCoachStore((s) => s.stroke);
-  const player = PLAYERS.find((p) => p.id === playerId)!;
+  const player = PLAYERS.find((p) => p.id === playerId) ?? PLAYERS[0];
   const stroke = player.strokes[strokeType];
   const m = stroke.metrics;
+  const grip = m.grip.replace(/([A-Z])/g, " $1").toLowerCase();
+
+  const inputs: [string, string][] = [
+    ["Contact height", `${m.contactHeightM.toFixed(2)} m`],
+    ["Contact in front", `${m.contactDepthM.toFixed(2)} m`],
+    ["Launch angle", `${m.launchAngleDeg.toFixed(1)}°`],
+    ["Swing path", `${m.swingPathDeg}°`],
+    ["X-factor peak", `${m.kineticChain.xFactorDeg}°`],
+    ["Hip to hand lag", `${m.kineticChain.proximalDistalLagMs} ms`],
+    ["Peak ground force", `${nf.format(m.kineticChain.peakGrfN)} N`],
+    ["Grip family", grip],
+  ];
 
   return (
-    <div className="space-y-4">
+    <section aria-labelledby="model-h" className="space-y-4">
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
-          Signature quirk
-        </p>
-        <p className="mt-2 text-sm leading-relaxed">{m.consistency.signatureQuirk}</p>
-      </div>
-
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
-          Kinetic chain
-        </p>
-        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+        <p id="model-h" className="sf-spec-label">Kinetic chain</p>
+        <ol className="mt-2 flex flex-wrap items-center gap-1" aria-label="Order of peak segment speed">
           {m.kineticChain.sequence.map((seg, i) => (
-            <span key={seg} className="flex items-center gap-1.5">
-              <span className="rounded bg-[var(--accent-dim)] px-2 py-0.5 text-xs text-[var(--accent)]">
-                {seg}
-              </span>
+            <li key={seg} className="flex items-center gap-1">
+              <span className="sf-chain-step">{seg.replace(/([A-Z])/g, " $1").toLowerCase()}</span>
               {i < m.kineticChain.sequence.length - 1 ? (
-                <span className="text-[var(--muted)]">→</span>
+                <span aria-hidden className="text-[10px] text-[var(--muted)]">
+                  ›
+                </span>
               ) : null}
-            </span>
+            </li>
           ))}
-        </div>
+        </ol>
       </div>
 
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
-          Research notes
+      <details className="sf-disclosure">
+        <summary>
+          <span className="sf-spec-label">Model inputs</span>
+          <span className="sf-prov" data-status="modeled">
+            Modeled
+          </span>
+        </summary>
+        <p className="mt-2 text-[11px] leading-snug text-[var(--muted)]">
+          These numbers shape the animation. They are estimates from published lab ranges, not this athlete&apos;s
+          own measurements.
         </p>
-        <ul className="mt-2 space-y-2 text-sm leading-relaxed text-[var(--foreground)]/85">
+        <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2.5">
+          {inputs.map(([k, v]) => (
+            <div key={k} className="min-w-0">
+              <dt className="text-[11px] text-[var(--muted)]">{k}</dt>
+              <dd className="sf-readout text-[13px]">{v}</dd>
+            </div>
+          ))}
+        </dl>
+      </details>
+
+      <details className="sf-disclosure">
+        <summary>
+          <span className="sf-spec-label">Research notes and sources</span>
+        </summary>
+        <ul className="mt-3 space-y-2 text-[13px] leading-relaxed text-[var(--foreground)]/85">
           {m.researchNotes.map((n) => (
             <li key={n} className="border-l border-[var(--line-strong)] pl-3">
               {n}
             </li>
           ))}
         </ul>
-      </div>
-
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
-          Sources
-        </p>
-        <ul className="mt-2 space-y-1 text-xs text-[var(--muted)]">
-          {m.sources.map((s) => (
-            <li key={s}>{s}</li>
+        <ul className="mt-3 space-y-1 text-[11px] leading-snug text-[var(--muted)]">
+          {m.sources.map((src) => (
+            <li key={src}>{src}</li>
           ))}
         </ul>
-      </div>
-
-      <p className="text-xs leading-relaxed text-[var(--muted)]">{player.biography}</p>
-    </div>
+        <p className="mt-3 text-xs leading-relaxed text-[var(--muted)]">{player.biography}</p>
+      </details>
+    </section>
   );
 }

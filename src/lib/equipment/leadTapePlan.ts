@@ -133,7 +133,7 @@ export function planTapeTowardTarget(
       maxMass - totalSoFar(),
       Math.max(needW > 0 ? needW : 0, needSw / SW_PER_G.tip, needBal > 2 ? needBal / 3 : 0),
     );
-    let tip = Math.min(6, Math.ceil(tipBudget * 2) / 2); // 0.5 steps, cap 6g tip stack
+    const tip = Math.min(6, Math.ceil(tipBudget * 2) / 2); // 0.5 steps, cap 6g tip stack
     if (tip >= 0.5) {
       // Prefer 12 o'clock for first grams (slightly less extreme), tip for rest
       const twelve = Math.min(tip, tip >= 3 ? 2 : tip);

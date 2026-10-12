@@ -18,6 +18,10 @@ export async function GET(
   if (external && format !== "svg") {
     return Response.redirect(external, 302);
   }
+  if (format !== "svg") {
+    // No product photo on file: clients render a neutral well. The spec tile is opt-in.
+    return new Response("No photo", { status: 404, headers: { "Cache-Control": "public, s-maxage=3600" } });
+  }
 
   const svg = stringPortraitSvg(string);
   return new Response(svg, {

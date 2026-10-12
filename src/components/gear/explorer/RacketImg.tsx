@@ -1,18 +1,27 @@
 "use client";
 
+import { useState } from "react";
 import type { RacketProfile } from "@/types/equipment";
 import { racketImageUrl } from "@/lib/equipment/media/urls";
 
-/** Catalog photo that falls back to the generated SVG portrait when the remote image fails. */
-export function RacketImg({ racket, className }: { racket: Pick<RacketProfile, "slug">; className?: string }) {
+/**
+ * Catalog photo. Frames with no known photo, or whose photo fails to load, get an
+ * empty neutral well rather than a drawn stand-in.
+ */
+export function RacketImg({
+  racket,
+  className,
+}: {
+  racket: Pick<RacketProfile, "slug"> & { hasPhoto?: boolean };
+  className?: string;
+}) {
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const src = racketImageUrl(racket);
-  const fallback = (img: HTMLImageElement) => {
-    if (img.dataset.fallback === "1") return;
-    img.dataset.fallback = "1";
-    img.src = `${src}${src.includes("?") ? "&" : "?"}format=svg`;
-  };
+  if (racket.hasPhoto === false || failedSrc === src) {
+    return <span className={`sf-photo-none ${className ?? ""}`} aria-hidden />;
+  }
   return (
-    // eslint-disable-next-line @next/next/no-img-element -- remote catalog photo with SVG fallback
+    // eslint-disable-next-line @next/next/no-img-element -- remote catalog photo
     <img
       src={src}
       alt=""
@@ -21,9 +30,9 @@ export function RacketImg({ racket, className }: { racket: Pick<RacketProfile, "
       className={className}
       // A server-rendered image can fail before hydration attaches onError
       ref={(img) => {
-        if (img && img.complete && img.naturalWidth === 0) fallback(img);
+        if (img && img.complete && img.naturalWidth === 0) setFailedSrc(src);
       }}
-      onError={(e) => fallback(e.currentTarget)}
+      onError={() => setFailedSrc(src)}
     />
   );
 }
