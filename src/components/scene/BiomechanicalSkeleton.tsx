@@ -3,15 +3,12 @@
 import { useLayoutEffect, useMemo, useRef, type RefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import type { Anthropometrics, JointAngles } from "@/types/biomechanics";
-import { createSkeletonPose, solveSkeletonFk } from "@/lib/skeletonFk";
+import { RACKET_LENGTH, type SkeletonPose } from "@/lib/motion/solver";
 
-/** Mutable pose feed — updated from the animation loop without React re-renders */
+/** Mutable pose feed — solved in the animation loop without React re-renders */
 export interface SkeletonDriver {
-  joints: JointAngles;
+  pose: SkeletonPose;
   racketSpeedMs: number;
-  handedness: "right" | "left";
-  oneHanded: boolean;
 }
 
 type MeshRef = THREE.Mesh | null;
@@ -19,14 +16,10 @@ type MeshRef = THREE.Mesh | null;
 const _dir = new THREE.Vector3();
 const _mid = new THREE.Vector3();
 const _quat = new THREE.Quaternion();
-const _swing = new THREE.Quaternion();
 const _rollQ = new THREE.Quaternion();
 const _yAxis = new THREE.Vector3(0, 1, 0);
-const _prevY = new THREE.Vector3();
 const _xAxis = new THREE.Vector3();
-const _zAxis = new THREE.Vector3();
 const _basis = new THREE.Matrix4();
-const _faceStable = new THREE.Vector3(0, 0, -1);
 
 function placeAt(mesh: THREE.Mesh | null, p: THREE.Vector3) {
   if (!mesh) return;
@@ -39,10 +32,11 @@ const geo = {
   joint: new THREE.SphereGeometry(1, 12, 12),
   head: new THREE.SphereGeometry(1, 14, 14),
   foot: new THREE.BoxGeometry(0.1, 0.05, 0.22),
-  handle: new THREE.CylinderGeometry(0.018, 0.022, 1, 8),
-  throat: new THREE.CylinderGeometry(0.012, 0.016, 1, 6),
-  hoop: new THREE.TorusGeometry(0.14, 0.012, 6, 16),
-  strings: new THREE.CircleGeometry(0.12, 16),
+  handle: new THREE.CylinderGeometry(0.016, 0.019, 1, 8),
+  throat: new THREE.CylinderGeometry(0.01, 0.013, 1, 6),
+  // Unit-radius hoop, scaled to a 0.25 × 0.32 m head
+  hoop: new THREE.TorusGeometry(1, 0.075, 6, 28),
+  strings: new THREE.CircleGeometry(1, 24),
 };
 
 /**
@@ -83,22 +77,18 @@ function placeCapsule(
  */
 export function BiomechanicalSkeleton({
   driverRef,
-  anthropometrics,
   color,
+  jointColor,
   accent,
 }: {
   driverRef: RefObject<SkeletonDriver>;
-  anthropometrics: Anthropometrics;
   color: string;
+  /** Marker spheres at the joints, like a motion-capture suit */
+  jointColor: string;
   accent: string;
 }) {
   const root = useRef<THREE.Group>(null);
   const racketGroup = useRef<THREE.Group>(null);
-  const pose = useMemo(() => createSkeletonPose(), []);
-  /** Previous racket orientation — enables minimum-twist shaft tracking (no face chatter). */
-  const prevRacketQuat = useRef(new THREE.Quaternion());
-  const prevFace = useRef(new THREE.Vector3(0, 0, -1));
-  const hasPrevRacket = useRef(false);
 
   const meshes = useRef<{
     torso: MeshRef;
@@ -175,15 +165,15 @@ export function BiomechanicalSkeleton({
     [color],
   );
   const jointMat = useMemo(
-    () => new THREE.MeshLambertMaterial({ color: accent }),
-    [accent],
+    () => new THREE.MeshLambertMaterial({ color: jointColor }),
+    [jointColor],
   );
   const darkMat = useMemo(
     () => new THREE.MeshLambertMaterial({ color: "#1a1a1a" }),
     [],
   );
   const handleMat = useMemo(
-    () => new THREE.MeshLambertMaterial({ color: "#2c1810" }),
+    () => new THREE.MeshLambertMaterial({ color: "#1b1f25" }),
     [],
   );
   const throatMat = useMemo(
@@ -223,20 +213,12 @@ export function BiomechanicalSkeleton({
     };
   }, [skinMat, jointMat, darkMat, handleMat, throatMat, stringMat, hoopMat]);
 
-  useFrame((_, dt) => {
+  useFrame(() => {
     const driver = driverRef.current;
     if (!driver || !root.current) return;
 
-    solveSkeletonFk(
-      pose,
-      driver.joints,
-      anthropometrics,
-      driver.handedness,
-      driver.oneHanded,
-    );
-
     const m = meshes.current;
-    const p = pose;
+    const p = driver.pose;
 
     placeCapsule(m.torso, p.pelvis, p.chest, 0.068, 0, 0.02);
     placeCapsule(m.neck, p.chest, p.head, 0.032, 0, 0.018);
@@ -275,7 +257,7 @@ export function BiomechanicalSkeleton({
       else _dir.normalize();
       m.leadFoot.position.set(
         p.leadAnkle.x + _dir.x * 0.06,
-        0.022,
+        Math.max(0.022, p.leadAnkle.y - 0.05),
         p.leadAnkle.z + _dir.z * 0.06,
       );
       m.leadFoot.rotation.set(0, Math.atan2(_dir.x, _dir.z), 0);
@@ -288,7 +270,7 @@ export function BiomechanicalSkeleton({
       else _dir.normalize();
       m.trailFoot.position.set(
         p.trailAnkle.x + _dir.x * 0.05,
-        0.022,
+        Math.max(0.022, p.trailAnkle.y - 0.05),
         p.trailAnkle.z + _dir.z * 0.05,
       );
       m.trailFoot.rotation.set(0, Math.atan2(_dir.x, _dir.z), 0);
@@ -296,12 +278,12 @@ export function BiomechanicalSkeleton({
     }
 
     // Arms: continuous through elbow / wrist — joint spheres cover the fold
-    placeCapsule(m.hitUpper, p.hitShoulder, p.hitElbow, 0.038, p.hitUpperTwist, 0.012);
-    placeCapsule(m.hitFore, p.hitElbow, p.hitWrist, 0.032, p.hitUpperTwist * 0.55, 0.012);
-    placeCapsule(m.hitHand, p.hitWrist, p.hitHand, 0.028, p.hitUpperTwist * 0.4, 0.008);
-    placeCapsule(m.nonHitUpper, p.nonHitShoulder, p.nonHitElbow, 0.038, p.nonHitUpperTwist, 0.012);
-    placeCapsule(m.nonHitFore, p.nonHitElbow, p.nonHitWrist, 0.032, p.nonHitUpperTwist * 0.45, 0.012);
-    placeCapsule(m.nonHitHand, p.nonHitWrist, p.nonHitHand, 0.026, p.nonHitUpperTwist * 0.3, 0.008);
+    placeCapsule(m.hitUpper, p.hitShoulder, p.hitElbow, 0.038, 0, 0.012);
+    placeCapsule(m.hitFore, p.hitElbow, p.hitWrist, 0.032, 0, 0.012);
+    placeCapsule(m.hitHand, p.hitWrist, p.hitHand, 0.028, 0, 0.008);
+    placeCapsule(m.nonHitUpper, p.nonHitShoulder, p.nonHitElbow, 0.038, 0, 0.012);
+    placeCapsule(m.nonHitFore, p.nonHitElbow, p.nonHitWrist, 0.032, 0, 0.012);
+    placeCapsule(m.nonHitHand, p.nonHitWrist, p.nonHitHand, 0.026, 0, 0.008);
 
     placeAt(m.hitShoulder, p.hitShoulder);
     if (m.hitShoulder) m.hitShoulder.scale.setScalar(0.052);
@@ -317,75 +299,15 @@ export function BiomechanicalSkeleton({
     if (m.nonHitWrist) m.nonHitWrist.scale.setScalar(0.032);
 
     if (racketGroup.current) {
-      // Racket owned by the HAND — group origin = palm; local +Y toward tip
-      _dir.subVectors(p.racketTip, p.hitHand);
-      const len = Math.max(0.4, _dir.length());
-      _dir.normalize();
+      // Racket frame: +Y along the shaft (butt → tip), +Z = string-bed normal
+      _xAxis.crossVectors(p.racketShaft, p.racketFaceNormal).normalize();
+      _basis.makeBasis(_xAxis, p.racketShaft, p.racketFaceNormal);
+      racketGroup.current.quaternion.setFromRotationMatrix(_basis);
+      racketGroup.current.position.copy(p.racketButt);
 
-      if (!hasPrevRacket.current) {
-        _quat.setFromUnitVectors(_yAxis, _dir);
-        hasPrevRacket.current = true;
-        prevFace.current.copy(p.racketFaceNormal);
-      } else {
-        _prevY.set(0, 1, 0).applyQuaternion(prevRacketQuat.current);
-        if (_prevY.lengthSq() < 1e-8) _prevY.copy(_yAxis);
-        else _prevY.normalize();
-        const align = _prevY.dot(_dir);
-        // Prefer continuous tracking — only hard re-seed on near-180° flips
-        if (align < -0.85) {
-          _quat.setFromUnitVectors(_yAxis, _dir);
-          prevFace.current.copy(p.racketFaceNormal);
-        } else if (align > 0.9995) {
-          _quat.copy(prevRacketQuat.current);
-        } else {
-          _swing.setFromUnitVectors(_prevY, _dir);
-          _quat.copy(_swing).multiply(prevRacketQuat.current);
-        }
-      }
-
-      _faceStable.copy(p.racketFaceNormal);
-      _faceStable.addScaledVector(_dir, -_faceStable.dot(_dir));
-      if (_faceStable.lengthSq() < 1e-6) {
-        _zAxis.set(0, 0, 1).applyQuaternion(_quat);
-        _zAxis.addScaledVector(_dir, -_zAxis.dot(_dir));
-        if (_zAxis.lengthSq() < 1e-8) _zAxis.set(1, 0, 0);
-        else _zAxis.normalize();
-        _faceStable.copy(_zAxis);
-      }
-      _faceStable.normalize();
-      // Stronger hysteresis so face doesn't chatter / teleport through the swing
-      if (_faceStable.dot(prevFace.current) < -0.2) _faceStable.negate();
-      // Soft blend toward previous face to kill frame-to-frame pops
-      _faceStable.multiplyScalar(0.65).addScaledVector(prevFace.current, 0.35);
-      _faceStable.addScaledVector(_dir, -_faceStable.dot(_dir));
-      if (_faceStable.lengthSq() > 1e-8) _faceStable.normalize();
-      else _faceStable.copy(prevFace.current);
-      prevFace.current.copy(_faceStable);
-
-      _xAxis.crossVectors(_dir, _faceStable);
-      if (_xAxis.lengthSq() < 1e-8) {
-        _xAxis.set(1, 0, 0).applyQuaternion(_quat);
-        _xAxis.addScaledVector(_dir, -_xAxis.dot(_dir)).normalize();
-      } else {
-        _xAxis.normalize();
-      }
-      _faceStable.crossVectors(_xAxis, _dir).normalize();
-      _basis.makeBasis(_xAxis, _dir, _faceStable);
-      _quat.setFromRotationMatrix(_basis);
-      if (_quat.dot(prevRacketQuat.current) < 0) {
-        _quat.x *= -1;
-        _quat.y *= -1;
-        _quat.z *= -1;
-        _quat.w *= -1;
-      }
-      prevRacketQuat.current.copy(_quat);
-
-      // Palm at the butt — meshes sit along +Y toward the tip
-      racketGroup.current.position.copy(p.hitHand);
-      racketGroup.current.quaternion.copy(_quat);
-
-      const handleLen = len * 0.3;
-      const throatLen = len * 0.16;
+      const handleLen = 0.2;
+      const throatLen = 0.13;
+      const headHalf = 0.16;
       if (m.handle) {
         m.handle.position.set(0, handleLen * 0.5, 0);
         m.handle.scale.set(1, handleLen, 1);
@@ -394,19 +316,20 @@ export function BiomechanicalSkeleton({
         m.throat.position.set(0, handleLen + throatLen * 0.5, 0);
         m.throat.scale.set(1, throatLen, 1);
       }
-      const hoopY = handleLen + throatLen + len * 0.22;
-      if (m.hoop) m.hoop.position.set(0, hoopY, 0);
-      if (m.strings) m.strings.position.set(0, hoopY, 0);
+      const headY = RACKET_LENGTH - headHalf;
+      if (m.hoop) {
+        m.hoop.position.set(0, headY, 0);
+        m.hoop.scale.set(0.125, headHalf, 0.125);
+      }
+      if (m.strings) {
+        m.strings.position.set(0, headY, 0);
+        m.strings.scale.set(0.118, headHalf - 0.008, 1);
+      }
 
       const glow = Math.min(1, driver.racketSpeedMs / 40);
       hoopMat.emissiveIntensity = 0.08 + glow * 0.35;
     }
 
-    if (driver.racketSpeedMs < 3) {
-      root.current.position.y = 0.02 + Math.sin(performance.now() * 0.002) * 0.006;
-    } else {
-      root.current.position.y = THREE.MathUtils.damp(root.current.position.y, 0.02, 8, dt);
-    }
   });
 
   const bind = (key: keyof typeof meshes.current) => (node: THREE.Mesh | null) => {
@@ -414,7 +337,7 @@ export function BiomechanicalSkeleton({
   };
 
   return (
-    <group ref={root} position={[0, 0.02, 0]}>
+    <group ref={root}>
       <mesh ref={bind("torso")} geometry={geo.limb} material={skinMat} />
       <mesh ref={bind("neck")} geometry={geo.limb} material={skinMat} />
       <mesh ref={bind("head")} geometry={geo.head} material={skinMat} />

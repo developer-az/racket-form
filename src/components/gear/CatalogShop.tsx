@@ -201,10 +201,11 @@ export function FeelBars({
           </div>
           <div className="sf-feel-track mt-1">
             <div
-              className="h-full rounded-full"
+              className="h-full"
               style={{
                 width: `${Math.max(4, Math.min(100, s.value))}%`,
-                background: s.color,
+                background: "var(--foreground)",
+                opacity: 0.6,
               }}
             />
           </div>
@@ -229,8 +230,6 @@ export function ProductCard({
   saveLabel = "Add to bag",
   savedLabel = "In bag",
   compact = false,
-  accent,
-  accentRail = true,
 }: {
   image: string;
   alt: string;
@@ -246,20 +245,15 @@ export function ProductCard({
   saveLabel?: string;
   savedLabel?: string;
   compact?: boolean;
-  /** Optional brand accent for left rail / chip */
+  /** @deprecated Ignored: cards are neutral; brand colour no longer drawn */
   accent?: string;
-  /** Left color rail — off for denser uniform grids */
+  /** @deprecated Ignored: cards are neutral; brand colour no longer drawn */
   accentRail?: boolean;
 }) {
   return (
     <article
       className={`sf-product-card h-full ${compact ? "w-[12.5rem] shrink-0 snap-start" : "w-full"}`}
       data-active={selected ? "true" : "false"}
-      style={
-        accent && accentRail
-          ? { boxShadow: selected ? undefined : `inset 3px 0 0 ${accent}` }
-          : undefined
-      }
     >
       <button
         type="button"
@@ -270,18 +264,13 @@ export function ProductCard({
       >
         <span
           className={`sf-thumb-well relative flex w-full shrink-0 items-center justify-center ${compact ? "h-28" : "h-32 sm:h-36"}`}
-          style={{
-            background: accent
-              ? `linear-gradient(160deg, color-mix(in srgb, ${accent} 10%, var(--bg-scene)) 0%, var(--bg-scene) 72%)`
-              : "var(--bg-scene)",
-          }}
+          style={{ background: "var(--bg-sunken)" }}
         >
           <EquipmentThumb src={image} alt="" size={compact ? "sm" : "md"} />
         </span>
         <span className="flex min-h-0 min-w-0 flex-1 flex-col gap-1.5 p-3">
           <span
-            className="block text-[10px] font-bold tracking-[0.12em] uppercase"
-            style={{ color: accent ?? "var(--muted)" }}
+            className="sf-spec-label block"
           >
             {brand}
           </span>
@@ -301,15 +290,7 @@ export function ProductCard({
             <span className="flex flex-wrap items-center gap-1.5">
               {badge ? (
                 <span
-                  className="w-fit rounded-sm px-1.5 py-0.5 text-[10px] font-semibold tracking-wide"
-                  style={{
-                    color: accentRail ? (accent ?? "var(--accent)") : "var(--muted)",
-                    background: accentRail
-                      ? accent
-                        ? `color-mix(in srgb, ${accent} 16%, transparent)`
-                        : "var(--accent-dim)"
-                      : "color-mix(in srgb, var(--foreground) 8%, transparent)",
-                  }}
+                  className="w-fit rounded-sm border border-[var(--line)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--muted)]"
                 >
                   {badge}
                 </span>
@@ -332,7 +313,7 @@ export function ProductCard({
               e.stopPropagation();
               onSave();
             }}
-            className={`sf-btn w-full ${saved ? "sf-btn-secondary" : "sf-btn-primary"}`}
+            className="w-full py-1 text-left text-[12.5px] font-medium text-[var(--accent)] hover:underline"
           >
             {saved ? savedLabel : saveLabel}
           </button>

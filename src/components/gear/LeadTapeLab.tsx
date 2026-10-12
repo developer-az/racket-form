@@ -342,7 +342,7 @@ export function LeadTapeLab({
                     idealLaunchAngleDeg: effect.launchAngleDeg,
                     idealSwingPathDeg: effect.swingPathDeg,
                   })}
-                  label="Side view — frame + tape"
+                  label="With tape"
                   compact
                 />
                 <p className="text-xs tabular-nums text-[var(--muted)]">

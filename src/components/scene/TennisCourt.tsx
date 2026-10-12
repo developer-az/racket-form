@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import * as THREE from "three";
+import { useTheme } from "@/components/theme/ThemeProvider";
 
 /** Static court — shared materials, no shadow maps, low segment counts */
 export function TennisCourt() {
@@ -9,19 +10,25 @@ export function TennisCourt() {
   const courtL = 23.77;
   const singlesW = 8.23;
 
+  const { theme } = useTheme();
+  const dark = theme === "dark";
+
+  // Neutral lab floor: the court reads as a measurement surface, not a venue
   const mats = useMemo(
     () => ({
-      ground: new THREE.MeshLambertMaterial({ color: "#1a3328" }),
-      outer: new THREE.MeshLambertMaterial({ color: "#2d6a4f" }),
-      inner: new THREE.MeshLambertMaterial({ color: "#40916c" }),
-      line: new THREE.MeshBasicMaterial({ color: "#f8f7f2" }),
-      net: new THREE.MeshLambertMaterial({ color: "#e8e6e0", transparent: true, opacity: 0.35 }),
-      tape: new THREE.MeshBasicMaterial({ color: "#f5f5f0" }),
-      post: new THREE.MeshLambertMaterial({ color: "#333333" }),
-      mark: new THREE.MeshBasicMaterial({ color: "#52b788", transparent: true, opacity: 0.3 }),
+      ground: new THREE.MeshLambertMaterial({ color: dark ? "#0d0f12" : "#eceef0" }),
+      outer: new THREE.MeshLambertMaterial({ color: dark ? "#14171b" : "#e4e6e9" }),
+      inner: new THREE.MeshLambertMaterial({ color: dark ? "#1a1e23" : "#dadde1" }),
+      line: new THREE.MeshBasicMaterial({ color: dark ? "#59616c" : "#ffffff" }),
+      net: new THREE.MeshLambertMaterial({ color: dark ? "#8b939e" : "#5a626d", transparent: true, opacity: 0.22 }),
+      tape: new THREE.MeshBasicMaterial({ color: dark ? "#cfd4da" : "#ffffff" }),
+      post: new THREE.MeshLambertMaterial({ color: dark ? "#3a4048" : "#2a2f36" }),
+      mark: new THREE.MeshBasicMaterial({ color: dark ? "#59616c" : "#ffffff", transparent: true, opacity: 0.25 }),
     }),
-    [],
+    [dark],
   );
+
+  useEffect(() => () => Object.values(mats).forEach((m) => m.dispose()), [mats]);
 
   return (
     <group>

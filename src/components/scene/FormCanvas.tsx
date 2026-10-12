@@ -7,16 +7,17 @@ import * as THREE from "three";
 import { useCoachStore } from "@/store/coachStore";
 import { getPlayer } from "@/data/players";
 import { sampleStroke } from "@/lib/kinematics";
+import { createSkeletonPose, solveStrokePose } from "@/lib/motion/solver";
 import { BiomechanicalSkeleton, type SkeletonDriver } from "./BiomechanicalSkeleton";
 import { AngleOverlays } from "./AngleOverlays";
 import { RacketPathTrail } from "./RacketPathTrail";
+import { StrokeBall } from "./StrokeBall";
 import { TennisCourt } from "./TennisCourt";
-import type { JointAngles } from "@/types/biomechanics";
 import { getThemeColors } from "@/lib/theme/colors";
 import { useTheme } from "@/components/theme/ThemeProvider";
 
 const PLAYER_Z = 11.5;
-const LOOK_AT: [number, number, number] = [0, 1.1, PLAYER_Z];
+const LOOK_AT: [number, number, number] = [0, 1.15, PLAYER_Z - 0.2];
 
 /** High-resolution playback clock shared with the 3D scene (avoids 60fps React). */
 export let playbackT = 0;
@@ -51,39 +52,53 @@ function PlaybackDriver() {
 function CameraRig({
   allowZoom,
   allowRotate,
+  hero,
 }: {
   allowZoom: boolean;
   allowRotate: boolean;
+  hero: boolean;
 }) {
   const mode = useCoachStore((s) => s.cameraMode);
+  // Serves reach ~2.7 m — frame higher and a little wider so contact stays in shot
+  const tall = useCoachStore((s) => s.stroke === "serve");
   const { camera, size } = useThree();
   const controls = useRef<ComponentRef<typeof OrbitControls>>(null);
   const narrow = size.width < 1024;
 
   useEffect(() => {
-    const zPull = narrow ? 1.4 : 0;
+    const zPull = (narrow ? 1.4 : 0) + (tall ? 1.1 : 0);
+    const lift = tall ? 0.45 : 0;
+    // Home hero: wider shot, athlete pushed right of the headline on desktop
+    const heroWide = hero && !narrow;
+    const look: [number, number, number] = [
+      LOOK_AT[0] - (heroWide ? 1.5 : 0),
+      LOOK_AT[1] + lift,
+      LOOK_AT[2],
+    ];
     const positions: Record<typeof mode, [number, number, number]> = {
-      orbit: [3.2, 2.1, PLAYER_Z + 4.2 + zPull],
-      side: [5.5 + (narrow ? 1.2 : 0), 1.6, PLAYER_Z + 0.2],
-      behind: [0.3, 1.8, PLAYER_Z + 5.5 + zPull],
-      front: [0.2, 1.7, PLAYER_Z - 4.8 - zPull],
+      orbit: hero
+        ? [3.2 - (heroWide ? 1.5 : 0), 2.0 + lift, PLAYER_Z + 4.4 + zPull]
+        : [2.7 + (tall ? 0.6 : 0), 1.8 + lift, PLAYER_Z + 3.3 + zPull],
+      side: [4.4 + zPull, 1.5 + lift, PLAYER_Z - 0.2],
+      behind: [0.3, 1.75 + lift, PLAYER_Z + 4.4 + zPull],
+      front: [0.2, 1.6 + lift, PLAYER_Z - 4.4 - zPull],
       firstPerson: [0.55, 1.55, PLAYER_Z + 0.35],
     };
     const targets: Record<typeof mode, [number, number, number]> = {
-      orbit: LOOK_AT,
-      side: LOOK_AT,
-      behind: LOOK_AT,
-      front: LOOK_AT,
-      firstPerson: [0.15, 1.35, PLAYER_Z - 1.2],
+      orbit: look,
+      side: look,
+      behind: look,
+      front: look,
+      firstPerson: [0.15, 1.35 + lift, PLAYER_Z - 1.2],
     };
     camera.position.set(...positions[mode]);
     controls.current?.target.set(...targets[mode]);
     controls.current?.update();
-  }, [mode, camera, narrow]);
+  }, [mode, camera, narrow, tall, hero]);
 
   return (
     <>
-      <PerspectiveCamera makeDefault fov={narrow ? 50 : 42} position={[3.2, 2.1, PLAYER_Z + 4.2]} />
+      <PerspectiveCamera makeDefault fov={narrow ? 50 : 42} position={[2.7, 1.8, PLAYER_Z + 3.3]} />
       <OrbitControls
         ref={controls}
         target={LOOK_AT}
@@ -111,10 +126,12 @@ function GroundForce({
   visibleRef,
   peakN,
   kneeRef,
+  color,
 }: {
   visibleRef: RefObject<boolean>;
   peakN: number;
   kneeRef: RefObject<number>;
+  color: string;
 }) {
   const mesh = useRef<THREE.Mesh>(null);
   const mat = useRef<THREE.MeshBasicMaterial>(null);
@@ -134,7 +151,7 @@ function GroundForce({
   return (
     <mesh ref={mesh} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0.15]} visible={false}>
       <ringGeometry args={[0.4, 1, 24]} />
-      <meshBasicMaterial ref={mat} color="#f4a261" transparent opacity={0.3} side={THREE.DoubleSide} depthWrite={false} />
+      <meshBasicMaterial ref={mat} color={color} transparent opacity={0.3} side={THREE.DoubleSide} depthWrite={false} />
     </mesh>
   );
 }
@@ -148,59 +165,53 @@ function AnimatedAthlete() {
 
   const player = getPlayer(playerId)!;
   const stroke = player.strokes[strokeType];
+  const { colors } = useTheme();
 
   const driverRef = useRef<SkeletonDriver>({
-    joints: sampleStroke(stroke, 0).joints,
+    pose: createSkeletonPose(),
     racketSpeedMs: 0,
-    handedness: stroke.handedness,
-    oneHanded: stroke.oneHanded,
   });
-  const jointsRef = useRef<JointAngles>(driverRef.current.joints);
   const kneeRef = useRef(25);
   const tRef = useRef(0);
   const gfVisible = useRef(showGroundForce);
   gfVisible.current = showGroundForce;
 
-  // Keep stroke identity on the driver without re-rendering the mesh tree
-  driverRef.current.handedness = stroke.handedness;
-  driverRef.current.oneHanded = stroke.oneHanded;
-
+  // Solve before children render this frame (negative priority runs first)
   useFrame(() => {
     if (typeof document !== "undefined" && document.hidden) return;
-    const pose = sampleStroke(stroke, playbackT);
-    driverRef.current.joints = pose.joints;
-    driverRef.current.racketSpeedMs = pose.racketSpeedMs;
-    jointsRef.current = pose.joints;
-    kneeRef.current = pose.joints.leadKneeFlexion;
+    const driver = driverRef.current;
+    solveStrokePose(driver.pose, stroke, player.anthropometrics, playbackT);
+    driver.racketSpeedMs = sampleStroke(stroke, playbackT).racketSpeedMs;
+    kneeRef.current = driver.pose.measured.frontKneeFlexion;
     tRef.current = playbackT;
-  });
+  }, -1);
 
   return (
     <group position={[0, 0, PLAYER_Z]}>
       <BiomechanicalSkeleton
         key={playerId}
         driverRef={driverRef}
-        anthropometrics={player.anthropometrics}
-        color={player.color}
-        accent={player.accent}
+        color={colors.silhouette}
+        jointColor={colors.silhouetteRim}
+        accent={colors.accent}
       />
-      <AngleOverlays
-        jointsRef={jointsRef}
-        visible={showAngles}
-        accent={player.accent}
-        handedness={stroke.handedness}
-      />
+      {/* Labels load a font — isolate the suspense so the athlete never blanks out */}
+      <Suspense fallback={null}>
+        <AngleOverlays driverRef={driverRef} visible={showAngles} accent={colors.accent} secondary={colors.chartPower} />
+      </Suspense>
+      <StrokeBall stroke={stroke} anthropometrics={player.anthropometrics} tRef={tRef} />
       <RacketPathTrail
         stroke={stroke}
         anthropometrics={player.anthropometrics}
         visible={showRacketPath}
-        accent={player.accent}
+        accent={colors.accent}
         tRef={tRef}
       />
       <GroundForce
         visibleRef={gfVisible}
         peakN={stroke.metrics.kineticChain.peakGrfN}
         kneeRef={kneeRef}
+        color={colors.chartPower}
       />
     </group>
   );
@@ -240,23 +251,25 @@ function SceneContent({
   bg,
   allowZoom,
   allowRotate,
+  hero,
 }: {
   bg: string;
   allowZoom: boolean;
   allowRotate: boolean;
+  hero: boolean;
 }) {
   return (
     <>
       <PlaybackDriver />
       <AdaptiveDpr />
-      <CameraRig allowZoom={allowZoom} allowRotate={allowRotate} />
+      <CameraRig allowZoom={allowZoom} allowRotate={allowRotate} hero={hero} />
       <color attach="background" args={[bg]} />
       <fog attach="fog" args={[bg, 14, 36]} />
 
       {/* Lean lighting: no shadow maps */}
       <ambientLight intensity={0.55} />
       <directionalLight position={[6, 10, 4]} intensity={1.15} />
-      <hemisphereLight args={["#c8e6d0", "#1a3328", 0.45]} />
+      <hemisphereLight args={["#ffffff", "#5a626d", 0.4]} />
 
       <TennisCourt />
       <AnimatedAthlete />
@@ -264,7 +277,7 @@ function SceneContent({
       {/* Soft blob shadow — far cheaper than ContactShadows / shadow maps */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.015, PLAYER_Z + 0.1]}>
         <circleGeometry args={[0.55, 20]} />
-        <meshBasicMaterial color="#000000" transparent opacity={0.28} depthWrite={false} />
+        <meshBasicMaterial color="#000000" transparent opacity={0.16} depthWrite={false} />
       </mesh>
     </>
   );
@@ -357,7 +370,7 @@ export function FormCanvas({ variant = "lab" }: FormCanvasProps) {
         }}
       >
         <Suspense fallback={null}>
-          <SceneContent bg={bg} allowZoom={allowZoom} allowRotate={allowRotate} />
+          <SceneContent bg={bg} allowZoom={allowZoom} allowRotate={allowRotate} hero={isHero} />
         </Suspense>
       </Canvas>
       <div

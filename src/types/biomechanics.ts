@@ -24,60 +24,12 @@ export type GripType =
   | "continental"
   | "twoHanded";
 
-/**
- * Stick-figure joint DOF (degrees). Mapped in `src/lib/skeletonFk.ts`.
- *
- * Frame (hipYaw = 0): +X right, +Y up, −Z toward net.
- * Lefty mirrors yaw / twist / abduction side / IR.
- *
- * hipYaw: − FH unit turn (hitting shoulder back), + BH turn
- * hipPitch: + athletic hinge / sit into legs (both hips)
- * pelvisSurge: COM along facing axis (− back/load, + toward net)
- * pelvisSway: COM lateral (+ toward hitting side)
- * spineTwist: shoulder–hip separation, same sign as coil
- * spineLean: + toward net, − arch (serve trophy)
- * shoulderFlexion: 0 hang, 90 forward, 180 up
- * shoulderAbduction: + FH side, − across body (BH wing)
- * shoulderInternalRotation: + IR/pronation, − ER (racket drop / takeback cocking)
- * wristExtension: + lag, − snap through contact
- * nonHittingShoulderAbduction: + away from body (counterbalance / toss)
- * nonHittingShoulderInternalRotation: lead-arm twist (point / balance)
- * racketFaceAngle: + open (slice), − closed
- * racketPathElevation: tip pitch from horizontal (+ up, − down/scratch-back)
- */
-export interface JointAngles {
-  hipYaw: number;
-  hipPitch: number;
-  pelvisSurge: number;
-  pelvisSway: number;
-  spineTwist: number;
-  spineLean: number;
-  shoulderFlexion: number;
-  shoulderAbduction: number;
-  shoulderInternalRotation: number;
-  elbowFlexion: number;
-  wristExtension: number;
-  wristUlnarDeviation: number;
-  leadKneeFlexion: number;
-  trailKneeFlexion: number;
-  leadHipFlexion: number;
-  trailHipFlexion: number;
-  ankleDorsiflexion: number;
-  nonHittingShoulderFlexion: number;
-  nonHittingShoulderAbduction: number;
-  nonHittingShoulderInternalRotation: number;
-  nonHittingElbowFlexion: number;
-  racketFaceAngle: number;
-  racketPathElevation: number;
-}
-
 export interface PhaseKeyframe {
   phase: StrokePhase;
   /** Normalized 0–1 within the full stroke cycle */
   t: number;
   /** Duration of this phase in ms (mean ± from lab studies) */
   durationMs: number;
-  joints: JointAngles;
   /** Instantaneous racket head speed m/s */
   racketSpeedMs: number;
   /** Ball spin rpm estimate at/after contact; 0 otherwise */

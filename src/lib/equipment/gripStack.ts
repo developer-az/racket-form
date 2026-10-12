@@ -19,6 +19,9 @@ export function sizeIndex(code: GripSizeCode | null | undefined): number {
  * Effective handle build from stamped size + stacked grips.
  * ~0.55–0.6 mm overgrip ≈ one grip-size step of build.
  */
+/** Typical factory replacement grip thickness, already counted in the L size. */
+const STOCK_REPLACEMENT_MM = 1.8;
+
 export function gripStackEffect(
   layers: GripLayer[],
   catalog: GripProfile[],
@@ -63,8 +66,15 @@ export function gripStackEffect(
   const outer = profiles[profiles.length - 1];
   const tackiness = outer?.tackiness ?? 50;
 
+  // The printed L size already includes the stock replacement grip, so only
+  // thickness beyond it builds the handle up: overgrips, or a replacement
+  // thicker than stock.
   const baseSize = sizeIndex(gripSize);
-  const buildSteps = thicknessMm / 0.55;
+  const addedMm = profiles.reduce(
+    (sum, p) => sum + (p.kind === "replacement" ? p.thicknessMm - STOCK_REPLACEMENT_MM : p.thicknessMm),
+    0,
+  );
+  const buildSteps = addedMm / 0.55;
   const effectiveSizeIndex = baseSize + buildSteps;
 
   // Soft/thick stack slightly raises perceived launch; oversized build mutes wrist snap
@@ -80,12 +90,12 @@ export function gripStackEffect(
   } else if (effectiveSizeIndex < 2.3) {
     controlBias = -4;
     spinBias = 2;
-    buildNote = `Build feels undersized (~${gripSize ?? "L?"} + ${thicknessMm.toFixed(1)} mm). Add an overgrip or size up for a more stable bevel.`;
+    buildNote = `Build feels undersized (${gripSize ?? "L?"} + ${addedMm.toFixed(1)} mm over stock). Add an overgrip or size up for a more stable bevel.`;
   } else if (effectiveSizeIndex > 4.4) {
     controlBias = -3;
     spinBias = -4;
     comfortBias += 4;
-    buildNote = `Build feels oversized (~${overgripCount} overgrip${overgripCount === 1 ? "" : "s"}, ${thicknessMm.toFixed(1)} mm). Strip a layer if bevels feel round and wrist snap dies.`;
+    buildNote = `Build feels oversized (${overgripCount} overgrip${overgripCount === 1 ? "" : "s"}, +${addedMm.toFixed(1)} mm over stock). Strip a layer if bevels feel round and wrist snap dies.`;
   } else {
     controlBias = 2;
     buildNote = `Handle build in a workable band (${gripSize ?? "L?"} · ${layers.length} layer${layers.length === 1 ? "" : "s"} · ${thicknessMm.toFixed(1)} mm).`;

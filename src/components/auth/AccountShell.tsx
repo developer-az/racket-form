@@ -38,7 +38,7 @@ export function AccountShell({
         ) : null}
         <ul className="mt-8 space-y-5">
           {BENEFITS.map((b) => (
-            <li key={b.title} className="border-l-2 border-[var(--accent)]/45 pl-4">
+            <li key={b.title} className="border-l border-[var(--line-strong)] pl-4">
               <p className="text-sm font-semibold text-[var(--foreground)]">{b.title}</p>
               <p className="mt-1 text-sm leading-relaxed text-[var(--muted)]">{b.body}</p>
             </li>

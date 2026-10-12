@@ -198,7 +198,29 @@ export function YouHub({
       </div>
 
       <div className="mt-8">
-        {tab === "today" && (
+        {tab === "today" && needsBag && (
+          <div className="space-y-4">
+            <div className="sf-panel flex flex-wrap items-center justify-between gap-4 px-5 py-5">
+              <div className="min-w-0">
+                <p className="sf-spec-label">Bag · Empty</p>
+                <p className="mt-1.5 text-[15px] font-semibold tracking-[-0.01em]">Add a frame to see how your setup plays</p>
+                <p className="mt-1 text-[13px] text-[var(--muted)]">
+                  {rackets.length} frames, {strings.length} strings and {grips.length} grips with measured specs.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <Link href="/gear?tab=rackets" className="sf-btn sf-btn-primary !min-h-10 !text-[13px]">
+                  Open racket database
+                </Link>
+                <Link href="/gear?tab=overview&finder=1" className="sf-text-link text-[13px]">
+                  Quick start
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {tab === "today" && !needsBag && (
           <div className="space-y-6">
             {needsGrip ? (
               <button
@@ -206,16 +228,8 @@ export function YouHub({
                 onClick={() => setPlayerCardOpen(true)}
                 className="sf-alert sf-alert-accent w-full text-left"
               >
-                Add a grip so Lab can show your face angle. Optional — skip if you just want to browse.
+                Tell us your forehand grip to see your racket-face angle at contact (optional).
               </button>
-            ) : null}
-            {needsBag ? (
-              <div className="sf-alert flex flex-wrap items-center justify-between gap-3">
-                <p>Add a frame when you want a court-ready calculation from specs.</p>
-                <Link href="/gear?tab=rackets" className="sf-text-link shrink-0">
-                  Browse rackets
-                </Link>
-              </div>
             ) : null}
 
             <WorkOnThis insight={displayInsight} />
@@ -298,9 +312,9 @@ export function YouHub({
               </>
             ) : (
               <CourtEmpty
-                kicker="No mold yet"
-                title="Browse a racket when you’re ready"
-                body="Save a frame (and optionally a bed) so Racket Form can calculate leave, flight, and whether the bag is court-ready from specs."
+                kicker="One piece missing"
+                title="Add a racket to see how your bag plays"
+                body="With a frame saved we calculate launch, spin window, and whether the whole setup is court-ready."
                 primary={{ href: "/gear?tab=rackets", label: "Browse rackets" }}
                 secondary={{ href: "/lab", label: "Open form lab" }}
               />

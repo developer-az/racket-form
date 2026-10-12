@@ -159,7 +159,7 @@ function syncLegacyGripFields(
 export const useGearStore = create<GearState>()(
   persist(
     (set) => ({
-      tab: "overview",
+      tab: "rackets",
       setup: emptySetup,
       setTab: (tab) => set({ tab }),
       setRacket: (slug, label, meta) =>

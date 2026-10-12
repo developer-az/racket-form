@@ -39,16 +39,11 @@ export function PlayerStrokePicker() {
                 type="button"
                 onClick={() => setPlayer(p.id)}
                 aria-pressed={active}
-                className="sf-chip cursor-pointer text-left"
-                style={{
-                  background: active ? p.color : "var(--overlay-hover)",
-                  color: active ? "#f8f6f0" : "var(--foreground)",
-                  outline: active ? `2px solid ${p.accent}` : "1px solid var(--line)",
-                  outlineOffset: 0,
-                }}
+                data-active={active}
+                className="sf-chip cursor-pointer flex-col !items-start justify-center text-left"
               >
                 <span className="block font-medium leading-tight">{p.shortName}</span>
-                <span className="block text-[10px] opacity-70">{p.nationality}</span>
+                <span className="block font-[family-name:var(--font-mono)] text-[9.5px] tracking-[0.08em] uppercase opacity-60">{p.nationality}</span>
               </button>
             );
           })}
@@ -104,7 +99,7 @@ export function PlaybackDock() {
         <button
           type="button"
           onClick={togglePlaying}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius)] bg-[var(--accent)] text-[var(--accent-ink)]"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius)] bg-[var(--ink)] text-[var(--ink-fg)]"
           aria-label={playing ? "Pause" : "Play"}
         >
           {playing ? (
@@ -164,7 +159,7 @@ export function PlaybackControls() {
         <button
           type="button"
           onClick={togglePlaying}
-          className="flex h-11 w-11 items-center justify-center rounded-[var(--radius)] bg-[var(--accent)] text-[var(--accent-ink)]"
+          className="flex h-11 w-11 items-center justify-center rounded-[var(--radius)] bg-[var(--ink)] text-[var(--ink-fg)]"
           aria-label={playing ? "Pause" : "Play"}
         >
           {playing ? (

@@ -119,16 +119,16 @@ export function FrameIntelligencePanel({
       <div className={`mt-6 grid gap-6 ${compact ? "" : "lg:grid-cols-[1.1fr_0.9fr]"}`}>
         <IntelSkillLadder intel={intel} />
         <div className="grid grid-cols-2 gap-x-5 gap-y-4">
-          <Meter label="Plow" value={intel.ratings.plow} color="var(--chart-power)" />
-          <Meter label="Whip" value={intel.ratings.whip} color="var(--chart-spin)" />
-          <Meter label="Forgiveness" value={intel.ratings.forgiveness} color="var(--chart-comfort)" />
-          <Meter label="Spin ceiling" value={intel.ratings.spinCeiling} color="var(--chart-spin)" />
+          <Meter label="Stability" value={intel.ratings.plow} color="var(--foreground)" />
+          <Meter label="Maneuverability" value={intel.ratings.whip} color="var(--foreground)" />
+          <Meter label="Forgiveness" value={intel.ratings.forgiveness} color="var(--foreground)" />
+          <Meter label="Spin ceiling" value={intel.ratings.spinCeiling} color="var(--foreground)" />
           <Meter
-            label="Directional honesty"
+            label="Accuracy"
             value={intel.ratings.directionalHonesty}
-            color="var(--chart-control)"
+            color="var(--foreground)"
           />
-          <Meter label="Arm load" value={intel.ratings.armLoad} color="var(--danger)" />
+          <Meter label="Arm shock" value={intel.ratings.armLoad} color="var(--foreground)" />
         </div>
       </div>
 

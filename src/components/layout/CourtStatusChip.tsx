@@ -65,7 +65,7 @@ export function CourtStatusChip() {
   return (
     <Link href="/gear?tab=rackets" className="sf-status-chip hidden xl:inline-flex">
       <span className="sf-status-dot" aria-hidden />
-      Browse rackets
+      Bag empty
     </Link>
   );
 }

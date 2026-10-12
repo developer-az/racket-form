@@ -66,10 +66,10 @@ export function HowItHitsPanel({ racket }: { racket: RacketProfile }) {
       </header>
 
       <div className="mt-5 grid grid-cols-2 gap-x-5 gap-y-4">
-        <Meter label="Plow" value={physics.plow} color="var(--chart-power)" />
-        <Meter label="Whip" value={physics.whip} color="var(--chart-spin)" />
-        <Meter label="Forgiveness" value={physics.forgiveness} color="var(--chart-comfort)" />
-        <Meter label="Arm load" value={physics.armLoad} color="var(--danger)" />
+        <Meter label="Stability" value={physics.plow} color="var(--foreground)" />
+        <Meter label="Maneuverability" value={physics.whip} color="var(--foreground)" />
+        <Meter label="Forgiveness" value={physics.forgiveness} color="var(--foreground)" />
+        <Meter label="Arm shock" value={physics.armLoad} color="var(--foreground)" />
       </div>
       <p className="mt-4 text-[11px] tabular-nums text-[var(--muted)]">
         Teaching window ~{physics.launchDeg.toFixed(1)}° leave / ~{physics.pathDeg.toFixed(0)}° path

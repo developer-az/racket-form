@@ -14,105 +14,58 @@ export function CourtReadyVerdict({
   const label = courtReadyLabel(playability.band);
 
   return (
-    <section
-      className="sf-intel-panel"
-      aria-label="Court-ready verdict"
-      style={{ boxShadow: `inset 3px 0 0 ${tone}` }}
-    >
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <section className="sf-panel p-5 md:p-6" aria-label="Court-ready verdict">
+      <div className="flex flex-wrap items-baseline justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="sf-kicker" style={{ color: tone }}>
-            Combined physics
-          </p>
-          <h3
-            className={`mt-2 font-[family-name:var(--font-display)] font-semibold tracking-tight ${
-              compact ? "text-lg md:text-xl" : "text-xl md:text-2xl"
-            }`}
-          >
+          <h3 className={`font-semibold tracking-[-0.015em] ${compact ? "text-[15px]" : "text-[17px]"}`}>
+            <span className="mr-2 inline-block h-2 w-2 rounded-full align-middle" style={{ background: tone }} aria-hidden />
             {label}
           </h3>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--muted)]">
-            {playability.headline}
-          </p>
+          <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-[var(--muted)]">{playability.headline}</p>
         </div>
-        <div className="shrink-0 text-right">
-          <p
-            className="font-[family-name:var(--font-display)] text-3xl tabular-nums tracking-tight"
-            style={{ color: tone }}
-          >
-            {playability.score}
-          </p>
-          <p className="sf-kicker sf-kicker-muted">court-ready</p>
-        </div>
+        <p className="shrink-0">
+          <span className="sf-readout text-[1.5rem]">{playability.score}</span>
+          <span className="ml-1 text-[12px] text-[var(--muted)]">/100 court-ready</span>
+        </p>
       </div>
 
-      {!compact ? (
-        <p className="mt-4 text-sm leading-relaxed text-[var(--foreground)]/90">
-          {playability.howItHits}
-        </p>
-      ) : (
-        <p className="mt-3 line-clamp-4 text-sm leading-relaxed text-[var(--foreground)]/90">
-          {playability.howItHits}
-        </p>
-      )}
-
-      {playability.trajectory ? (
-        <p className="mt-3 font-[family-name:var(--font-mono)] text-[11px] leading-relaxed text-[var(--muted)]">
-          {playability.trajectory}
-        </p>
-      ) : null}
-
-      {playability.specLine ? (
-        <p className="mt-1 font-[family-name:var(--font-mono)] text-[11px] text-[var(--muted)]">
-          {playability.specLine}
-        </p>
-      ) : null}
-
-      {playability.missing.length > 0 ? (
-        <p className="mt-3 text-xs text-[var(--amber)]">
-          Still need {playability.missing.join(", ")} for a full bag calculation.
-        </p>
-      ) : null}
-
       {playability.flags.length > 0 ? (
-        <ul className={`mt-5 grid gap-2 ${compact ? "" : "md:grid-cols-2"}`}>
+        <ul className={`mt-4 divide-y divide-[var(--line)] border-y border-[var(--line)] ${compact ? "" : ""}`}>
           {playability.flags.map((f) => {
             const flagTone =
-              f.severity === "stop"
-                ? "var(--danger)"
-                : f.severity === "caution"
-                  ? "var(--amber)"
-                  : "var(--accent)";
+              f.severity === "stop" ? "var(--danger)" : f.severity === "caution" ? "var(--amber)" : "var(--accent)";
             return (
-              <li
-                key={f.id}
-                className="px-3 py-2.5"
-                style={{
-                  boxShadow: `inset 2px 0 0 ${flagTone}, inset 0 0 0 1px var(--line)`,
-                }}
-              >
-                <p className="sf-kicker" style={{ color: flagTone }}>
-                  {f.severity === "ok" ? "in window" : f.severity}
-                </p>
-                <p className="mt-1 text-sm font-medium text-[var(--foreground)]">{f.title}</p>
-                <p className="mt-1 text-xs leading-relaxed text-[var(--muted)]">{f.why}</p>
-                {!compact ? (
-                  <p className="mt-1 text-xs leading-relaxed text-[var(--foreground)]/80">{f.physics}</p>
-                ) : null}
+              <li key={f.id} className="grid grid-cols-[5.5rem_1fr] gap-3 py-2.5">
+                <span className="sf-spec-label pt-0.5" style={{ color: flagTone }}>
+                  {f.severity === "ok" ? "In range" : f.severity === "stop" ? "Stop" : "Caution"}
+                </span>
+                <span>
+                  <span className="block text-[13.5px] font-medium">{f.title}</span>
+                  <span className="block text-[12.5px] leading-relaxed text-[var(--muted)]">{f.why}</span>
+                </span>
               </li>
             );
           })}
         </ul>
       ) : null}
 
-      {playability.factors.length > 0 && !compact ? (
-        <div className="mt-5 flex flex-wrap gap-2">
-          {playability.factors.map((f) => (
-            <span key={f.id} className="sf-intel-chip" title={f.note}>
-              {f.label}
-            </span>
-          ))}
-        </div>
+      {playability.missing.length > 0 ? (
+        <p className="mt-3 text-[12.5px] text-[var(--muted)]">
+          Add a {playability.missing.join(" and ")} for the full calculation.
+        </p>
+      ) : null}
+
+      {!compact ? (
+        <details className="group mt-3">
+          <summary className="cursor-pointer list-none text-[12.5px] text-[var(--muted)] hover:text-[var(--foreground)] [&::-webkit-details-marker]:hidden">
+            <span className="group-open:hidden">Show the reasoning</span>
+            <span className="hidden group-open:inline">Hide the reasoning</span>
+          </summary>
+          <p className="mt-2 max-w-3xl text-[13px] leading-relaxed text-[var(--foreground)]/85">{playability.howItHits}</p>
+          {playability.specLine ? (
+            <p className="mt-2 font-[family-name:var(--font-mono)] text-[11px] text-[var(--muted)]">{playability.specLine}</p>
+          ) : null}
+        </details>
       ) : null}
     </section>
   );

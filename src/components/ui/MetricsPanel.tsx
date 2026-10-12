@@ -7,6 +7,7 @@ import { useCoachStore } from "@/store/coachStore";
 import { setupSummary, useGearStore } from "@/store/gearStore";
 import { synthesizeCombinedSetup } from "@/lib/equipment/setupSynthesis";
 import { sampleStroke } from "@/lib/kinematics";
+import { measureStroke } from "@/lib/motion/solver";
 
 function Metric({
   label,
@@ -22,7 +23,7 @@ function Metric({
   return (
     <div className="border-t border-[var(--line)] pt-3">
       <p className="sf-label">{label}</p>
-      <p className="mt-1 font-[family-name:var(--font-display)] text-2xl tracking-tight text-[var(--foreground)]">
+      <p className="mt-1 sf-readout text-[1.375rem]">
         {value}
         {unit ? <span className="ml-1 text-sm font-sans text-[var(--muted)]">{unit}</span> : null}
       </p>
@@ -40,6 +41,7 @@ export function MetricsPanel() {
   const stroke = player.strokes[strokeType];
   const m = stroke.metrics;
   const pose = sampleStroke(stroke, t);
+  const angles = measureStroke(stroke, player.anthropometrics, t);
 
   return (
     <div className="space-y-1">
@@ -70,23 +72,26 @@ export function MetricsPanel() {
       />
       <Metric
         label="Elbow flexion"
-        value={String(Math.round(pose.joints.elbowFlexion))}
+        value={String(Math.round(angles.elbowFlexion))}
+        unit="°"
+        hint="0° = straight arm"
+      />
+      <Metric
+        label="Front knee flexion"
+        value={String(Math.round(angles.frontKneeFlexion))}
         unit="°"
       />
       <Metric
-        label="Lead knee flexion"
-        value={String(Math.round(pose.joints.leadKneeFlexion))}
+        label="Shoulder turn"
+        value={String(Math.round(Math.abs(angles.trunkRotation)))}
         unit="°"
+        hint="Shoulder line vs. baseline"
       />
       <Metric
-        label="Trunk rotation"
-        value={String(Math.round(Math.abs(pose.joints.spineTwist)))}
+        label="Hip–shoulder separation"
+        value={String(Math.round(Math.abs(angles.separation)))}
         unit="°"
-      />
-      <Metric
-        label="Shoulder internal rotation"
-        value={String(Math.round(pose.joints.shoulderInternalRotation))}
-        unit="°"
+        hint={`X-factor peak ≈ ${m.kineticChain.xFactorDeg}°`}
       />
 
       <div className="mt-4 border-t border-[var(--line)] pt-4">
@@ -227,7 +232,7 @@ export function SciencePanel() {
         </p>
         <ul className="mt-2 space-y-2 text-sm leading-relaxed text-[var(--foreground)]/85">
           {m.researchNotes.map((n) => (
-            <li key={n} className="border-l-2 border-[var(--accent)]/40 pl-3">
+            <li key={n} className="border-l border-[var(--line-strong)] pl-3">
               {n}
             </li>
           ))}

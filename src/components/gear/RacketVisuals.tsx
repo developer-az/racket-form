@@ -10,16 +10,13 @@ import type { ForehandMoldAdvice } from "@/lib/equipment/forehandMold";
 import type { FlightMetrics } from "@/lib/equipment/setupSynthesis";
 import { AthleteSilhouette, RacketHoopPhoto } from "@/components/gear/AthleteSilhouette";
 import {
-  computeBallTrajectory,
   contactHeightWindowM,
   contactOutFrontM,
-  BALL_RADIUS_M,
-  BASELINE_TO_NET_M,
   formatFt,
   M_TO_FT,
-  NET_HEIGHT_M,
   type StrikeBand,
 } from "@/lib/equipment/ballFlight";
+import { FlightChart } from "./explorer/FlightChart";
 
 export type { StrikeBand };
 
@@ -220,7 +217,7 @@ export function LaunchAngleVisual({
   control = 55,
   flight = null,
   faceClosedDeg = 8,
-  label = "Strike mold → flight",
+  label = "Ball flight",
   compact = false,
 }: {
   degrees: number;
@@ -235,7 +232,6 @@ export function LaunchAngleVisual({
   /** Hide gauges + long copy when embedded in a larger story. */
   compact?: boolean;
 }) {
-  const uid = useId().replace(/:/g, "");
   const launch = Math.max(1.5, Math.min(16, flight?.launchDeg ?? degrees));
   const path = Math.max(5, Math.min(40, flight?.pathDeg ?? pathDeg));
   const z =
@@ -251,227 +247,44 @@ export function LaunchAngleVisual({
   const plow = flight?.plow ?? Math.round((power ?? 55) * 0.55 + 20);
   const topspin = flight?.topspin ?? Math.round((spin ?? 55) * 0.55 + path * 1.1);
   const depth = flight?.depth ?? 55;
-  const flyRisk = flight?.flyRisk ?? 40;
   const netClearIn = flight?.netClearIn ?? roundClear(launch, path);
-
-  const traj = computeBallTrajectory({
-    launchDeg: launch,
-    netClearIn,
-    contactHeightM: z.heightM,
-    outFrontM: z.outFrontM,
-    topspin,
-  });
-
-  const xMin = -z.outFrontM - 0.35;
-  const xMax = Math.max(traj.landX, traj.netX + 2.5, 16);
-  const yMax = Math.max(1.95, traj.apex.y * 1.08, 6.2 / M_TO_FT);
-  const plot = { left: 48, right: 292, top: 10, ground: 188 };
-  const sx = (x: number) => plot.left + ((x - xMin) / (xMax - xMin)) * (plot.right - plot.left);
-  const sy = (y: number) => plot.ground - (y / yMax) * (plot.ground - plot.top);
-  const poly = traj.points
-    .filter((p) => p.x <= xMax)
-    .map((p) => `${sx(p.x).toFixed(1)},${sy(p.y).toFixed(1)}`)
-    .join(" ");
-  const netPx = sx(traj.netX);
-  const tapeY = sy(NET_HEIGHT_M);
-  const ballAtNetY = sy(traj.heightAtNet);
-  const leaveRad = (launch * Math.PI) / 180;
-  const faceCx = sx(0);
-  const faceCy = sy(z.heightM);
-  const baseX = sx(-z.outFrontM);
-  const launchLen = 26;
-  const closed = Math.max(0, Math.min(28, faceClosedDeg));
+  void faceClosedDeg;
 
   return (
     <div className="relative">
-      <p className="sf-kicker mb-2">
-        {label}
-      </p>
-      <div className="sf-viz-stage max-w-lg">
-      <svg viewBox="0 0 300 210" className="h-auto w-full" aria-hidden>
-        <defs>
-          <linearGradient id={`ballArc-${uid}`} x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="var(--chart-control)" stopOpacity="0.4" />
-            <stop offset="50%" stopColor="var(--chart-control)" stopOpacity="1" />
-            <stop offset="100%" stopColor="var(--chart-power)" stopOpacity="0.95" />
-          </linearGradient>
-          <linearGradient id={`court-${uid}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#2f6f52" />
-            <stop offset="100%" stopColor="#1b4332" />
-          </linearGradient>
-          <linearGradient id={`frame3d-${uid}`} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#3a3a3a" />
-            <stop offset="45%" stopColor="#141414" />
-            <stop offset="100%" stopColor="#2c2c2c" />
-          </linearGradient>
-        </defs>
-        <rect x="8" y={plot.ground} width="284" height="14" fill={`url(#court-${uid})`} opacity="0.7" />
-        <line x1="12" y1={plot.ground} x2="292" y2={plot.ground} stroke="color-mix(in srgb, var(--foreground) 35%, transparent)" strokeWidth="1.4" />
-
-        <FootRuler x={22} sy={sy} loM={z.heightLoM} hiM={z.heightHiM} />
-
-        <line
-          x1={baseX}
-          y1={plot.ground - 16}
-          x2={baseX}
-          y2={plot.ground}
-          stroke="var(--foreground)"
-          strokeWidth="2"
+      <p className="sf-spec-label mb-2">{label}</p>
+      <div className="rounded-[var(--radius)] border border-[var(--line)] bg-[var(--panel)] px-2 pt-2">
+        <FlightChart
+          wide
+          flight={{
+            launchDeg: launch,
+            netClearIn,
+            contactHeightM: z.heightM,
+            contactLoM: z.heightLoM,
+            contactHiM: z.heightHiM,
+            outFrontM: z.outFrontM,
+          }}
         />
-        <text x={baseX} y={plot.ground + 12} textAnchor="middle" fill="var(--foreground)" fontSize="8">
-          baseline
-        </text>
-
-        <ContactStroke
-          baseX={baseX + 4}
-          sy={sy}
-          ground={plot.ground}
-          contactX={faceCx}
-          contactY={faceCy}
-          closedDeg={closed}
-        />
-
-        <rect
-          x={netPx - 4}
-          y={tapeY}
-          width="8"
-          height={plot.ground - tapeY}
-          fill="color-mix(in srgb, var(--foreground) 8%, transparent)"
-        />
-        {Array.from({ length: 8 }).map((_, i) => (
-          <line
-            key={i}
-            x1={netPx - 6 + i * 1.7}
-            y1={tapeY}
-            x2={netPx - 6 + i * 1.7}
-            y2={plot.ground - 2}
-            stroke="color-mix(in srgb, var(--foreground) 32%, transparent)"
-            strokeWidth="0.55"
-          />
-        ))}
-        <line x1={netPx} y1={tapeY} x2={netPx} y2={plot.ground} stroke="var(--label)" strokeWidth="1.7" />
-        <line x1={netPx - 12} y1={tapeY} x2={netPx + 12} y2={tapeY} stroke="var(--foreground)" strokeWidth="2.2" />
-        <circle cx={netPx - 12} cy={tapeY + 3} r="1.6" fill="var(--foreground)" />
-        <circle cx={netPx + 12} cy={tapeY + 3} r="1.6" fill="var(--foreground)" />
-        <text x={netPx} y={tapeY - 6} textAnchor="middle" fill="var(--muted)" fontSize="8">
-          net 3.0 ft
-        </text>
-
-        <polyline
-          points={poly}
-          fill="none"
-          stroke={`url(#ballArc-${uid})`}
-          strokeWidth="5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          opacity="0.22"
-        />
-        <polyline
-          points={poly}
-          fill="none"
-          stroke={`url(#ballArc-${uid})`}
-          strokeWidth="2.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-
-        <line
-          x1={faceCx}
-          y1={faceCy}
-          x2={faceCx + launchLen}
-          y2={faceCy}
-          stroke="var(--muted)"
-          strokeWidth="1"
-          strokeDasharray="3 2"
-        />
-        <line
-          x1={faceCx}
-          y1={faceCy}
-          x2={faceCx + Math.cos(leaveRad) * launchLen}
-          y2={faceCy - Math.sin(leaveRad) * launchLen}
-          stroke="var(--chart-control)"
-          strokeWidth="1.6"
-        />
-        <path
-          d={`M ${faceCx + 16} ${faceCy} A 16 16 0 0 ${launch > 0 ? 0 : 1} ${faceCx + Math.cos(leaveRad) * 16} ${faceCy - Math.sin(leaveRad) * 16}`}
-          fill="none"
-          stroke="var(--chart-control)"
-          strokeWidth="1.2"
-        />
-        <text
-          x={faceCx + 20}
-          y={faceCy - Math.sin(leaveRad) * 10 - 4}
-          fill="var(--chart-control)"
-          fontSize="8.5"
-        >
-          {launch.toFixed(1)}° leave
-        </text>
-        <text x={faceCx + 10} y={faceCy + 22} fill="var(--chart-power)" fontSize="8">
-          {closed.toFixed(1)}° closed
-        </text>
-        <circle
-          cx={faceCx + Math.cos(leaveRad) * 9}
-          cy={faceCy - Math.sin(leaveRad) * 9}
-          r="4"
-          fill="#d4e054"
-          stroke="color-mix(in srgb, var(--foreground) 35%, transparent)"
-          strokeWidth="0.6"
-        />
-        <circle
-          cx={faceCx + Math.cos(leaveRad) * 9 - 1.1}
-          cy={faceCy - Math.sin(leaveRad) * 9 - 1.1}
-          r="1.15"
-          fill="#f7fbe8"
-        />
-
-        <line
-          x1={netPx + 8}
-          y1={ballAtNetY}
-          x2={netPx + 8}
-          y2={tapeY}
-          stroke="var(--chart-spin)"
-          strokeWidth="1.4"
-        />
-        <text x={netPx + 12} y={(ballAtNetY + tapeY) / 2 + 3} fill="var(--chart-spin)" fontSize="8.5">
-          +{traj.netClearIn.toFixed(1)}″
-        </text>
-        {traj.landX <= xMax ? (
-          <circle cx={sx(traj.landX)} cy={sy(BALL_RADIUS_M)} r="3.4" fill="none" stroke="var(--chart-power)" strokeWidth="1.1" />
-        ) : null}
-        <text x={netPx} y={plot.ground + 12} textAnchor="middle" fill="var(--muted)" fontSize="8">
-          {formatFt(BASELINE_TO_NET_M, 0)} from baseline
-        </text>
-      </svg>
       </div>
-
       {!compact ? (
-        <>
-          <p className="mt-1 font-[family-name:var(--font-display)] text-2xl tracking-tight md:text-3xl">
-            {launch.toFixed(1)}° leave
-            <span className="ml-2 text-base text-[var(--muted)]">
-              · +{traj.netClearIn.toFixed(1)}″ over a 3.0 ft net
-            </span>
-          </p>
-          <p className="mt-1 text-xs leading-relaxed text-[var(--muted)]">
-            {formatFt(z.outFrontM)} out · {formatFt(z.heightM)} high · face {closed.toFixed(1)}° closed · +
-            {traj.netClearIn.toFixed(1)}″ over tape.
-          </p>
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <FlightGauge label="Plow" value={plow} color="var(--chart-comfort)" hint="Mass through hit" />
-            <FlightGauge label="Topspin" value={topspin} color="var(--chart-spin)" hint="Drop after tape" />
-            <FlightGauge
-              label="Launch"
-              value={clampNum(Math.round(launch * 6.2), 8, 98)}
-              color="var(--chart-control)"
-              hint={`${launch.toFixed(1)}° leave`}
-            />
-            <FlightGauge label="Depth" value={depth} color="var(--chart-power)" hint={`Fly risk ${flyRisk}`} />
-          </div>
-        </>
+        <dl className="mt-3 grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius)] border border-[var(--line)] bg-[var(--line)] sm:grid-cols-4">
+          {(
+            [
+              ["Launch", `${launch.toFixed(1)}°`],
+              ["Over net", `${netClearIn.toFixed(0)}″`],
+              ["Topspin", `${topspin}`],
+              ["Stability", `${plow}`],
+            ] as const
+          ).map(([k, v]) => (
+            <div key={k} className="bg-[var(--panel)] px-3 py-2.5">
+              <dt className="sf-spec-label">{k}</dt>
+              <dd className="sf-readout mt-1 text-[15px]">{v}</dd>
+            </div>
+          ))}
+        </dl>
       ) : (
         <p className="mt-2 text-xs tabular-nums text-[var(--muted)]">
-          {launch.toFixed(1)}° leave · +{traj.netClearIn.toFixed(1)}″ clear · apex {formatFt(traj.apex.y)} · land ~
-          {formatFt(traj.landX)} past contact
+          {launch.toFixed(1)}° launch · {netClearIn.toFixed(0)}″ over the net · depth {depth}
         </p>
       )}
     </div>
@@ -480,40 +293,6 @@ export function LaunchAngleVisual({
 
 function roundClear(launch: number, path: number): number {
   return Math.round((2.2 + launch * 1.85 + Math.max(0, path - 18) * 0.12) * 10) / 10;
-}
-
-function clampNum(v: number, a: number, b: number): number {
-  return Math.max(a, Math.min(b, v));
-}
-
-function FlightGauge({
-  label,
-  value,
-  color,
-  hint,
-}: {
-  label: string;
-  value: number;
-  color: string;
-  hint: string;
-}) {
-  return (
-    <div className="sf-panel px-2.5 py-2">
-      <p className="sf-kicker" style={{ color }}>
-        {label}
-      </p>
-      <div className="sf-meter-track mt-1.5">
-        <div
-          className="sf-meter-fill transition-[width] duration-500"
-          style={{ width: `${value}%`, background: color, color }}
-        />
-      </div>
-      <p className="mt-1 text-[11px] tabular-nums text-[var(--foreground)]/85">
-        {value}
-        <span className="ml-1 text-[10px] text-[var(--muted)]">{hint}</span>
-      </p>
-    </div>
-  );
 }
 
 /**
@@ -699,7 +478,7 @@ export function StrikeCoachingBullets({
       </p>
       <ul className="mt-3 space-y-2 text-sm leading-relaxed text-[var(--foreground)]/90">
         {bullets.map((b) => (
-          <li key={b} className="border-l-2 border-[var(--accent)]/45 pl-3">
+          <li key={b} className="border-l border-[var(--line-strong)] pl-3">
             {b}
           </li>
         ))}

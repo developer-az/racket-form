@@ -1,140 +1,126 @@
 "use client";
 
-import { useMemo, useRef, useState, type RefObject } from "react";
+import { useRef, useState, type RefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Line, Text } from "@react-three/drei";
 import * as THREE from "three";
-import type { JointAngles } from "@/types/biomechanics";
-import { deg } from "@/lib/kinematics";
+import type { SkeletonDriver } from "./BiomechanicalSkeleton";
 
-interface AngleArcProps {
-  jointsRef: RefObject<JointAngles>;
-  visible: boolean;
-  accent: string;
-  handedness: "right" | "left";
-}
+type Arc = { id: string; label: string; points: THREE.Vector3[]; labelPos: THREE.Vector3 };
 
-function makeArc(
-  origin: THREE.Vector3,
-  axis: THREE.Vector3,
-  fromDir: THREE.Vector3,
-  angleDeg: number,
-  radius: number,
-): THREE.Vector3[] {
+/** Arc between two bones meeting at `joint`, sampled by slerping the bone directions. */
+function jointArc(joint: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3, radius: number): THREE.Vector3[] {
+  const da = a.clone().sub(joint).normalize();
+  const db = b.clone().sub(joint).normalize();
+  const q = new THREE.Quaternion().setFromUnitVectors(da, db);
   const pts: THREE.Vector3[] = [];
-  const n = Math.max(2, Math.min(16, Math.abs(Math.round(angleDeg / 6))));
-  const q = new THREE.Quaternion();
-  const a = axis.clone().normalize();
-  for (let i = 0; i <= n; i++) {
-    const t = (i / n) * deg(angleDeg);
-    q.setFromAxisAngle(a, t);
-    pts.push(origin.clone().add(fromDir.clone().normalize().multiplyScalar(radius).applyQuaternion(q)));
+  const id = new THREE.Quaternion();
+  for (let i = 0; i <= 12; i++) {
+    const qi = id.clone().slerp(q, i / 12);
+    pts.push(joint.clone().addScaledVector(da.clone().applyQuaternion(qi), radius));
   }
   return pts;
 }
 
-/** Angle HUD — samples joints from a ref at ~10fps to avoid Text/Line thrash */
-export function AngleOverlays({ jointsRef, visible, accent, handedness }: AngleArcProps) {
-  const mirror = handedness === "left" ? -1 : 1;
+/** Horizontal line through `center` along the projected a→b direction. */
+function lineAcross(center: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3, half: number, y: number) {
+  const d = b.clone().sub(a);
+  d.y = 0;
+  if (d.lengthSq() < 1e-8) d.set(1, 0, 0);
+  d.normalize();
+  const c = new THREE.Vector3(center.x, y, center.z);
+  return [c.clone().addScaledVector(d, -half), c.clone().addScaledVector(d, half)];
+}
+
+/**
+ * Angle HUD drawn on the solved skeleton: elbow and front-knee flexion at the
+ * real joints, plus shoulder-line vs hip-line (X-factor) projected on a ring
+ * at the pelvis. Refreshed ~10×/s to avoid Text/Line churn.
+ */
+export function AngleOverlays({
+  driverRef,
+  visible,
+  accent,
+  secondary,
+}: {
+  driverRef: RefObject<SkeletonDriver>;
+  visible: boolean;
+  accent: string;
+  /** Hip line, so the two rotation lines read as separate channels */
+  secondary: string;
+}) {
   const accum = useRef(0);
-  const prev = useRef({ elbow: -999, knee: -999, shoulder: -999, trunk: -999 });
-  const [snap, setSnap] = useState({ elbow: 0, knee: 0, shoulder: 0, trunk: 0, twist: 0 });
+  const [arcs, setArcs] = useState<Arc[]>([]);
 
   useFrame((_, dt) => {
     if (!visible) return;
     accum.current += dt;
     if (accum.current < 0.1) return;
     accum.current = 0;
+    const p = driverRef.current?.pose;
+    if (!p) return;
+    const m = p.measured;
+    const frontLead = p.leadAnkle.z <= p.trailAnkle.z;
+    const hip = frontLead ? p.leadHip : p.trailHip;
+    const knee = frontLead ? p.leadKnee : p.trailKnee;
+    const ankle = frontLead ? p.leadAnkle : p.trailAnkle;
+    const ringY = p.pelvis.y + 0.02;
 
-    const j = jointsRef.current;
-    if (!j) return;
-
-    const next = {
-      elbow: Math.round(j.elbowFlexion),
-      knee: Math.round(j.leadKneeFlexion),
-      shoulder: Math.round(j.shoulderInternalRotation),
-      trunk: Math.round(Math.abs(j.spineTwist)),
-      twist: j.spineTwist,
-    };
-    const p = prev.current;
-    if (
-      next.elbow === p.elbow &&
-      next.knee === p.knee &&
-      next.shoulder === p.shoulder &&
-      next.trunk === p.trunk
-    ) {
-      return;
-    }
-    prev.current = next;
-    setSnap(next);
-  });
-
-  const overlays = useMemo(() => {
-    if (!visible) return [];
-
-    const hip = new THREE.Vector3(0, 0.95, 0);
-    const shoulder = new THREE.Vector3(0.2 * mirror, 1.45, 0);
-    const elbow = new THREE.Vector3(0.25 * mirror, 1.2, 0.25);
-    const knee = new THREE.Vector3(-0.12 * mirror, 0.55, 0.05);
-
-    return [
+    setArcs([
       {
         id: "elbow",
-        label: `Elbow ${snap.elbow}°`,
-        points: makeArc(elbow, new THREE.Vector3(mirror, 0, 0), new THREE.Vector3(0, -1, 0.2), snap.elbow, 0.22),
-        labelPos: elbow.clone().add(new THREE.Vector3(0.2 * mirror, 0.05, 0.15)),
+        label: `Elbow ${Math.round(m.elbowFlexion)}°`,
+        points: jointArc(p.hitElbow, p.hitShoulder, p.hitWrist, 0.09),
+        labelPos: p.hitElbow.clone().add(new THREE.Vector3(0, 0.1, 0)),
       },
       {
         id: "knee",
-        label: `Lead knee ${snap.knee}°`,
-        points: makeArc(knee, new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, -1, 0), snap.knee, 0.2),
-        labelPos: knee.clone().add(new THREE.Vector3(-0.25 * mirror, 0, 0.1)),
+        label: `Knee ${Math.round(m.frontKneeFlexion)}°`,
+        points: jointArc(knee, hip, ankle, 0.1),
+        labelPos: knee.clone().add(new THREE.Vector3(0, 0.02, -0.12)),
       },
       {
-        id: "shoulder",
-        label: `Shoulder IR ${snap.shoulder}°`,
-        points: makeArc(
-          shoulder,
-          new THREE.Vector3(0, 1, 0),
-          new THREE.Vector3(0, 0, 1),
-          snap.shoulder,
-          0.25,
-        ),
-        labelPos: shoulder.clone().add(new THREE.Vector3(0.15 * mirror, 0.2, 0.1)),
+        id: "shoulders",
+        label: `X-factor ${Math.round(Math.abs(m.separation))}°`,
+        points: lineAcross(p.pelvis, p.nonHitShoulder, p.hitShoulder, 0.32, ringY),
+        labelPos: new THREE.Vector3(p.pelvis.x, ringY + 0.08, p.pelvis.z - 0.36),
       },
       {
-        id: "xfactor",
-        label: `Trunk ${snap.trunk}°`,
-        points: makeArc(
-          hip,
-          new THREE.Vector3(0, 1, 0),
-          new THREE.Vector3(0, 0, 1),
-          snap.twist * mirror,
-          0.35,
-        ),
-        labelPos: hip.clone().add(new THREE.Vector3(0, 0.35, 0.3)),
+        id: "hips",
+        label: "",
+        points: lineAcross(p.pelvis, p.leadHip, p.trailHip, 0.26, ringY),
+        labelPos: p.pelvis.clone(),
       },
-    ];
-  }, [visible, mirror, snap]);
+    ]);
+  });
 
   if (!visible) return null;
 
   return (
     <group>
-      {overlays.map((o) => (
+      {arcs.map((o) => (
         <group key={o.id}>
-          <Line points={o.points} color={accent} lineWidth={2} transparent opacity={0.85} />
-          <Text
-            position={o.labelPos}
-            fontSize={0.07}
-            color={accent}
-            anchorX="left"
-            anchorY="middle"
-            outlineWidth={0.008}
-            outlineColor="#0a0f0c"
-          >
-            {o.label}
-          </Text>
+          <Line
+            points={o.points}
+            color={o.id === "hips" ? secondary : accent}
+            lineWidth={o.id === "elbow" || o.id === "knee" ? 2.5 : 2}
+            transparent
+            opacity={0.9}
+            depthTest={false}
+          />
+          {o.label && (
+            <Text
+              position={o.labelPos}
+              fontSize={0.06}
+              color={accent}
+              anchorX="center"
+              anchorY="bottom"
+              outlineWidth={0.008}
+              outlineColor="#0a0b0d"
+            >
+              {o.label}
+            </Text>
+          )}
         </group>
       ))}
     </group>

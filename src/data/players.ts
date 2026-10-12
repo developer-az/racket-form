@@ -163,6 +163,7 @@ const nadalDefaults: StrokeLibrary = fillStrokes(
         grip: "continental",
       },
     }),
+    volley: cloneStroke(federerDefaults.volley, { handedness: "left", label: "Forehand Volley (Lefty)" }),
   },
   {
     ...federerDefaults,

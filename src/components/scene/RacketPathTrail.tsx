@@ -5,10 +5,11 @@ import { useFrame } from "@react-three/fiber";
 import { Line } from "@react-three/drei";
 import * as THREE from "three";
 import type { Anthropometrics, StrokeProfile } from "@/types/biomechanics";
-import { sampleStroke } from "@/lib/kinematics";
-import { createSkeletonPose, solveSkeletonFk } from "@/lib/skeletonFk";
+import { createSkeletonPose, solveStrokePose } from "@/lib/motion/solver";
 
-/** Sample racket tip positions across the stroke for path visualization */
+const STEPS = 96;
+
+/** String-bed centre path across the stroke — the swing path coaches talk about. */
 export function RacketPathTrail({
   stroke,
   anthropometrics,
@@ -25,18 +26,9 @@ export function RacketPathTrail({
   const points = useMemo(() => {
     const pts: THREE.Vector3[] = [];
     const scratch = createSkeletonPose();
-    const steps = 36;
-    for (let i = 0; i <= steps; i++) {
-      const t = i / steps;
-      const pose = sampleStroke(stroke, t);
-      solveSkeletonFk(
-        scratch,
-        pose.joints,
-        anthropometrics,
-        stroke.handedness,
-        stroke.oneHanded,
-      );
-      pts.push(scratch.racketTip.clone());
+    for (let i = 0; i <= STEPS; i++) {
+      solveStrokePose(scratch, stroke, anthropometrics, i / STEPS);
+      pts.push(scratch.racketHeadCenter.clone());
     }
     return pts;
   }, [stroke, anthropometrics]);
@@ -47,7 +39,7 @@ export function RacketPathTrail({
   useFrame(() => {
     if (!visible) return;
     const t = tRef.current ?? 0;
-    const next = Math.max(2, Math.floor(t * points.length));
+    const next = Math.max(2, Math.floor(t * STEPS) + 1);
     if (next !== lastCount.current) {
       lastCount.current = next;
       setFadeCount(next);

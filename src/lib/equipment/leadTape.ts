@@ -45,6 +45,9 @@ export const LEAD_TAPE_ZONES: Record<
 
 export const LEAD_TAPE_MASS_PRESETS = [0.5, 1, 2] as const;
 
+/** Swingweight is measured about an axis 10 cm from the butt (RDC convention). */
+const SW_AXIS_CM = 10;
+
 /** Approximate distance from butt (cm) for swingweight / balance modeling. */
 const ZONE_DISTANCE_CM: Record<LeadTapeZone, number> = {
   tip: 68,
@@ -110,8 +113,9 @@ export function createLeadTapePiece(
 
 /**
  * Coaching-grade lead-tape model.
- * SW ≈ Σ m * r² (kg · cm² scale mapped to TW-like units).
- * Balance shift ≈ mass-weighted lever toward tip vs handle.
+ * ΔSW = Σ m · (r − 10 cm)²: swingweight is the moment of inertia (kg·cm²) about
+ * the axis 10 cm from the butt, so 1 g at the tip (≈58 cm from the axis) adds ≈3.4.
+ * Balance is the combined centre of mass: ΔB = Σ m·(r − B) / (W + Σ m).
  */
 export function computeLeadTapeEffect(
   racket: Pick<
@@ -140,11 +144,11 @@ export function computeLeadTapeEffect(
     zoneSummary[p.zone] = (zoneSummary[p.zone] ?? 0) + p.massG;
     const r = ZONE_DISTANCE_CM[p.zone];
     const mKg = p.massG / 1000;
-    momentKgCm2 += mKg * r * r;
+    momentKgCm2 += mKg * (r - SW_AXIS_CM) ** 2;
 
     // Balance: tipward mass increases mm from butt; handle decreases
-    const lever = (r - 32) / 36; // ~−0.7 handle … +1 tip
-    balanceMoment += p.massG * lever;
+    // First moment about the stock balance point (g·mm)
+    balanceMoment += p.massG * (r * 10 - baseBal);
 
     if (p.zone === "tip" || p.zone === "twelve") tipMass += p.massG;
     else if (p.zone === "three" || p.zone === "nine") sideMass += p.massG;
@@ -152,11 +156,11 @@ export function computeLeadTapeEffect(
     else handleMass += p.massG;
   }
 
-  // Map kg·cm² increment to TW swingweight points (~1g at tip ≈ +2–3 SW)
-  const deltaSwingweight = Math.round(momentKgCm2 * 2.15 * 10) / 10;
+  // Swingweight is quoted directly in kg·cm²
+  const deltaSwingweight = Math.round(momentKgCm2 * 10) / 10;
   const deltaBalanceMm =
     addedMassG > 0
-      ? Math.round(((balanceMoment / (baseW + addedMassG)) * 28) * 10) / 10
+      ? Math.round((balanceMoment / (baseW + addedMassG)) * 10) / 10
       : 0;
 
   // Launch: tip/12 mass → slightly flatter; handle → slightly higher
